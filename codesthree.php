@@ -54,7 +54,7 @@ function threejs_editor_menu() {
         'manage_options',
         'threejs-model-editor',
         'threejs_editor_page',
-        'dashicons-admin-site-alt2',
+        'dashicons-visibility',
         100
     );
 }
@@ -73,8 +73,22 @@ function threejs_editor_page() {
           }
         </script>
         <h1>3D Model Editor</h1>
-        <div id="threejs-canvas" style="width: 100%; height: 500px;"></div>
+
+        <div id="threejs-canvas" style="width: 1000px; height: 500px;"></div>
         <button id="save-model-data">Save Changes</button>
+
+        <div id="label" style="margin-top: 10px; padding: 10px; border: 1px solid #ddd; background: #f9f9f9;">
+            <b>Position:</b> x: 0, y: 0, z: 0<br>
+            <b>Rotation:</b> x: 0°, y: 0°, z: 0°
+        </div>
+
+        <div style="margin-top: 10px;">
+          <label for="ambient-light-slider">Ambient Light Intensity:</label>
+          <input type="range" id="ambient-light-slider" min="0" max="2" step="0.1" value="1" style="width: 100%;">
+
+          <label for="directional-light-slider" style="margin-top: 10px;">Directional Light Intensity:</label>
+          <input type="range" id="directional-light-slider" min="0" max="2" step="0.1" value="1" style="width: 100%;">
+      </div>
     </div>
     <?php
 }

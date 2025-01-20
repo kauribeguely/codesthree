@@ -7,32 +7,57 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     const container = document.getElementById('threejs-canvas');
+    const labelContainer = document.getElementById('label'); // Label container for displaying object details
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
     camera.position.set(0, 2, 5);
 
-    const renderer = new THREE.WebGLRenderer();
+    const renderer = new THREE.WebGLRenderer({antialias: true});
     renderer.setSize(container.clientWidth, container.clientHeight);
     container.appendChild(renderer.domElement);
 
-    const light = new THREE.DirectionalLight(0xffffff, 1);
-    light.position.set(5, 5, 5);
-    scene.add(light);
+    const dlight = new THREE.DirectionalLight(0xffffff, 1);
+    let dlightIntensity = 1;
+    dlight.position.set(5, 5, 5);
+    scene.add(dlight);
+
+    const alight = new THREE.AmbientLight(0xffffff, 1);
+    let alightIntensity = 1;
+    alight.position.set(5, 5, 5);
+    scene.add(alight);
+
+    // Get the sliders by their IDs
+    const ambientLightSlider = document.getElementById('ambient-light-slider');
+    const directionalLightSlider = document.getElementById('directional-light-slider');
+
+    // Event listener to change the intensity of the ambient light
+    ambientLightSlider.addEventListener('input', function() {
+        alight.intensity = parseFloat(ambientLightSlider.value);
+    });
+
+    // Event listener to change the intensity of the directional light
+    directionalLightSlider.addEventListener('input', function() {
+        dlight.intensity = parseFloat(directionalLightSlider.value);
+    });
+
 
     let controls;
+    let model;
 
     // Load 3D Model
     // const loader = new THREE.GLTFLoader();
     const loader = new GLTFLoader();
     loader.load('http://localhost/wPpractice/wp-content/uploads/2025/01/first-room.glb', (gltf) => {
-        const model = gltf.scene;
+        model = gltf.scene;
         scene.add(model);
 
         // Allow rotation/repositioning
         controls = new TransformControls(camera, renderer.domElement);
         controls.attach(model);
         scene.add(controls);
+        // Listen for changes in the TransformControls
+        controls.addEventListener('change', updateLabel);
 
         // Save model position/rotation
         document.getElementById('save-model-data').addEventListener('click', () => {
@@ -53,12 +78,30 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+
+    const updateLabel = () => {
+        const pos = model.position;
+        const rot = model.rotation;
+
+        labelContainer.innerHTML = `
+            <b>Position:</b> x: ${pos.x.toFixed(2)}, y: ${pos.y.toFixed(2)}, z: ${pos.z.toFixed(2)}<br>
+            <b>Rotation:</b> x: ${THREE.MathUtils.radToDeg(rot.x).toFixed(2)}°,
+                            y: ${THREE.MathUtils.radToDeg(rot.y).toFixed(2)}°,
+                            z: ${THREE.MathUtils.radToDeg(rot.z).toFixed(2)}°
+        `;
+    };
+
+
+
+
+
     // Render loop
     function animate() {
         requestAnimationFrame(animate);
         renderer.render(scene, camera);
     }
     animate();
+    // updateLabel();//show initial values
 
 
     // Optional: Enable drag interaction with the transform controls
