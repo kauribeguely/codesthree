@@ -1,0 +1,12 @@
+#threejs-canvas {
+    border: 1px solid #ccc;
+    margin-top: 20px;
+}
+#save-model-data {
+    margin-top: 10px;
+    padding: 10px 20px;
+    background: #0073aa;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
