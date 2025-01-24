@@ -2,9 +2,10 @@ import * as THREE from 'three';
 // import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
-document.addEventListener('DOMContentLoaded', () => {
+// document.addEventListener('DOMContentLoaded', () => {
+window.onload = () => {
 
-
+  console.log('test');
 
     const container = document.getElementById('threejs-canvas');
     const labelContainer = document.getElementById('label'); // Label container for displaying object details
@@ -118,4 +119,5 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
         }
     });
-});
+}
+// });
