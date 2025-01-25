@@ -5,7 +5,18 @@ import { TransformControls } from 'three/addons/controls/TransformControls.js';
 // document.addEventListener('DOMContentLoaded', () => {
 window.onload = () => {
 
-  console.log('test');
+  console.log('Admin JS Codes 3D started');
+
+
+
+  // Update Light Intensity Value
+  const lightSlider = document.getElementById('threejs_light_intensity');
+  const lightValue = document.getElementById('light_intensity_value');
+
+  lightSlider.addEventListener('input', function () {
+      lightValue.textContent = lightSlider.value;
+  });
+
 
     const container = document.getElementById('threejs-canvas');
     const labelContainer = document.getElementById('label'); // Label container for displaying object details
@@ -46,38 +57,78 @@ window.onload = () => {
     let controls;
     let model;
 
+
     // Load 3D Model
     // const loader = new THREE.GLTFLoader();
     const loader = new GLTFLoader();
-    loader.load('http://localhost/wPpractice/wp-content/uploads/2025/01/first-room.glb', (gltf) => {
-        model = gltf.scene;
-        scene.add(model);
 
-        // Allow rotation/repositioning
-        controls = new TransformControls(camera, renderer.domElement);
-        controls.attach(model);
-        scene.add(controls);
-        // Listen for changes in the TransformControls
-        controls.addEventListener('change', updateLabel);
+    loadModel('http://localhost/wPpractice/wp-content/uploads/2025/01/first-room.glb');
 
-        // Save model position/rotation
-        document.getElementById('save-model-data').addEventListener('click', () => {
-            const data = {
-                position: model.position,
-                rotation: model.rotation
-            };
-            fetch(ajaxurl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'save_model_data',
-                    model_data: data
-                })
-            }).then(response => response.json()).then(data => {
-                alert('Model data saved!');
-            });
+    // loader.load('http://localhost/wPpractice/wp-content/uploads/2025/01/first-room.glb', (gltf) => {
+    //     model = gltf.scene;
+    //     scene.add(model);
+    //
+    //     // Allow rotation/repositioning
+    //     controls = new TransformControls(camera, renderer.domElement);
+    //     controls.attach(model);
+    //     scene.add(controls);
+    //     // Listen for changes in the TransformControls
+    //     controls.addEventListener('change', updateLabel);
+    //
+    //     // Save model position/rotation
+    //     document.getElementById('save-model-data').addEventListener('click', () => {
+    //         const data = {
+    //             position: model.position,
+    //             rotation: model.rotation
+    //         };
+    //         fetch(ajaxurl, {
+    //             method: 'POST',
+    //             headers: { 'Content-Type': 'application/json' },
+    //             body: JSON.stringify({
+    //                 action: 'save_model_data',
+    //                 model_data: data
+    //             })
+    //         }).then(response => response.json()).then(data => {
+    //             alert('Model data saved!');
+    //         });
+    //     });
+    // });
+
+
+    function loadModel(url)
+    {
+      loader.load(url, (gltf) =>
+      {
+          model = gltf.scene;
+          scene.add(model);
+
+          // Allow rotation/repositioning
+          controls = new TransformControls(camera, renderer.domElement);
+          controls.attach(model);
+          scene.add(controls);
+          // Listen for changes in the TransformControls
+          controls.addEventListener('change', updateLabel);
+
+          // Save model position/rotation
+          // document.getElementById('save-model-data').addEventListener('click', () => {
+          //     const data = {
+          //         position: model.position,
+          //         rotation: model.rotation
+          //     };
+          //     fetch(ajaxurl, {
+          //         method: 'POST',
+          //         headers: { 'Content-Type': 'application/json' },
+          //         body: JSON.stringify({
+          //             action: 'save_model_data',
+          //             model_data: data
+          //         })
+          //     }).then(response => response.json()).then(data => {
+          //         alert('Model data saved!');
+          //     });
+          // });
         });
-    });
+    }
+
 
 
     const updateLabel = () => {
@@ -93,6 +144,33 @@ window.onload = () => {
     };
 
 
+
+    // Handle WordPress Media Library for Model URL
+    const mediaButton = document.getElementById('threejs_model_url_button');
+    const modelUrlField = document.getElementById('threejs_model_url');
+    const preview = document.getElementById('threejs_model_url_preview');
+
+    mediaButton.addEventListener('click', function (e) {
+        e.preventDefault();
+
+        const mediaUploader = wp.media({
+            title: 'Select 3D Model',
+            button: { text: 'Use this model' },
+            multiple: false
+        });
+
+        mediaUploader.on('select', function () {
+            const attachment = mediaUploader.state().get('selection').first().toJSON();
+            modelUrlField.value = attachment.url;
+            preview.innerHTML = `Current Model: <a href="${attachment.url}" target="_blank">${attachment.url}</a>`;
+            console.log(attachment.url);
+            loadModel(attachment.url);
+
+        });
+
+        mediaUploader.open();
+
+    });
 
 
 
