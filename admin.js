@@ -8,14 +8,37 @@ window.onload = () => {
   console.log('Admin JS Codes 3D started');
 
 
+  const posXInput = document.getElementById('threejs_position_x');
+  const posYInput = document.getElementById('threejs_position_y');
+  const posZInput = document.getElementById('threejs_position_z');
 
-  // Update Light Intensity Value
-  const lightSlider = document.getElementById('threejs_light_intensity');
-  const lightValue = document.getElementById('light_intensity_value');
+  posXInput.oninput = () => {
+    model.position.x = parseFloat(posXInput.value) || 0;
+  };
+  posYInput.oninput = () => {
+      model.position.y = parseFloat(posYInput.value) || 0;
+  };
+  posZInput.oninput = () => {
+      model.position.z = parseFloat(posZInput.value) || 0;
+  };
 
-  lightSlider.addEventListener('input', function () {
-      lightValue.textContent = lightSlider.value;
-  });
+
+
+  const rotXInput = document.getElementById('threejs_rotation_x');
+  const rotYInput = document.getElementById('threejs_rotation_y');
+  const rotZInput = document.getElementById('threejs_rotation_z');
+
+
+  rotXInput.oninput = () => {
+      model.rotation.x = THREE.MathUtils.degToRad(parseFloat(rotXInput.value) || 0);
+  };
+  rotYInput.oninput = () => {
+      model.rotation.y = THREE.MathUtils.degToRad(parseFloat(rotYInput.value) || 0);
+  };
+  rotZInput.oninput = () => {
+      model.rotation.z = THREE.MathUtils.degToRad(parseFloat(rotZInput.value) || 0);
+  };
+
 
 
     const container = document.getElementById('threejs-canvas');
@@ -32,7 +55,7 @@ window.onload = () => {
     const dlight = new THREE.DirectionalLight(0xffffff, 1);
     let dlightIntensity = 1;
     dlight.position.set(5, 5, 5);
-    scene.add(dlight);
+    // scene.add(dlight);
 
     const alight = new THREE.AmbientLight(0xffffff, 1);
     let alightIntensity = 1;
@@ -41,17 +64,30 @@ window.onload = () => {
 
     // Get the sliders by their IDs
     const ambientLightSlider = document.getElementById('ambient-light-slider');
+    const lightValue = document.getElementById('light_intensity_value');
+
+
     const directionalLightSlider = document.getElementById('directional-light-slider');
 
     // Event listener to change the intensity of the ambient light
     ambientLightSlider.addEventListener('input', function() {
         alight.intensity = parseFloat(ambientLightSlider.value);
+        lightValue.textContent = ambientLightSlider.value;
     });
+    //
+    // // Event listener to change the intensity of the directional light
+    // directionalLightSlider.addEventListener('input', function() {
+    //     dlight.intensity = parseFloat(directionalLightSlider.value);
+    // });
 
-    // Event listener to change the intensity of the directional light
-    directionalLightSlider.addEventListener('input', function() {
-        dlight.intensity = parseFloat(directionalLightSlider.value);
-    });
+
+    // // Update Light Intensity Value
+    // const lightSlider = document.getElementById('threejs_light_intensity');
+    // const lightValue = document.getElementById('light_intensity_value');
+    //
+    // lightSlider.addEventListener('input', function () {
+    //     lightValue.textContent = lightSlider.value;
+    // });
 
 
     let controls;
@@ -62,7 +98,9 @@ window.onload = () => {
     // const loader = new THREE.GLTFLoader();
     const loader = new GLTFLoader();
 
-    loadModel('http://localhost/wPpractice/wp-content/uploads/2025/01/first-room.glb');
+    loadModel('http://localhost/wPpractice/wp-content/uploads/2025/01/first-room.glb', sceneData);
+
+
 
     // loader.load('http://localhost/wPpractice/wp-content/uploads/2025/01/first-room.glb', (gltf) => {
     //     model = gltf.scene;
@@ -95,12 +133,27 @@ window.onload = () => {
     // });
 
 
-    function loadModel(url)
+    function loadModel(url, sceneData)
     {
       loader.load(url, (gltf) =>
       {
+          scene.remove(model);
+          scene.remove(controls);
+
           model = gltf.scene;
           scene.add(model);
+
+          model.position.set(
+              parseFloat(sceneData.positionX),
+              parseFloat(sceneData.positionY),
+              parseFloat(sceneData.positionZ)
+          );
+
+          model.rotation.set(
+              parseFloat(sceneData.rotationX),
+              parseFloat(sceneData.rotationY),
+              parseFloat(sceneData.rotationZ)
+          );
 
           // Allow rotation/repositioning
           controls = new TransformControls(camera, renderer.domElement);
@@ -131,17 +184,33 @@ window.onload = () => {
 
 
 
-    const updateLabel = () => {
-        const pos = model.position;
-        const rot = model.rotation;
+    // const updateLabel = () => {
+    //     const pos = model.position;
+    //     const rot = model.rotation;
+    //
+    //     labelContainer.innerHTML = `
+    //         <b>Position:</b> x: ${pos.x.toFixed(2)}, y: ${pos.y.toFixed(2)}, z: ${pos.z.toFixed(2)}<br>
+    //         <b>Rotation:</b> x: ${THREE.MathUtils.radToDeg(rot.x).toFixed(2)}°,
+    //                         y: ${THREE.MathUtils.radToDeg(rot.y).toFixed(2)}°,
+    //                         z: ${THREE.MathUtils.radToDeg(rot.z).toFixed(2)}°
+    //     `;
+    // };
 
-        labelContainer.innerHTML = `
-            <b>Position:</b> x: ${pos.x.toFixed(2)}, y: ${pos.y.toFixed(2)}, z: ${pos.z.toFixed(2)}<br>
-            <b>Rotation:</b> x: ${THREE.MathUtils.radToDeg(rot.x).toFixed(2)}°,
-                            y: ${THREE.MathUtils.radToDeg(rot.y).toFixed(2)}°,
-                            z: ${THREE.MathUtils.radToDeg(rot.z).toFixed(2)}°
-        `;
-    };
+    const updateLabel = () => {
+      const pos = model.position;
+      const rot = model.rotation;
+
+      // Update position fields
+      posXInput.value = pos.x.toFixed(2);
+      posYInput.value = pos.y.toFixed(2);
+      posZInput.value = pos.z.toFixed(2);
+
+      // Update rotation fields (converted from radians to degrees)
+      rotXInput.value = THREE.MathUtils.radToDeg(rot.x).toFixed(2);
+      rotYInput.value = THREE.MathUtils.radToDeg(rot.y).toFixed(2);
+      rotZInput.value = THREE.MathUtils.radToDeg(rot.z).toFixed(2);
+  };
+
 
 
 

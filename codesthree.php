@@ -136,7 +136,65 @@ function codesthree_register_scenes_post_type() {
 // add_action('add_meta_boxes', 'threejs_add_scene_meta_boxes');
 
 
+function save_scene_metadata($post_id) {
+    // Verify this is a "scene" post type
+    if (get_post_type($post_id) !== 'scene') {
+        return;
+    }
 
+    // // Verify nonce and user permissions
+    // if (
+    //     !isset($_POST['scene_meta_nonce']) ||
+    //     !wp_verify_nonce($_POST['scene_meta_nonce'], 'save_scene_metadata')
+    // ) {
+    //     return;
+    // }
+
+    if (!current_user_can('edit_post', $post_id)) {
+        return;
+    }
+
+    // Save position and rotation metadata
+    $fields = [
+        'threejs_pos_x',
+        'threejs_pos_y',
+        'threejs_pos_z',
+        'threejs_rot_x',
+        'threejs_rot_y',
+        'threejs_rot_z',
+        'threejs_model_url'
+    ];
+
+    foreach ($fields as $field) {
+        if (isset($_POST[$field])) {
+            update_post_meta($post_id, $field, sanitize_text_field($_POST[$field]));
+        }
+    }
+}
+add_action('save_post', 'save_scene_metadata');
+// add_action('save_post', 'save_scene_metadata2');
+
+
+function save_scene_metadata2($post_id) {
+    // Check if it's a valid post save
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return $post_id;
+    }
+
+    // Check if it's your custom post type
+    if ('scene' !== get_post_type($post_id)) {
+        return $post_id;
+    }
+
+    // Sanitize the value before saving
+    if (isset($_POST['threejs_rot_x'])) {
+        $rot_x = sanitize_text_field($_POST['threejs_rot_x']);
+        update_post_meta($post_id, 'threejs_rot_x', $rot_x);
+    }
+
+    return $post_id;
+}
+// add_action('save_post', 'save_threejs_meta_data');
 
 
 // Add meta box for 3D Element Editor in Scene post type
@@ -159,15 +217,37 @@ function threejs_editor_page($post) {
 
   // Retrieve existing values
   $model_url = get_post_meta($post->ID, 'threejs_model_url', true);
-  $position = get_post_meta($post->ID, 'threejs_position', true);
-  $rotation = get_post_meta($post->ID, 'threejs_rotation', true);
-  $light_intensity = get_post_meta($post->ID, 'threejs_light_intensity', true);
+  // $position = get_post_meta($post->ID, 'threejs_position', true);
+  // $rotation = get_post_meta($post->ID, 'threejs_rotation', true);
+  // $position = $position ? json_decode($position, true) : ['x' => 0, 'y' => 0, 'z' => 0];
+  // $rotation = $rotation ? json_decode($rotation, true) : ['x' => 0, 'y' => 0, 'z' => 0];
+
+  // Load saved metadata
+  $pos_x = get_post_meta($post->ID, 'threejs_pos_x', true);
+  $pos_y = get_post_meta($post->ID, 'threejs_pos_y', true);
+  $pos_z = get_post_meta($post->ID, 'threejs_pos_z', true);
+
+  $rot_x = get_post_meta($post->ID, 'threejs_rot_x', true);
+  $rot_y = get_post_meta($post->ID, 'threejs_rot_y', true);
+  $rot_z = get_post_meta($post->ID, 'threejs_rot_z', true);
+
+  $light_intensity = get_post_meta($post->ID, 'ambient_light_intensity', true);
 
   // Default values if empty
-  $position = $position ? json_decode($position, true) : ['x' => 0, 'y' => 0, 'z' => 0];
-  $rotation = $rotation ? json_decode($rotation, true) : ['x' => 0, 'y' => 0, 'z' => 0];
-  $light_intensity = $light_intensity ?: 1;
+  $light_intensity = $light_intensity ?: 0.5;
 
+
+  $scene_data = array(
+      'positionX' => $pos_x ?: 0,
+      'positionY' => $pos_y ?: 0,
+      'positionZ' => $pos_z ?: 0,
+      'rotationX' => $rot_x ?: 0,
+      'rotationY' => $rot_y ?: 0,
+      'rotationZ' => $rot_z ?: 0,
+      'lightIntensity' => $light_intensity ?: 0.5,
+  );
+
+  // wp_nonce_field('save_scene_metadata', 'scene_meta_nonce');
   // Output the form
     ?>
     <!-- start HTML -->
@@ -197,13 +277,17 @@ function threejs_editor_page($post) {
         </div>
 
 
-        <div style="margin-top: 10px;">
+        <!-- <div style="margin-top: 10px;">
           <label for="ambient-light-slider">Ambient Light Intensity:</label>
-          <input type="range" id="ambient-light-slider" min="0" max="2" step="0.01" value="<?php echo esc_attr($light_intensity); ?>" style="width: 100%;">
+          <input type="range" id="ambient-light-slider" min="0" max="2" step="0.01" value="1" style="width: 100%;">
 
           <label for="directional-light-slider" style="margin-top: 10px;">Directional Light Intensity:</label>
           <input type="range" id="directional-light-slider" min="0" max="2" step="0.1" value="1" style="width: 100%;">
-      </div>
+      </div> -->
+
+
+
+
 
       <h1>NEW</h1>
 
@@ -220,26 +304,34 @@ function threejs_editor_page($post) {
 
       <p>
           <strong>Position (Transforms):</strong><br>
-          X: <input type="number" name="threejs_position_x" id="threejs_position_x" value="<?php echo esc_attr($position['x']); ?>" step="0.1" />
-          Y: <input type="number" name="threejs_position_y" id="threejs_position_y" value="<?php echo esc_attr($position['y']); ?>" step="0.1" />
-          Z: <input type="number" name="threejs_position_z" id="threejs_position_z" value="<?php echo esc_attr($position['z']); ?>" step="0.1" />
+          X: <input type="number" name="threejs_pos_x" id="threejs_position_x" value="<?php echo esc_attr($pos_x); ?>" step="0.01" />
+          Y: <input type="number" name="threejs_pos_y" id="threejs_position_y" value="<?php echo esc_attr($pos_y); ?>" step="0.01" />
+          Z: <input type="number" name="threejs_pos_z" id="threejs_position_z" value="<?php echo esc_attr($pos_z); ?>" step="0.01" />
+          <!-- X: <input type="number" name="threejs_position_x" id="threejs_position_x" value="<?php //echo esc_attr($position['x']); ?>" step="0.1" />
+          Y: <input type="number" name="threejs_position_y" id="threejs_position_y" value="<?php //echo esc_attr($position['y']); ?>" step="0.1" />
+          Z: <input type="number" name="threejs_position_z" id="threejs_position_z" value="<?php //echo esc_attr($position['z']); ?>" step="0.1" /> -->
       </p>
 
       <p>
           <strong>Rotation (Transforms):</strong><br>
-          X: <input type="number" name="threejs_rotation_x" id="threejs_rotation_x" value="<?php echo esc_attr($rotation['x']); ?>" step="0.1" />
-          Y: <input type="number" name="threejs_rotation_y" id="threejs_rotation_y" value="<?php echo esc_attr($rotation['y']); ?>" step="0.1" />
-          Z: <input type="number" name="threejs_rotation_z" id="threejs_rotation_z" value="<?php echo esc_attr($rotation['z']); ?>" step="0.1" />
+          X: <input type="number" name="threejs_rot_x" id="threejs_rotation_x" value="<?php echo esc_attr($rot_x); ?>" step="0.01" />
+          Y: <input type="number" name="threejs_rot_y" id="threejs_rotation_y" value="<?php echo esc_attr($rot_y); ?>" step="0.01" />
+          Z: <input type="number" name="threejs_rot_z" id="threejs_rotation_z" value="<?php echo esc_attr($rot_z); ?>" step="0.01" />
       </p>
 
       <p>
-          <label for="threejs_light_intensity">Light Intensity:</label><br>
-          <input type="range" name="threejs_light_intensity" id="threejs_light_intensity" min="0" max="10" step="0.1" value="<?php echo esc_attr($light_intensity); ?>" />
+          <label for="ambient-light-slider">Light Intensity:</label><br>
+          <input type="range" name="ambient_light_intensity" id="ambient-light-slider" min="0" max="3" step="0.05" value="<?php echo esc_attr($light_intensity); ?>" />
           <span id="light_intensity_value"><?php echo esc_attr($light_intensity); ?></span>
       </p>
 
-
+      <script>
+        // Pass PHP data to JavaScript
+        const sceneData = <?php echo json_encode($scene_data); ?>;
+        console.log('Three.js Transform Data:', sceneData);
+      </script>
       <script type="module" src="<?php echo plugins_url('admin.js', __FILE__); ?>"></script>
+
 
     </div>
     <?php
