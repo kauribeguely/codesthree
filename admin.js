@@ -71,9 +71,17 @@ window.onload = () => {
 
     // Event listener to change the intensity of the ambient light
     ambientLightSlider.addEventListener('input', function() {
-        alight.intensity = parseFloat(ambientLightSlider.value);
+        // alight.intensity = parseFloat(ambientLightSlider.value);
+        setLightIntensity(alight, ambientLightSlider.value);
         lightValue.textContent = ambientLightSlider.value;
     });
+
+    function setLightIntensity(light, intensity)
+    {
+      light.intensity = parseFloat(intensity);
+    }
+
+    setLightIntensity(alight, sceneData.lightIntensity);
     //
     // // Event listener to change the intensity of the directional light
     // directionalLightSlider.addEventListener('input', function() {
@@ -150,9 +158,9 @@ window.onload = () => {
           );
 
           model.rotation.set(
-              parseFloat(sceneData.rotationX),
-              parseFloat(sceneData.rotationY),
-              parseFloat(sceneData.rotationZ)
+              parseFloat(THREE.MathUtils.degToRad(sceneData.rotationX)),
+              parseFloat(THREE.MathUtils.degToRad(sceneData.rotationY)),
+              parseFloat(THREE.MathUtils.degToRad(sceneData.rotationZ))
           );
 
           // Allow rotation/repositioning
