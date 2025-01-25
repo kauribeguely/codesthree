@@ -162,7 +162,8 @@ function save_scene_metadata($post_id) {
         'threejs_rot_x',
         'threejs_rot_y',
         'threejs_rot_z',
-        'threejs_model_url'
+        'threejs_model_url',
+        'ambient_light_intensity'
     ];
 
     foreach ($fields as $field) {
@@ -250,7 +251,7 @@ function threejs_editor_page($post) {
   // wp_nonce_field('save_scene_metadata', 'scene_meta_nonce');
   // Output the form
     ?>
-    <!-- start HTML -->
+    <!-- start HTMLs -->
     <div id="threejs-editor-container">
         <script type="importmap">
           {
@@ -271,10 +272,10 @@ function threejs_editor_page($post) {
         <button id="save-model-data">Save Changes</button>
 
 
-        <div id="label" style="margin-top: 10px; padding: 10px; border: 1px solid #ddd; background: #f9f9f9;">
+        <!-- <div id="label" style="margin-top: 10px; padding: 10px; border: 1px solid #ddd; background: #f9f9f9;">
             <b>Position:</b> x: 0, y: 0, z: 0<br>
             <b>Rotation:</b> x: 0°, y: 0°, z: 0°
-        </div>
+        </div> -->
 
 
         <!-- <div style="margin-top: 10px;">
