@@ -29,6 +29,7 @@ window.onload = () => {
   const rotZInput = document.getElementById('threejs_rotation_z');
 
 
+
   rotXInput.oninput = () => {
       model.rotation.x = THREE.MathUtils.degToRad(parseFloat(rotXInput.value) || 0);
   };
@@ -41,6 +42,13 @@ window.onload = () => {
 
 
 
+  const scaleInput = document.getElementById('codes_scale');
+  scaleInput.oninput = () => {
+      model.scale.set(scaleInput.value, scaleInput.value, scaleInput.value);
+  };
+
+
+
     const container = document.getElementById('threejs-canvas');
     const labelContainer = document.getElementById('label'); // Label container for displaying object details
 
@@ -48,7 +56,7 @@ window.onload = () => {
     const camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
     camera.position.set(0, 2, 5);
 
-    const renderer = new THREE.WebGLRenderer({antialias: true});
+    const renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
     renderer.setSize(container.clientWidth, container.clientHeight);
     container.appendChild(renderer.domElement);
 
@@ -106,40 +114,8 @@ window.onload = () => {
     // const loader = new THREE.GLTFLoader();
     const loader = new GLTFLoader();
 
-    loadModel('http://localhost/wPpractice/wp-content/uploads/2025/01/first-room.glb', sceneData);
-
-
-
-    // loader.load('http://localhost/wPpractice/wp-content/uploads/2025/01/first-room.glb', (gltf) => {
-    //     model = gltf.scene;
-    //     scene.add(model);
-    //
-    //     // Allow rotation/repositioning
-    //     controls = new TransformControls(camera, renderer.domElement);
-    //     controls.attach(model);
-    //     scene.add(controls);
-    //     // Listen for changes in the TransformControls
-    //     controls.addEventListener('change', updateLabel);
-    //
-    //     // Save model position/rotation
-    //     document.getElementById('save-model-data').addEventListener('click', () => {
-    //         const data = {
-    //             position: model.position,
-    //             rotation: model.rotation
-    //         };
-    //         fetch(ajaxurl, {
-    //             method: 'POST',
-    //             headers: { 'Content-Type': 'application/json' },
-    //             body: JSON.stringify({
-    //                 action: 'save_model_data',
-    //                 model_data: data
-    //             })
-    //         }).then(response => response.json()).then(data => {
-    //             alert('Model data saved!');
-    //         });
-    //     });
-    // });
-
+    loadModel(sceneData.modelUrl, sceneData);
+    // loadModel('http://localhost/wPpractice/wp-content/uploads/2025/01/first-room.glb', sceneData);
 
     function loadModel(url, sceneData)
     {
@@ -163,12 +139,14 @@ window.onload = () => {
               parseFloat(THREE.MathUtils.degToRad(sceneData.rotationZ))
           );
 
+          model.scale.set(sceneData.scale, sceneData.scale, sceneData.scale);
+
           // Allow rotation/repositioning
           controls = new TransformControls(camera, renderer.domElement);
           controls.attach(model);
           scene.add(controls);
           // Listen for changes in the TransformControls
-          controls.addEventListener('change', updateLabel);
+          controls.addEventListener('change', updateTransforms);
 
           // Save model position/rotation
           // document.getElementById('save-model-data').addEventListener('click', () => {
@@ -204,19 +182,37 @@ window.onload = () => {
     //     `;
     // };
 
-    const updateLabel = () => {
+    const updateTransforms = () => {
       const pos = model.position;
       const rot = model.rotation;
+      const scale = model.scale;
 
       // Update position fields
       posXInput.value = pos.x.toFixed(2);
       posYInput.value = pos.y.toFixed(2);
       posZInput.value = pos.z.toFixed(2);
 
+      sceneData.positionX = pos.x;
+      sceneData.positionY = pos.y;
+      sceneData.positionZ = pos.z;
+
+
       // Update rotation fields (converted from radians to degrees)
       rotXInput.value = THREE.MathUtils.radToDeg(rot.x).toFixed(2);
       rotYInput.value = THREE.MathUtils.radToDeg(rot.y).toFixed(2);
       rotZInput.value = THREE.MathUtils.radToDeg(rot.z).toFixed(2);
+
+      sceneData.rotationX = THREE.MathUtils.radToDeg(rot.x).toFixed(2);
+      sceneData.rotationY = THREE.MathUtils.radToDeg(rot.y).toFixed(2);
+      sceneData.rotationZ = THREE.MathUtils.radToDeg(rot.z).toFixed(2);
+
+
+      scaleInput.value = scale.x;
+      sceneData.scale = scale.x;
+
+      // console.log(scale, scale.x);
+
+      // THREE.MathUtils.degToRad(sceneData.rotationX)
   };
 
 
@@ -239,9 +235,10 @@ window.onload = () => {
         mediaUploader.on('select', function () {
             const attachment = mediaUploader.state().get('selection').first().toJSON();
             modelUrlField.value = attachment.url;
+            sceneData.modelUrl = attachment.url;
             preview.innerHTML = `Current Model: <a href="${attachment.url}" target="_blank">${attachment.url}</a>`;
             console.log(attachment.url);
-            loadModel(attachment.url);
+            loadModel(attachment.url, sceneData);
 
         });
 

@@ -155,6 +155,7 @@ function save_scene_metadata($post_id) {
     }
 
     // Save position and rotation metadata
+    // MUST MATCH THE name ATTRIBUTE
     $fields = [
         'threejs_pos_x',
         'threejs_pos_y',
@@ -162,6 +163,7 @@ function save_scene_metadata($post_id) {
         'threejs_rot_x',
         'threejs_rot_y',
         'threejs_rot_z',
+        'scale',
         'threejs_model_url',
         'ambient_light_intensity'
     ];
@@ -231,6 +233,7 @@ function threejs_editor_page($post) {
   $rot_x = get_post_meta($post->ID, 'threejs_rot_x', true);
   $rot_y = get_post_meta($post->ID, 'threejs_rot_y', true);
   $rot_z = get_post_meta($post->ID, 'threejs_rot_z', true);
+  $scale = get_post_meta($post->ID, 'scale', true);
 
   $light_intensity = get_post_meta($post->ID, 'ambient_light_intensity', true);
 
@@ -246,6 +249,8 @@ function threejs_editor_page($post) {
       'rotationY' => $rot_y ?: 0,
       'rotationZ' => $rot_z ?: 0,
       'lightIntensity' => $light_intensity ?: 0.5,
+      'modelUrl' => $model_url ?: "",
+      'scale' => $scale ?: 1
   );
 
   // wp_nonce_field('save_scene_metadata', 'scene_meta_nonce');
@@ -262,14 +267,14 @@ function threejs_editor_page($post) {
           }
         </script>
         <script src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+        <link rel='stylesheet' href='<?php echo plugins_url('styles.css', __FILE__); ?>'>
 
 
 
-
-        <h1>3D Model Editor</h1>
+        <!-- <h1>3D Model Editor</h1> -->
 
         <div id="threejs-canvas" style="width: 1000px; height: 500px;"></div>
-        <button id="save-model-data">Save Changes</button>
+        <!-- <button id="save-model-data">Save Changes</button> -->
 
 
         <!-- <div id="label" style="margin-top: 10px; padding: 10px; border: 1px solid #ddd; background: #f9f9f9;">
@@ -290,7 +295,7 @@ function threejs_editor_page($post) {
 
 
 
-      <h1>NEW</h1>
+      <!-- <h1>NEW</h1> -->
 
       <p>
           <label for="threejs_model_url">Model File:</label><br>
@@ -319,6 +324,13 @@ function threejs_editor_page($post) {
           Y: <input type="number" name="threejs_rot_y" id="threejs_rotation_y" value="<?php echo esc_attr($rot_y); ?>" step="0.01" />
           Z: <input type="number" name="threejs_rot_z" id="threejs_rotation_z" value="<?php echo esc_attr($rot_z); ?>" step="0.01" />
       </p>
+
+      <p>
+        <strong>Scale: </strong><input type="number" name="scale" id="codes_scale" value="<?php echo esc_attr($scale); ?>" step="0.01" />
+
+      </p>
+
+
 
       <p>
           <label for="ambient-light-slider">Light Intensity:</label><br>
