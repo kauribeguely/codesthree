@@ -41,8 +41,8 @@ function create_scene_shortcode($atts)
     ob_start();
     // Inject assets if they haven't been added yet
 
-    // if (!$assets_injected)
-    // {
+    if (!$assets_injected)
+    {
       ?>
         <!-- <h1>test</h1> -->
           <script type="importmap">
@@ -56,11 +56,11 @@ function create_scene_shortcode($atts)
           <script src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
           <link rel="stylesheet" href="<?php echo plugins_url('styles.css', __FILE__); ?>">
     <?php
-    //       $assets_injected = true; // Mark as injected
-    // }
+          $assets_injected = true; // Mark as injected
+    }
     ?>
 
-    <h1>Scene Below</h1>
+    <!-- <h1>Scene Below</h1> -->
     <div id="threejs-scene-container-<?php echo esc_attr($post_id); ?>" style="width: 1000px; height: 500px;"></div>
 
 
@@ -71,10 +71,19 @@ function create_scene_shortcode($atts)
     <script type="module">
       import { initializeThreeJsScene } from "<?php echo plugins_url('scene.js', __FILE__); ?>";
       const sceneData = <?php echo json_encode($scene_data); ?>;
-      console.log(sceneData);
-      if (typeof initializeThreeJsScene === "function") {
-            initializeThreeJsScene(sceneData, "threejs-scene-container-<?php echo esc_js($post_id); ?>");
-        }
+      const containerID = "threejs-scene-container-<?php echo esc_js($post_id); ?>";
+      const container = document.getElementById(containerID);
+      if (!container.hasAttribute('data-scene-initialized')) {
+          container.setAttribute('data-scene-initialized', 'true');
+
+          // Initialize the Three.js scene
+          console.log(sceneData);
+          if (typeof initializeThreeJsScene === "function") {
+              initializeThreeJsScene(sceneData, containerID);
+          }
+      } else {
+          console.log(`Scene for ${containerID} has already been initialized.`);
+      }
     </script>
 
 
