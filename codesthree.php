@@ -26,48 +26,43 @@ function get_scene_data($post_id) {
     );
 }
 
+
+
+function inject_threejs_assets() {
+        ?>
+
+        <script type="importmap">
+            {
+                "imports": {
+                    "three": "https://unpkg.com/three@0.150.1/build/three.module.js",
+                    "three/addons/": "https://unpkg.com/three@0.150.1/examples/jsm/"
+                }
+            }
+        </script>
+        <script src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+        <link rel="stylesheet" href="<?php echo plugins_url('styles.css', __FILE__); ?>">
+
+        <?php
+    }
+
+
+// Hook into the wp_head to ensure the assets are loaded globally
+add_action('wp_head', 'inject_threejs_assets', 0);
+
 // function create_scene_shortcode($post_id)
 function create_scene_shortcode($atts)
 {
-
-  static $assets_injected = false; // Ensures assets are added only once
-
-
   $atts = shortcode_atts(array(
         'id' => get_the_ID(),
     ), $atts);
     $post_id = intval($atts['id']);
     $scene_data = get_scene_data($post_id);
     ob_start();
-    // Inject assets if they haven't been added yet
 
-    if (!$assets_injected)
-    {
-      ?>
-        <!-- <h1>test</h1> -->
-          <script type="importmap">
-            {
-              "imports": {
-                "three": "https://unpkg.com/three@0.150.1/build/three.module.js",
-                "three/addons/": "https://unpkg.com/three@0.150.1/examples/jsm/"
-              }
-            }
-          </script>
-          <script src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
-          <link rel="stylesheet" href="<?php echo plugins_url('styles.css', __FILE__); ?>">
-    <?php
-          $assets_injected = true; // Mark as injected
-    }
     ?>
 
     <!-- <h1>Scene Below</h1> -->
-    <div id="threejs-scene-container-<?php echo esc_attr($post_id); ?>" style="width: 1000px; height: 500px;"></div>
-
-
-
-
-
-    <!-- <script type="module" src="<?php echo plugins_url('scene.js', __FILE__); ?>"></script> -->
+    <div id="threejs-scene-container-<?php echo esc_attr($post_id); ?>" class="" style="width: 1000px; height: 500px;"></div>
     <script type="module">
       import { initializeThreeJsScene } from "<?php echo plugins_url('scene.js', __FILE__); ?>";
       const sceneData = <?php echo json_encode($scene_data); ?>;
