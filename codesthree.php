@@ -11,6 +11,78 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+
+function get_scene_data($post_id) {
+    return array(
+        'modelUrl' => get_post_meta($post_id, 'threejs_model_url', true) ?: "",
+        'positionX' => get_post_meta($post_id, 'threejs_pos_x', true) ?: 0,
+        'positionY' => get_post_meta($post_id, 'threejs_pos_y', true) ?: 0,
+        'positionZ' => get_post_meta($post_id, 'threejs_pos_z', true) ?: 0,
+        'rotationX' => get_post_meta($post_id, 'threejs_rot_x', true) ?: 0,
+        'rotationY' => get_post_meta($post_id, 'threejs_rot_y', true) ?: 0,
+        'rotationZ' => get_post_meta($post_id, 'threejs_rot_z', true) ?: 0,
+        'scale' => get_post_meta($post_id, 'scale', true) ?: 1,
+        'lightIntensity' => get_post_meta($post_id, 'ambient_light_intensity', true) ?: 0.5,
+    );
+}
+
+// function create_scene_shortcode($post_id)
+function create_scene_shortcode($atts)
+{
+
+  static $assets_injected = false; // Ensures assets are added only once
+
+
+  $atts = shortcode_atts(array(
+        'id' => get_the_ID(),
+    ), $atts);
+    $post_id = intval($atts['id']);
+    $scene_data = get_scene_data($post_id);
+    ob_start();
+    // Inject assets if they haven't been added yet
+
+    // if (!$assets_injected)
+    // {
+      ?>
+        <!-- <h1>test</h1> -->
+          <script type="importmap">
+            {
+              "imports": {
+                "three": "https://unpkg.com/three@0.150.1/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.150.1/examples/jsm/"
+              }
+            }
+          </script>
+          <script src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+          <link rel="stylesheet" href="<?php echo plugins_url('styles.css', __FILE__); ?>">
+    <?php
+    //       $assets_injected = true; // Mark as injected
+    // }
+    ?>
+
+    <h1>Scene Below</h1>
+    <div id="threejs-scene-container-<?php echo esc_attr($post_id); ?>" style="width: 1000px; height: 500px;"></div>
+
+
+
+
+
+    <!-- <script type="module" src="<?php echo plugins_url('scene.js', __FILE__); ?>"></script> -->
+    <script type="module">
+      import { initializeThreeJsScene } from "<?php echo plugins_url('scene.js', __FILE__); ?>";
+      const sceneData = <?php echo json_encode($scene_data); ?>;
+      console.log(sceneData);
+      if (typeof initializeThreeJsScene === "function") {
+            initializeThreeJsScene(sceneData, "threejs-scene-container-<?php echo esc_js($post_id); ?>");
+        }
+    </script>
+
+
+    <?php
+    return ob_get_clean();
+}
+add_shortcode('codes_scene', 'create_scene_shortcode');
+
 // Add support for .glb and .gltf files in the Media Library
 function allow_3d_file_uploads($mime_types) {
     $mime_types['glb'] = 'model/gltf-binary'; // Add .glb file type
@@ -136,6 +208,41 @@ function codesthree_register_scenes_post_type() {
 // add_action('add_meta_boxes', 'threejs_add_scene_meta_boxes');
 
 
+// function codes_scene_enqueue_assets() {
+//     // Register the styles and scripts
+//     wp_register_style('codes_scene_styles', plugins_url('styles.css', __FILE__));
+//     wp_register_script('codes_scene_importmap', '', [], null, false); // Placeholder for the importmap
+//     wp_register_script('codes_scene_shims', 'https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js', [], null, false);
+// }
+// add_action('wp_enqueue_scripts', 'codes_scene_enqueue_assets');
+//
+//
+// function codes_scene_maybe_enqueue($posts) {
+//     if (is_singular() && has_shortcode(get_post_field('post_content', get_the_ID()), 'codes_scene')) {
+//         // Enqueue styles and scripts if the shortcode is found
+//         wp_enqueue_style('codes_scene_styles');
+//         wp_enqueue_script('codes_scene_shims');
+//
+//         // Inline the importmap script
+//         wp_add_inline_script(
+//             'codes_scene_importmap',
+//             '
+//             <script type="importmap">
+//               {
+//                 "imports": {
+//                   "three": "https://unpkg.com/three@0.150.1/build/three.module.js",
+//                   "three/addons/": "https://unpkg.com/three@0.150.1/examples/jsm/"
+//                 }
+//               }
+//             </script>
+//             ',
+//             'before'
+//         );
+//     }
+// }
+// add_action('wp_enqueue_scripts', 'codes_scene_maybe_enqueue');
+
+
 function save_scene_metadata($post_id) {
     // Verify this is a "scene" post type
     if (get_post_type($post_id) !== 'scene') {
@@ -217,41 +324,54 @@ add_action('add_meta_boxes', 'threejs_add_editor_meta_box');
 // Admin page content
 function threejs_editor_page($post) {
 
+  $scene_data = get_scene_data($post->ID);
+
+  $model_url = $scene_data['modelUrl'];
+  $pos_x = $scene_data['positionX'];
+  $pos_y = $scene_data['positionY'];
+  $pos_z = $scene_data['positionZ'];
+  $rot_x = $scene_data['rotationX'];
+  $rot_y = $scene_data['rotationY'];
+  $rot_z = $scene_data['rotationZ'];
+  $scale = $scene_data['scale'];
+  $light_intensity = $scene_data['lightIntensity'];
+
+  $shortcode = '[codes_scene id="' . $post->ID . '"]';
 
   // Retrieve existing values
-  $model_url = get_post_meta($post->ID, 'threejs_model_url', true);
   // $position = get_post_meta($post->ID, 'threejs_position', true);
   // $rotation = get_post_meta($post->ID, 'threejs_rotation', true);
   // $position = $position ? json_decode($position, true) : ['x' => 0, 'y' => 0, 'z' => 0];
   // $rotation = $rotation ? json_decode($rotation, true) : ['x' => 0, 'y' => 0, 'z' => 0];
 
-  // Load saved metadata
-  $pos_x = get_post_meta($post->ID, 'threejs_pos_x', true);
-  $pos_y = get_post_meta($post->ID, 'threejs_pos_y', true);
-  $pos_z = get_post_meta($post->ID, 'threejs_pos_z', true);
+  // $model_url = get_post_meta($post->ID, 'threejs_model_url', true);
+  // // Load saved metadata
+  // $pos_x = get_post_meta($post->ID, 'threejs_pos_x', true);
+  // $pos_y = get_post_meta($post->ID, 'threejs_pos_y', true);
+  // $pos_z = get_post_meta($post->ID, 'threejs_pos_z', true);
+  //
+  // $rot_x = get_post_meta($post->ID, 'threejs_rot_x', true);
+  // $rot_y = get_post_meta($post->ID, 'threejs_rot_y', true);
+  // $rot_z = get_post_meta($post->ID, 'threejs_rot_z', true);
+  // $scale = get_post_meta($post->ID, 'scale', true);
+  //
+  // $light_intensity = get_post_meta($post->ID, 'ambient_light_intensity', true);
+  //
+  // // Default values if empty
+  // $light_intensity = $light_intensity ?: 0.5;
 
-  $rot_x = get_post_meta($post->ID, 'threejs_rot_x', true);
-  $rot_y = get_post_meta($post->ID, 'threejs_rot_y', true);
-  $rot_z = get_post_meta($post->ID, 'threejs_rot_z', true);
-  $scale = get_post_meta($post->ID, 'scale', true);
 
-  $light_intensity = get_post_meta($post->ID, 'ambient_light_intensity', true);
-
-  // Default values if empty
-  $light_intensity = $light_intensity ?: 0.5;
-
-
-  $scene_data = array(
-      'positionX' => $pos_x ?: 0,
-      'positionY' => $pos_y ?: 0,
-      'positionZ' => $pos_z ?: 0,
-      'rotationX' => $rot_x ?: 0,
-      'rotationY' => $rot_y ?: 0,
-      'rotationZ' => $rot_z ?: 0,
-      'lightIntensity' => $light_intensity ?: 0.5,
-      'modelUrl' => $model_url ?: "",
-      'scale' => $scale ?: 1
-  );
+  // $scene_data = array(
+  //     'positionX' => $pos_x ?: 0,
+  //     'positionY' => $pos_y ?: 0,
+  //     'positionZ' => $pos_z ?: 0,
+  //     'rotationX' => $rot_x ?: 0,
+  //     'rotationY' => $rot_y ?: 0,
+  //     'rotationZ' => $rot_z ?: 0,
+  //     'lightIntensity' => $light_intensity ?: 0.5,
+  //     'modelUrl' => $model_url ?: "",
+  //     'scale' => $scale: 1
+  // );
 
   // wp_nonce_field('save_scene_metadata', 'scene_meta_nonce');
   // Output the form
@@ -274,6 +394,11 @@ function threejs_editor_page($post) {
         <!-- <h1>3D Model Editor</h1> -->
 
         <div id="threejs-canvas" style="width: 1000px; height: 500px;"></div>
+
+
+         <p>Use this shortcode to display the scene on your site:</p>
+         <textarea readonly style="width: 100%;"><?php echo esc_html($shortcode); ?></textarea>
+
         <!-- <button id="save-model-data">Save Changes</button> -->
 
 

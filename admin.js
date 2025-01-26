@@ -67,7 +67,7 @@ window.onload = () => {
 
     const alight = new THREE.AmbientLight(0xffffff, 1);
     let alightIntensity = 1;
-    alight.position.set(5, 5, 5);
+    // alight.position.set(5, 5, 5);
     scene.add(alight);
 
     // Get the sliders by their IDs
@@ -79,7 +79,7 @@ window.onload = () => {
 
     // Event listener to change the intensity of the ambient light
     ambientLightSlider.addEventListener('input', function() {
-        // alight.intensity = parseFloat(ambientLightSlider.value);
+        alight.intensity = parseFloat(ambientLightSlider.value);
         setLightIntensity(alight, ambientLightSlider.value);
         lightValue.textContent = ambientLightSlider.value;
     });
