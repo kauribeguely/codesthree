@@ -54,6 +54,8 @@ function create_scene_shortcode($atts)
 {
   $atts = shortcode_atts(array(
         'id' => get_the_ID(),
+        'width' => '100%',  // Default width is 1000px
+        'height' => '500px', // Default height is 500px
     ), $atts);
     $post_id = intval($atts['id']);
     $scene_data = get_scene_data($post_id);
@@ -62,23 +64,31 @@ function create_scene_shortcode($atts)
     ?>
 
     <!-- <h1>Scene Below</h1> -->
-    <div id="threejs-scene-container-<?php echo esc_attr($post_id); ?>" class="" style="width: 1000px; height: 500px;"></div>
+    <div id="scene-<?php echo esc_attr($post_id); ?>-<?php echo uniqid(); ?>" class="codes_scene" data-scene-id="<?php echo esc_attr($post_id); ?>" style="width: <?php echo esc_attr($atts['width']); ?>; height: <?php echo esc_attr($atts['height']); ?>;"></div>
     <script type="module">
       import { initializeThreeJsScene } from "<?php echo plugins_url('scene.js', __FILE__); ?>";
       const sceneData = <?php echo json_encode($scene_data); ?>;
       const containerID = "threejs-scene-container-<?php echo esc_js($post_id); ?>";
-      const container = document.getElementById(containerID);
-      if (!container.hasAttribute('data-scene-initialized')) {
-          container.setAttribute('data-scene-initialized', 'true');
+      // Get all elements with the same class
+      // const containers = document.querySelectorAll('.codes_scene');
+      const containers = document.querySelectorAll('[data-scene-id="<?php echo esc_js($post_id); ?>"]');  // Replace 287 with the desired scene ID
 
-          // Initialize the Three.js scene
-          console.log(sceneData);
-          if (typeof initializeThreeJsScene === "function") {
-              initializeThreeJsScene(sceneData, containerID);
+      containers.forEach((container) => {
+          const containerID = container.id;
+
+          // Check if the scene has already been initialized for this container
+          if (!container.hasAttribute('data-scene-initialized')) {
+              container.setAttribute('data-scene-initialized', 'true');
+
+              // Initialize the Three.js scene
+              console.log(sceneData);
+              if (typeof initializeThreeJsScene === "function") {
+                  initializeThreeJsScene(sceneData, containerID);
+              }
+          } else {
+              console.log(`Scene for ${containerID} has already been initialized.`);
           }
-      } else {
-          console.log(`Scene for ${containerID} has already been initialized.`);
-      }
+      });
     </script>
 
 
@@ -311,6 +321,15 @@ function save_scene_metadata2($post_id) {
 // add_action('save_post', 'save_threejs_meta_data');
 
 
+
+// function hide_content_editor_in_posts() {
+//     $post_type = 'scene'; // Replace with the post type you want to target
+//     remove_post_type_support($post_type, 'editor');
+// }
+// add_action('init', 'hide_content_editor_in_posts');
+
+
+
 // Add meta box for 3D Element Editor in Scene post type
 function threejs_add_editor_meta_box() {
     add_meta_box(
@@ -400,8 +419,6 @@ function threejs_editor_page($post) {
         <div id="threejs-canvas" style="width: 1000px; height: 500px;"></div>
 
 
-         <p>Use this shortcode to display the scene on your site:</p>
-         <textarea readonly style="width: 100%;"><?php echo esc_html($shortcode); ?></textarea>
 
         <!-- <button id="save-model-data">Save Changes</button> -->
 
@@ -466,6 +483,10 @@ function threejs_editor_page($post) {
           <input type="range" name="ambient_light_intensity" id="ambient-light-slider" min="0" max="3" step="0.05" value="<?php echo esc_attr($light_intensity); ?>" />
           <span id="light_intensity_value"><?php echo esc_attr($light_intensity); ?></span>
       </p>
+
+      <p>Use this shortcode to display the scene on your site:</p>
+      <textarea readonly style="width: 100%;"><?php echo esc_html($shortcode); ?></textarea>
+
 
       <script>
         // Pass PHP data to JavaScript
