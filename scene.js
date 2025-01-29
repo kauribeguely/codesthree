@@ -11,7 +11,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 
-export function initializeThreeJsScene(sceneData, containerId) {
+export function initializeThreeJsScene(sceneData, containerId)
+{
     const container = document.getElementById(containerId);
     if (!container) {
         console.error("Container not found:", containerId);
@@ -22,7 +23,8 @@ export function initializeThreeJsScene(sceneData, containerId) {
     const mouseRotationX = sceneData.mouseRotationX; // Maximum rotation range in degrees
     const mouseRotationY = sceneData.mouseRotationY; // Maximum rotation range in degrees
     const mouseRotationZ = sceneData.mouseRotationZ; // Maximum rotation range in degrees
-
+    let mouseAnimationLink = sceneData.mouseAnimationLink === 'on';
+    let scrollAnimationLink = sceneData.scrollAnimationLink === 'on';
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
@@ -96,7 +98,7 @@ export function initializeThreeJsScene(sceneData, containerId) {
 
 
           renderer.render(scene, camera);
-          window.addEventListener('mousemove', onMouseMove);
+          if(mouseAnimationLink) window.addEventListener('mousemove', onMouseMove);
         });
     }
 

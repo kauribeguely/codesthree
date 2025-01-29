@@ -3,9 +3,12 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
 // document.addEventListener('DOMContentLoaded', () => {
-window.onload = () => {
+window.onload = () =>
+{
 
   console.log('Admin JS Codes 3D started');
+
+
 
 
   // Get the toggle elements (checkboxes)
@@ -16,6 +19,10 @@ window.onload = () => {
   const scrollXInput = document.getElementById('scrollMoveX');
   const scrollYInput = document.getElementById('scrollMoveY');
   const scrollZInput = document.getElementById('scrollMoveZ');
+  // Get the camera's initial position and the scroll movement values from sceneData
+  let scrollMoveX = sceneData.scrollMoveX || 0;
+  let scrollMoveY = sceneData.scrollMoveY || 0;
+  let scrollMoveZ = sceneData.scrollMoveZ || 0;
 
   // Get the mouse rotation inputs
   const mouseRotXInput = document.getElementById('mouseRotationX');
@@ -32,15 +39,15 @@ window.onload = () => {
 
   // oninput for scroll move values
   scrollXInput.oninput = () => {
-    scrollX = parseFloat(scrollXInput.value) || 0;
+    scrollMoveX = parseFloat(scrollXInput.value) || 0;
   };
 
   scrollYInput.oninput = () => {
-    scrollY = parseFloat(scrollYInput.value) || 0;
+    scrollMoveY = parseFloat(scrollYInput.value) || 0;
   };
 
   scrollZInput.oninput = () => {
-    scrollZ = parseFloat(scrollZInput.value) || 0;
+    scrollMoveZ = parseFloat(scrollZInput.value) || 0;
   };
 
   // oninput for mouse rotation values
@@ -120,7 +127,9 @@ window.onload = () => {
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
-    camera.position.set(0, 2, 5);
+    let cameraPos = [0, 2, 5];
+
+    camera.position.set(cameraPos[0], cameraPos[1], cameraPos[2]);
 
     const renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
     renderer.setSize(container.clientWidth, container.clientHeight);
@@ -213,6 +222,7 @@ window.onload = () => {
           scene.add(controls);
           // Listen for changes in the TransformControls
           controls.addEventListener('change', updateTransforms);
+          // if()
           window.addEventListener('mousemove', onMouseMove);
 
           // Save model position/rotation
@@ -336,6 +346,43 @@ window.onload = () => {
         // console.log(initialRotationX + mouseY * rotationRange);
 
       };
+
+      // Get the canvas container element
+      // const canvasContainer = document.getElementById('threejs-scene-container'); // Update the ID accordingly
+
+
+
+      // Get the canvas container's distance to the top of the screen
+      const getCanvasOffset = () => {
+        const rect = container.getBoundingClientRect();
+        const canvasTop = rect.top + window.scrollY;
+        const screenHeight = window.innerHeight;
+        return canvasTop / screenHeight; // Returns a value between 0 and 1
+      };
+
+      // Handle the scroll event
+      // window.addEventListener('scroll', (event) => {
+      document.querySelector('.edit-post-layout__metaboxes').addEventListener('scroll', (event) => {
+        // Get the normalized scroll position (0 - 1)
+        const scrollPos = getCanvasOffset();
+
+        // Determine how much to move the camera based on scroll and position
+        const scrollFactor = 0.1; // Adjust this value to change the sensitivity of the scroll
+
+        // Calculate new camera position based on scroll distance
+        // camera.position.x += scrollMoveX * scrollPos * scrollFactor;
+        // camera.position.y += scrollMoveY * scrollPos * scrollFactor;
+        // camera.position.z += scrollMoveZ * scrollPos * scrollFactor;
+        camera.position.x = cameraPos[0] + scrollMoveX * scrollPos;
+        camera.position.y = cameraPos[1] + scrollMoveY * scrollPos;
+        camera.position.z = cameraPos[2] + scrollMoveZ * scrollPos;
+
+        // Update the camera's position
+        camera.updateProjectionMatrix();
+
+        // Prevent the default scroll behavior
+        event.preventDefault();
+      });
 
 
 
