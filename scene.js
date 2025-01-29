@@ -45,7 +45,10 @@ export function initializeThreeJsScene(sceneData, containerId)
     //     1000                               // far
     // );
 
-    camera.position.set(0, 2, 5);
+    let cameraPos = [0, 2, 5];
+
+    camera.position.set(cameraPos[0], cameraPos[1], cameraPos[2]);
+
     scene.add( camera );
 
     // const renderer = new THREE.WebGLRenderer({antialias: true});
@@ -138,6 +141,54 @@ export function initializeThreeJsScene(sceneData, containerId)
         camera.aspect = container.clientWidth / container.clientHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(container.clientWidth, container.clientHeight);
+      }
+
+      // Get the canvas container's distance to the top of the screen
+      const getCanvasOffset = () => {
+        const rect = container.getBoundingClientRect();
+        const canvasTop = rect.top + window.scrollY;
+        const screenHeight = window.innerHeight;
+        console.log(rect.top / container.offsetHeight);
+        // console.log(rect.top, window.scrollY);
+        // return canvasTop / screenHeight; // Returns a value between 0 and 1
+        return rect.top / container.offsetHeight; // Returns a value between 0 and 1
+      };
+
+      // Handle the scroll event
+      // window.addEventListener('scroll', (event) => {
+      // document.querySelector('.edit-post-layout__metaboxes').addEventListener('scroll', (event) => {
+      // container.closest('.edit-post-layout__metaboxes').addEventListener('scroll', (event) =>
+      window.addEventListener('scroll', (event) =>
+      {
+        applyScrollTransforms(event);
+      });
+
+
+      let scrollMoveX = sceneData.scrollMoveX || 0;
+      let scrollMoveY = sceneData.scrollMoveY || 0;
+      let scrollMoveZ = sceneData.scrollMoveZ || 0;
+
+      function applyScrollTransforms(event)
+      {
+        // Get the normalized scroll position (0 - 1)
+        const scrollPos = getCanvasOffset();
+
+        // Determine how much to move the camera based on scroll and position
+        const scrollFactor = 0.1; // Adjust this value to change the sensitivity of the scroll
+
+        // Calculate new camera position based on scroll distance
+        // camera.position.x += scrollMoveX * scrollPos * scrollFactor;
+        // camera.position.y += scrollMoveY * scrollPos * scrollFactor;
+        // camera.position.z += scrollMoveZ * scrollPos * scrollFactor;
+        camera.position.x = cameraPos[0] + scrollMoveX * scrollPos;
+        camera.position.y = cameraPos[1] + scrollMoveY * scrollPos;
+        camera.position.z = cameraPos[2] + scrollMoveZ * scrollPos;
+
+        // Update the camera's position
+        camera.updateProjectionMatrix();
+
+        // Prevent the default scroll behavior
+        event.preventDefault();
       }
 
     // Attach the mousemove event listener

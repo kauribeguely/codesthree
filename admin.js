@@ -346,7 +346,7 @@ window.onload = () =>
         {
           model.rotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * mouseRotationX);
           model.rotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * mouseRotationY);
-          model.rotation.z = THREE.MathUtils.degToRad(initialRotationX + -mouseX * mouseRotationZ);
+          model.rotation.z = THREE.MathUtils.degToRad(initialRotationZ + -mouseX * mouseRotationZ);
         }
         // console.log(initialRotationX + mouseY * rotationRange);
 
@@ -362,12 +362,22 @@ window.onload = () =>
         const rect = container.getBoundingClientRect();
         const canvasTop = rect.top + window.scrollY;
         const screenHeight = window.innerHeight;
-        return canvasTop / screenHeight; // Returns a value between 0 and 1
+        console.log(rect.top / container.offsetHeight);
+        // console.log(rect.top, window.scrollY);
+        // return canvasTop / screenHeight; // Returns a value between 0 and 1
+        return rect.top / container.offsetHeight; // Returns a value between 0 and 1
       };
 
       // Handle the scroll event
       // window.addEventListener('scroll', (event) => {
-      document.querySelector('.edit-post-layout__metaboxes').addEventListener('scroll', (event) => {
+      // document.querySelector('.edit-post-layout__metaboxes').addEventListener('scroll', (event) => {
+      document.querySelector('#threejs-editor-container').closest('.edit-post-layout__metaboxes').addEventListener('scroll', (event) =>
+      {
+        applyScrollTransforms(event);
+      });
+
+      function applyScrollTransforms(event)
+      {
         // Get the normalized scroll position (0 - 1)
         const scrollPos = getCanvasOffset();
 
@@ -387,8 +397,7 @@ window.onload = () =>
 
         // Prevent the default scroll behavior
         event.preventDefault();
-      });
-
+      }
 
 
     // Render loop
