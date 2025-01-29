@@ -316,7 +316,7 @@ function save_scene_metadata($post_id) {
       if (isset($_POST[$field])) {
           update_post_meta($post_id, $field, $_POST[$field]); // Save the value from the form
       } else {
-          update_post_meta($post_id, $field, ''); // Save empty if not checked or not set, stops non saving when not checked 
+          update_post_meta($post_id, $field, ''); // Save empty if not checked or not set, stops non saving when not checked
       }
     }
 }
@@ -499,13 +499,13 @@ function threejs_editor_page($post) {
     <fieldset>
       <legend>Mouse Rotation Strength</legend>
       <label for="mouseRotationX">X:</label>
-      <input type="number" name="mouseRotationX" id="mouseRotationX" step="0.01" value="<?php echo esc_attr($mouse_rot_x); ?>">
+      <input type="number" name="mouseRotationX" id="mouseRotationX" step="1" value="<?php echo esc_attr($mouse_rot_x); ?>">
 
       <label for="mouseRotationY">Y:</label>
-      <input type="number" name="mouseRotationY" id="mouseRotationY" step="0.01" value="<?php echo esc_attr($mouse_rot_y); ?>">
+      <input type="number" name="mouseRotationY" id="mouseRotationY" step="1" value="<?php echo esc_attr($mouse_rot_y); ?>">
 
       <label for="mouseRotationZ">Z:</label>
-      <input type="number" name="mouseRotationZ" id="mouseRotationZ" step="0.01" value="<?php echo esc_attr($mouse_rot_z); ?>">
+      <input type="number" name="mouseRotationZ" id="mouseRotationZ" step="1" value="<?php echo esc_attr($mouse_rot_z); ?>">
     </fieldset>
 
     <!-- Scroll Animation Link -->

@@ -9,8 +9,8 @@ window.onload = () => {
 
 
   // Get the toggle elements (checkboxes)
-  const mouseAnimationLink = document.getElementById('mouseAnimationLink');
-  const scrollAnimationLink = document.getElementById('scrollAnimationLink');
+  const mouseAnimationLinkInput = document.getElementById('mouseAnimationLink');
+  const scrollAnimationLinkInput = document.getElementById('scrollAnimationLink');
 
   // Get the scroll move inputs
   const scrollXInput = document.getElementById('scrollMoveX');
@@ -27,6 +27,8 @@ window.onload = () => {
   let mouseRotationY = sceneData.mouseRotationY; // Maximum rotation range in degrees
   let mouseRotationZ = sceneData.mouseRotationZ; // Maximum rotation range in degrees
 
+  let mouseAnimationLink = sceneData.mouseAnimationLink === 'on';
+  let scrollAnimationLink = sceneData.scrollAnimationLink === 'on';
 
   // oninput for scroll move values
   scrollXInput.oninput = () => {
@@ -55,12 +57,20 @@ window.onload = () => {
   };
 
   // oninput for toggle (checkbox)
-  mouseAnimationLink.oninput = () => {
-    isMouseAnimationEnabled = mouseAnimationLink.checked;
+  mouseAnimationLinkInput.oninput = () => {
+    mouseAnimationLink = mouseAnimationLinkInput.checked;
+    if(!mouseAnimationLink)
+    {
+      model.rotation.set(
+          parseFloat(THREE.MathUtils.degToRad(sceneData.rotationX)),
+          parseFloat(THREE.MathUtils.degToRad(sceneData.rotationY)),
+          parseFloat(THREE.MathUtils.degToRad(sceneData.rotationZ))
+      );
+    }
   };
 
-  scrollAnimationLink.oninput = () => {
-    isScrollAnimationEnabled = scrollAnimationLink.checked;
+  scrollAnimationLinkInput.oninput = () => {
+    scrollAnimationLink = scrollAnimationLinkInput.checked;
   };
 
 
@@ -309,17 +319,22 @@ window.onload = () => {
       const initialRotationX = parseFloat(sceneData.rotationX);
       const initialRotationY = parseFloat(sceneData.rotationY);
       // Mousemove listener
-      const onMouseMove = (event) => {
+      const onMouseMove = (event) =>
+      {
         const mouseX = (event.clientX / window.innerWidth) * 2 - 1; // Normalized between -1 and 1
         const mouseY = -(event.clientY / window.innerHeight) * 2 + 1; // Normalized between -1 and 1
 
         // Map mouse position to rotation range
         // model.rotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * rotationRange);
         // model.rotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * rotationRange);
-        model.rotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * mouseRotationX);
-        model.rotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * mouseRotationY);
-        model.rotation.z = THREE.MathUtils.degToRad(initialRotationX + -mouseX * mouseRotationZ);
+        if(mouseAnimationLink)
+        {
+          model.rotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * mouseRotationX);
+          model.rotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * mouseRotationY);
+          model.rotation.z = THREE.MathUtils.degToRad(initialRotationX + -mouseX * mouseRotationZ);
+        }
         // console.log(initialRotationX + mouseY * rotationRange);
+
       };
 
 
