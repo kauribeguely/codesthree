@@ -283,6 +283,10 @@ window.onload = () =>
       sceneData.rotationY = THREE.MathUtils.radToDeg(rot.y).toFixed(2);
       sceneData.rotationZ = THREE.MathUtils.radToDeg(rot.z).toFixed(2);
 
+      initialRotationX = parseFloat(sceneData.rotationX);
+      initialRotationY = parseFloat(sceneData.rotationY);
+      initialRotationZ = parseFloat(sceneData.rotationZ);
+
 
       scaleInput.value = scale.x;
       sceneData.scale = scale.x;
@@ -326,8 +330,9 @@ window.onload = () =>
 
 
 
-      const initialRotationX = parseFloat(sceneData.rotationX);
-      const initialRotationY = parseFloat(sceneData.rotationY);
+      let initialRotationX = parseFloat(sceneData.rotationX);
+      let initialRotationY = parseFloat(sceneData.rotationY);
+      let initialRotationZ = parseFloat(sceneData.rotationZ);
       // Mousemove listener
       const onMouseMove = (event) =>
       {
