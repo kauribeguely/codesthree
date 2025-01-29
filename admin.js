@@ -8,6 +8,62 @@ window.onload = () => {
   console.log('Admin JS Codes 3D started');
 
 
+  // Get the toggle elements (checkboxes)
+  const mouseAnimationLink = document.getElementById('mouseAnimationLink');
+  const scrollAnimationLink = document.getElementById('scrollAnimationLink');
+
+  // Get the scroll move inputs
+  const scrollXInput = document.getElementById('scrollMoveX');
+  const scrollYInput = document.getElementById('scrollMoveY');
+  const scrollZInput = document.getElementById('scrollMoveZ');
+
+  // Get the mouse rotation inputs
+  const mouseRotXInput = document.getElementById('mouseRotationX');
+  const mouseRotYInput = document.getElementById('mouseRotationY');
+  const mouseRotZInput = document.getElementById('mouseRotationZ');
+
+
+  let mouseRotationX = sceneData.mouseRotationX; // Maximum rotation range in degrees
+  let mouseRotationY = sceneData.mouseRotationY; // Maximum rotation range in degrees
+  let mouseRotationZ = sceneData.mouseRotationZ; // Maximum rotation range in degrees
+
+
+  // oninput for scroll move values
+  scrollXInput.oninput = () => {
+    scrollX = parseFloat(scrollXInput.value) || 0;
+  };
+
+  scrollYInput.oninput = () => {
+    scrollY = parseFloat(scrollYInput.value) || 0;
+  };
+
+  scrollZInput.oninput = () => {
+    scrollZ = parseFloat(scrollZInput.value) || 0;
+  };
+
+  // oninput for mouse rotation values
+  mouseRotXInput.oninput = () => {
+    mouseRotationX = parseFloat(mouseRotXInput.value) || 0;
+  };
+
+  mouseRotYInput.oninput = () => {
+    mouseRotationY = parseFloat(mouseRotYInput.value) || 0;
+  };
+
+  mouseRotZInput.oninput = () => {
+    mouseRotationZ = parseFloat(mouseRotZInput.value) || 0;
+  };
+
+  // oninput for toggle (checkbox)
+  mouseAnimationLink.oninput = () => {
+    isMouseAnimationEnabled = mouseAnimationLink.checked;
+  };
+
+  scrollAnimationLink.oninput = () => {
+    isScrollAnimationEnabled = scrollAnimationLink.checked;
+  };
+
+
   const posXInput = document.getElementById('threejs_position_x');
   const posYInput = document.getElementById('threejs_position_y');
   const posZInput = document.getElementById('threejs_position_z');
@@ -147,6 +203,7 @@ window.onload = () => {
           scene.add(controls);
           // Listen for changes in the TransformControls
           controls.addEventListener('change', updateTransforms);
+          window.addEventListener('mousemove', onMouseMove);
 
           // Save model position/rotation
           // document.getElementById('save-model-data').addEventListener('click', () => {
@@ -245,6 +302,25 @@ window.onload = () => {
         mediaUploader.open();
 
     });
+
+
+
+
+      const initialRotationX = parseFloat(sceneData.rotationX);
+      const initialRotationY = parseFloat(sceneData.rotationY);
+      // Mousemove listener
+      const onMouseMove = (event) => {
+        const mouseX = (event.clientX / window.innerWidth) * 2 - 1; // Normalized between -1 and 1
+        const mouseY = -(event.clientY / window.innerHeight) * 2 + 1; // Normalized between -1 and 1
+
+        // Map mouse position to rotation range
+        // model.rotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * rotationRange);
+        // model.rotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * rotationRange);
+        model.rotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * mouseRotationX);
+        model.rotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * mouseRotationY);
+        model.rotation.z = THREE.MathUtils.degToRad(initialRotationX + -mouseX * mouseRotationZ);
+        // console.log(initialRotationX + mouseY * rotationRange);
+      };
 
 
 

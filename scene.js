@@ -18,6 +18,12 @@ export function initializeThreeJsScene(sceneData, containerId) {
         return;
     }
 
+
+    const mouseRotationX = sceneData.mouseRotationX; // Maximum rotation range in degrees
+    const mouseRotationY = sceneData.mouseRotationY; // Maximum rotation range in degrees
+    const mouseRotationZ = sceneData.mouseRotationZ; // Maximum rotation range in degrees
+
+
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
 
@@ -112,10 +118,14 @@ export function initializeThreeJsScene(sceneData, containerId) {
       const mouseY = -(event.clientY / window.innerHeight) * 2 + 1; // Normalized between -1 and 1
 
       // Map mouse position to rotation range
-      model.rotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * rotationRange);
-      model.rotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * rotationRange);
+      // model.rotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * rotationRange);
+      // model.rotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * rotationRange);
+      model.rotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * mouseRotationX);
+      model.rotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * mouseRotationY);
+      model.rotation.z = THREE.MathUtils.degToRad(initialRotationX + -mouseX * mouseRotationZ);
       // console.log(initialRotationX + mouseY * rotationRange);
     };
+
 
 
     // Handle window resizing
