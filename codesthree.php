@@ -23,6 +23,14 @@ function get_scene_data($post_id) {
         'rotationZ' => get_post_meta($post_id, 'threejs_rot_z', true) ?: 0,
         'scale' => get_post_meta($post_id, 'scale', true) ?: 1,
         'lightIntensity' => get_post_meta($post_id, 'ambient_light_intensity', true) ?: 0.5,
+        'mouseRotationX' => get_post_meta($post_id, 'mouseRotationX', true) ?: 0,
+        'mouseRotationY' => get_post_meta($post_id, 'mouseRotationY', true) ?: 0,
+        'mouseRotationZ' => get_post_meta($post_id, 'mouseRotationZ', true) ?: 0,
+        'scrollMoveX' => get_post_meta($post_id, 'scrollMoveX', true) ?: 0,
+        'scrollMoveY' => get_post_meta($post_id, 'scrollMoveY', true) ?: 0,
+        'scrollMoveZ' => get_post_meta($post_id, 'scrollMoveZ', true) ?: 0,
+        'mouseAnimationLink' => get_post_meta($post_id, 'mouseAnimationLink', true) ?: '',
+        'scrollAnimationLink' => get_post_meta($post_id, 'scrollAnimationLink', true) ?: ''
     );
 }
 
@@ -286,13 +294,30 @@ function save_scene_metadata($post_id) {
         'threejs_rot_z',
         'scale',
         'threejs_model_url',
-        'ambient_light_intensity'
+        'ambient_light_intensity',
+        // Mouse Animation Strength
+        'mouseRotationX',
+        'mouseRotationY',
+        'mouseRotationZ',
+
+        // Scroll Animation Strength
+        'scrollMoveX',
+        'scrollMoveY',
+        'scrollMoveZ',
+
+        // Animation Toggles
+        'mouseAnimationLink',
+        'scrollAnimationLink'
+
     ];
 
     foreach ($fields as $field) {
-        if (isset($_POST[$field])) {
-            update_post_meta($post_id, $field, sanitize_text_field($_POST[$field]));
-        }
+
+      if (isset($_POST[$field])) {
+          update_post_meta($post_id, $field, $_POST[$field]); // Save the value from the form
+      } else {
+          update_post_meta($post_id, $field, ''); // Save empty if not checked or not set, stops non saving when not checked 
+      }
     }
 }
 add_action('save_post', 'save_scene_metadata');
@@ -359,42 +384,24 @@ function threejs_editor_page($post) {
   $scale = $scene_data['scale'];
   $light_intensity = $scene_data['lightIntensity'];
 
+
+  // Mouse Rotation Strength
+  $mouse_rot_x = $scene_data['mouseRotationX'];
+  // $mouse_rot_x = isset($scene_data['mouseRotationX']) ? $scene_data['mouseRotationX'] : '';
+  $mouse_rot_y = isset($scene_data['mouseRotationY']) ? $scene_data['mouseRotationY'] : '';
+  $mouse_rot_z = isset($scene_data['mouseRotationZ']) ? $scene_data['mouseRotationZ'] : '';
+
+  // Scroll Camera Movement
+  $scroll_mov_x = isset($scene_data['scrollMoveX']) ? $scene_data['scrollMoveX'] : '';
+  $scroll_mov_y = isset($scene_data['scrollMoveY']) ? $scene_data['scrollMoveY'] : '';
+  $scroll_mov_z = isset($scene_data['scrollMoveZ']) ? $scene_data['scrollMoveZ'] : '';
+
+  // Animation Toggles
+  $mouse_enabled = isset($scene_data['mouseAnimationLink']) ? $scene_data['mouseAnimationLink'] : '';
+  $scroll_enabled = isset($scene_data['scrollAnimationLink']) ? $scene_data['scrollAnimationLink'] : '';
+
   $shortcode = '[codes_scene id="' . $post->ID . '"]';
 
-  // Retrieve existing values
-  // $position = get_post_meta($post->ID, 'threejs_position', true);
-  // $rotation = get_post_meta($post->ID, 'threejs_rotation', true);
-  // $position = $position ? json_decode($position, true) : ['x' => 0, 'y' => 0, 'z' => 0];
-  // $rotation = $rotation ? json_decode($rotation, true) : ['x' => 0, 'y' => 0, 'z' => 0];
-
-  // $model_url = get_post_meta($post->ID, 'threejs_model_url', true);
-  // // Load saved metadata
-  // $pos_x = get_post_meta($post->ID, 'threejs_pos_x', true);
-  // $pos_y = get_post_meta($post->ID, 'threejs_pos_y', true);
-  // $pos_z = get_post_meta($post->ID, 'threejs_pos_z', true);
-  //
-  // $rot_x = get_post_meta($post->ID, 'threejs_rot_x', true);
-  // $rot_y = get_post_meta($post->ID, 'threejs_rot_y', true);
-  // $rot_z = get_post_meta($post->ID, 'threejs_rot_z', true);
-  // $scale = get_post_meta($post->ID, 'scale', true);
-  //
-  // $light_intensity = get_post_meta($post->ID, 'ambient_light_intensity', true);
-  //
-  // // Default values if empty
-  // $light_intensity = $light_intensity ?: 0.5;
-
-
-  // $scene_data = array(
-  //     'positionX' => $pos_x ?: 0,
-  //     'positionY' => $pos_y ?: 0,
-  //     'positionZ' => $pos_z ?: 0,
-  //     'rotationX' => $rot_x ?: 0,
-  //     'rotationY' => $rot_y ?: 0,
-  //     'rotationZ' => $rot_z ?: 0,
-  //     'lightIntensity' => $light_intensity ?: 0.5,
-  //     'modelUrl' => $model_url ?: "",
-  //     'scale' => $scale: 1
-  // );
 
   // wp_nonce_field('save_scene_metadata', 'scene_meta_nonce');
   // Output the form
@@ -483,6 +490,42 @@ function threejs_editor_page($post) {
           <input type="range" name="ambient_light_intensity" id="ambient-light-slider" min="0" max="3" step="0.05" value="<?php echo esc_attr($light_intensity); ?>" />
           <span id="light_intensity_value"><?php echo esc_attr($light_intensity); ?></span>
       </p>
+
+      <!-- Mouse Animation Link -->
+      <label for="mouseAnimationLink">Enable Mouse Animation</label>
+      <input type="checkbox" name="mouseAnimationLink" id="mouseAnimationLink" <?php checked($mouse_enabled, 'on'); ?>>
+
+    <!-- Mouse Rotation Strength -->
+    <fieldset>
+      <legend>Mouse Rotation Strength</legend>
+      <label for="mouseRotationX">X:</label>
+      <input type="number" name="mouseRotationX" id="mouseRotationX" step="0.01" value="<?php echo esc_attr($mouse_rot_x); ?>">
+
+      <label for="mouseRotationY">Y:</label>
+      <input type="number" name="mouseRotationY" id="mouseRotationY" step="0.01" value="<?php echo esc_attr($mouse_rot_y); ?>">
+
+      <label for="mouseRotationZ">Z:</label>
+      <input type="number" name="mouseRotationZ" id="mouseRotationZ" step="0.01" value="<?php echo esc_attr($mouse_rot_z); ?>">
+    </fieldset>
+
+    <!-- Scroll Animation Link -->
+    <label for="scrollAnimationLink">Enable Scroll Animation</label>
+    <input type="checkbox" name="scrollAnimationLink" id="scrollAnimationLink" <?php checked($scroll_enabled, 'on'); ?>>
+
+    <!-- Scroll Camera Movement -->
+    <fieldset>
+      <legend>Scroll Camera Movement</legend>
+      <label for="scrollMoveX">X:</label>
+      <input type="number" name="scrollMoveX" id="scrollMoveX" step="0.01" value="<?php echo esc_attr($scroll_mov_x); ?>">
+
+      <label for="scrollMoveY">Y:</label>
+      <input type="number" name="scrollMoveY" id="scrollMoveY" step="0.01" value="<?php echo esc_attr($scroll_mov_y); ?>">
+
+      <label for="scrollMoveZ">Z:</label>
+      <input type="number" name="scrollMoveZ" id="scrollMoveZ" step="0.01" value="<?php echo esc_attr($scroll_mov_z); ?>">
+    </fieldset>
+
+
 
       <p>Use this shortcode to display the scene on your site:</p>
       <textarea readonly style="width: 100%;"><?php echo esc_html($shortcode); ?></textarea>

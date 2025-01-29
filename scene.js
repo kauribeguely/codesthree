@@ -45,8 +45,8 @@ export function initializeThreeJsScene(sceneData, containerId) {
     renderer.setSize(container.clientWidth, container.clientHeight);
 
     renderer.outputEncoding = THREE.sRGBEncoding;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 0.7; // Adjust for brightness
+    // renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    // renderer.toneMappingExposure = 0.7; // Adjust for brightness
 
 
     container.appendChild(renderer.domElement);
