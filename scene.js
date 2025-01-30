@@ -102,6 +102,7 @@ export function initializeThreeJsScene(sceneData, containerId)
 
           renderer.render(scene, camera);
           if(mouseAnimationLink) window.addEventListener('mousemove', onMouseMove);
+          applyScrollTransforms();
         });
     }
 
@@ -148,8 +149,6 @@ export function initializeThreeJsScene(sceneData, containerId)
         const rect = container.getBoundingClientRect();
         const canvasTop = rect.top + window.scrollY;
         const screenHeight = window.innerHeight;
-        console.log(rect.top / container.offsetHeight);
-        // console.log(rect.top, window.scrollY);
         // return canvasTop / screenHeight; // Returns a value between 0 and 1
         return rect.top / container.offsetHeight; // Returns a value between 0 and 1
       };
@@ -158,10 +157,14 @@ export function initializeThreeJsScene(sceneData, containerId)
       // window.addEventListener('scroll', (event) => {
       // document.querySelector('.edit-post-layout__metaboxes').addEventListener('scroll', (event) => {
       // container.closest('.edit-post-layout__metaboxes').addEventListener('scroll', (event) =>
-      window.addEventListener('scroll', (event) =>
+
+      if(scrollAnimationLink)
       {
-        applyScrollTransforms(event);
-      });
+        window.addEventListener('scroll', (event) =>
+        {
+          applyScrollTransforms(event);
+        });
+      }
 
 
       let scrollMoveX = sceneData.scrollMoveX || 0;

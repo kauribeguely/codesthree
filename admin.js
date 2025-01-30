@@ -78,6 +78,10 @@ window.onload = () =>
 
   scrollAnimationLinkInput.oninput = () => {
     scrollAnimationLink = scrollAnimationLinkInput.checked;
+    if(!scrollAnimationLink)
+    {
+      camera.position.set(cameraPos[0], cameraPos[1], cameraPos[2]);
+    }
   };
 
 
@@ -362,8 +366,6 @@ window.onload = () =>
         const rect = container.getBoundingClientRect();
         const canvasTop = rect.top + window.scrollY;
         const screenHeight = window.innerHeight;
-        console.log(rect.top / container.offsetHeight);
-        // console.log(rect.top, window.scrollY);
         // return canvasTop / screenHeight; // Returns a value between 0 and 1
         return rect.top / container.offsetHeight; // Returns a value between 0 and 1
       };
@@ -373,7 +375,10 @@ window.onload = () =>
       // document.querySelector('.edit-post-layout__metaboxes').addEventListener('scroll', (event) => {
       document.querySelector('#threejs-editor-container').closest('.edit-post-layout__metaboxes').addEventListener('scroll', (event) =>
       {
-        applyScrollTransforms(event);
+        if(scrollAnimationLink)
+        {
+          applyScrollTransforms(event);
+        }
       });
 
       function applyScrollTransforms(event)
