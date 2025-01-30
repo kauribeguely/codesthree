@@ -9,8 +9,6 @@ window.onload = () =>
   console.log('Admin JS Codes 3D started');
 
 
-
-
   // Get the toggle elements (checkboxes)
   const mouseAnimationLinkInput = document.getElementById('mouseAnimationLink');
   const scrollAnimationLinkInput = document.getElementById('scrollAnimationLink');
@@ -30,9 +28,9 @@ window.onload = () =>
   const mouseRotZInput = document.getElementById('mouseRotationZ');
 
 
-  let mouseRotationX = sceneData.mouseRotationX; // Maximum rotation range in degrees
-  let mouseRotationY = sceneData.mouseRotationY; // Maximum rotation range in degrees
-  let mouseRotationZ = sceneData.mouseRotationZ; // Maximum rotation range in degrees
+  let mouseRotationX = sceneData.mouseRotationX || 5; // Maximum rotation range in degrees
+  let mouseRotationY = sceneData.mouseRotationY || 5; // Maximum rotation range in degrees
+  let mouseRotationZ = sceneData.mouseRotationZ || 0; // Maximum rotation range in degrees
 
   let mouseAnimationLink = sceneData.mouseAnimationLink === 'on';
   let scrollAnimationLink = sceneData.scrollAnimationLink === 'on';
