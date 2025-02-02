@@ -275,12 +275,12 @@ function save_scene_metadata($post_id) {
     }
 
     // // Verify nonce and user permissions
-    // if (
-    //     !isset($_POST['scene_meta_nonce']) ||
-    //     !wp_verify_nonce($_POST['scene_meta_nonce'], 'save_scene_metadata')
-    // ) {
-    //     return;
-    // }
+    if (
+        !isset($_POST['scene_meta_nonce']) ||
+        !wp_verify_nonce($_POST['scene_meta_nonce'], 'save_scene_metadata')
+    ) {
+        return;
+    }
 
     if (!current_user_can('edit_post', $post_id)) {
         return;
@@ -420,7 +420,7 @@ function threejs_editor_page($post) {
   $shortcode = '[codes_scene id="' . $post->ID . '"]';
 
 
-  // wp_nonce_field('save_scene_metadata', 'scene_meta_nonce');
+  wp_nonce_field('save_scene_metadata', 'scene_meta_nonce');
   // Output the form
     ?>
     <!-- start HTMLs -->
