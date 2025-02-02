@@ -136,6 +136,8 @@ window.onload = () =>
     const renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
     renderer.setSize(container.clientWidth, container.clientHeight);
     container.appendChild(renderer.domElement);
+    renderer.outputEncoding = THREE.sRGBEncoding;
+
 
     const dlight = new THREE.DirectionalLight(0xffffff, 1);
     let dlightIntensity = 1;
@@ -371,7 +373,19 @@ window.onload = () =>
       // Handle the scroll event
       // window.addEventListener('scroll', (event) => {
       // document.querySelector('.edit-post-layout__metaboxes').addEventListener('scroll', (event) => {
-      document.querySelector('#threejs-editor-container').closest('.edit-post-layout__metaboxes').addEventListener('scroll', (event) =>
+      let scrollElement;
+      if(document.querySelector('#threejs-editor-container').closest('.edit-post-layout__metaboxes'))
+      {
+        scrollElement = document.querySelector('#threejs-editor-container').closest('.edit-post-layout__metaboxes');
+      }
+      else
+      {
+        // scrollElement = document.querySelector('html');
+        scrollElement = window;
+      }
+
+
+      scrollElement.addEventListener('scroll', (event) =>
       {
         if(scrollAnimationLink)
         {

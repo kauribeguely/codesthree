@@ -23,14 +23,15 @@ function get_scene_data($post_id) {
         'rotationZ' => get_post_meta($post_id, 'threejs_rot_z', true) ?: 0,
         'scale' => get_post_meta($post_id, 'scale', true) ?: 1,
         'lightIntensity' => get_post_meta($post_id, 'ambient_light_intensity', true) ?: 0.5,
-        'mouseRotationX' => get_post_meta($post_id, 'mouseRotationX', true) ?: 0,
-        'mouseRotationY' => get_post_meta($post_id, 'mouseRotationY', true) ?: 0,
+        'mouseRotationX' => get_post_meta($post_id, 'mouseRotationX', true) ?: 5,
+        'mouseRotationY' => get_post_meta($post_id, 'mouseRotationY', true) ?: 5,
         'mouseRotationZ' => get_post_meta($post_id, 'mouseRotationZ', true) ?: 0,
         'scrollMoveX' => get_post_meta($post_id, 'scrollMoveX', true) ?: 0,
         'scrollMoveY' => get_post_meta($post_id, 'scrollMoveY', true) ?: 0,
         'scrollMoveZ' => get_post_meta($post_id, 'scrollMoveZ', true) ?: 0,
         'mouseAnimationLink' => get_post_meta($post_id, 'mouseAnimationLink', true) ?: '',
-        'scrollAnimationLink' => get_post_meta($post_id, 'scrollAnimationLink', true) ?: ''
+        'scrollAnimationLink' => get_post_meta($post_id, 'scrollAnimationLink', true) ?: '',
+        'postID' => $post_id ?: 'no post id'
     );
 }
 
@@ -136,7 +137,7 @@ add_filter('wp_check_filetype_and_ext', function($data, $file, $filename, $mime_
 
 // Enqueue scripts only on Scene pages
 function threejs_enqueue_scene_scripts() {
-    if (is_singular('scene')) { // Check if the current post type is 'scene'
+    if (is_singular('codes_scene')) { // Check if the current post type is 'scene'
         // Enqueue es-module-shims
         wp_enqueue_script(
             'es-module-shims',
@@ -185,14 +186,14 @@ add_action('init', 'codesthree_register_scenes_post_type');
 function codesthree_register_scenes_post_type() {
     // Labels for the post type
     $labels = array(
-        'name'               => __('Scenes', 'codesthree'),
-        'singular_name'      => __('Scene', 'codesthree'),
-        'menu_name'          => __('Scenes', 'codesthree'),
-        'name_admin_bar'     => __('Scene', 'codesthree'),
+        'name'               => __('Codes Scenes', 'codesthree'),
+        'singular_name'      => __('Codes Scene', 'codesthree'),
+        'menu_name'          => __('Code 3 Scenes ', 'codesthree'),
+        'name_admin_bar'     => __('Codes Scene', 'codesthree'),
         'add_new'            => __('Add New Scene', 'codesthree'),
         'add_new_item'       => __('Add New Scene', 'codesthree'),
         'edit_item'          => __('Edit Scene', 'codesthree'),
-        'new_item'           => __('New Scene', 'codesthree'),
+        'new_item'           => __('New Codes Scene', 'codesthree'),
         'view_item'          => __('View Scene', 'codesthree'),
         'search_items'       => __('Search Scenes', 'codesthree'),
         'not_found'          => __('No scenes found', 'codesthree'),
@@ -204,14 +205,16 @@ function codesthree_register_scenes_post_type() {
         'labels'             => $labels,
         'public'             => true,
         'show_in_menu'       => true,
-        'menu_icon'          => 'dashicons-cube', // Cube icon for 3D
+        'menu_icon'          => 'dashicons-visibility',
         'supports'           => array('title', 'editor', 'thumbnail'),
-        'has_archive'        => true,
+        'rewrite'           => ['slug' => 'codes_scene', 'with_front' => false],
+        'has_archive'       => true,
+        'query_var'         => true,
         'show_in_rest'       => true, // Enable Gutenberg editor
     );
 
     // Register the post type
-    register_post_type('scene', $args);
+    register_post_type('codes_scene', $args);
 }
 
 
@@ -267,7 +270,7 @@ function codesthree_register_scenes_post_type() {
 
 function save_scene_metadata($post_id) {
     // Verify this is a "scene" post type
-    if (get_post_type($post_id) !== 'scene') {
+    if (get_post_type($post_id) !== 'codes_scene') {
         return;
     }
 
@@ -361,13 +364,27 @@ function threejs_add_editor_meta_box() {
         'threejs_model_editor', // Meta box ID
         'Codes 3D Scene Editor',    // Meta box title
         'threejs_editor_page', // Callback function to render the content
-        'scene',                // Post type where the meta box will appear
+        'codes_scene',                // Post type where the meta box will appear
         'normal',               // Context (normal, side, or advanced)
         'default'               // Priority
     );
 }
 add_action('add_meta_boxes', 'threejs_add_editor_meta_box');
 
+
+function remove_post_editing_box() {
+    remove_post_type_support('codes_scene', 'editor');
+}
+add_action('init', 'remove_post_editing_box');
+
+
+function custom_codes_scene_template_redirect($template) {
+    // if (is_singular('codes_scene')) {
+        return plugin_dir_path(__FILE__) . 'templates/single_scene.php';
+    // }
+    // return $template;
+}
+add_filter('template_include', 'custom_codes_scene_template_redirect');
 
 // Admin page content
 function threejs_editor_page($post) {
