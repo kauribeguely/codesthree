@@ -191,7 +191,7 @@ export function initializeThreeJsScene(sceneData, containerId)
         camera.updateProjectionMatrix();
 
         // Prevent the default scroll behavior
-        event.preventDefault();
+        if(event) event.preventDefault();
       }
 
     // Attach the mousemove event listener

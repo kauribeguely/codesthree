@@ -173,9 +173,9 @@ function threejs_enqueue_scene_scripts() {
         );
     }
 }
-add_action('wp_enqueue_scripts', 'threejs_enqueue_scene_scripts');
+// add_action('wp_enqueue_scripts', 'threejs_enqueue_scene_scripts');
 
-add_action('init', 'threejs_enqueue_scene_scripts');
+// add_action('init', 'threejs_enqueue_scene_scripts');
 
 
 
