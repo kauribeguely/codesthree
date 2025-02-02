@@ -8,6 +8,8 @@ window.onload = () =>
 
   console.log('Admin JS Codes 3D started');
 
+  let mouseDown = false;
+  let isTransforming = false;
 
   // Get the toggle elements (checkboxes)
   const mouseAnimationLinkInput = document.getElementById('mouseAnimationLink');
@@ -73,6 +75,11 @@ window.onload = () =>
       );
     }
   };
+
+  function resetObjRotation()
+  {
+
+  }
 
   scrollAnimationLinkInput.oninput = () => {
     scrollAnimationLink = scrollAnimationLinkInput.checked;
@@ -226,8 +233,11 @@ window.onload = () =>
           scene.add(controls);
           // Listen for changes in the TransformControls
           controls.addEventListener('change', updateTransforms);
+          controls.addEventListener('mouseDown', transformDragStart);
+          controls.addEventListener('mouseUp', transformDragEnd);
           // if()
           window.addEventListener('mousemove', onMouseMove);
+
 
           // Save model position/rotation
           // document.getElementById('save-model-data').addEventListener('click', () => {
@@ -277,29 +287,29 @@ window.onload = () =>
       sceneData.positionY = pos.y;
       sceneData.positionZ = pos.z;
 
-      let animationActive = mouseAnimationLink;
-      if(animationActive)
-      {
-        mouseAnimationLink = false;
-      }
 
+      if (isTransforming) {
         // Update rotation fields (converted from radians to degrees)
         rotXInput.value = THREE.MathUtils.radToDeg(rot.x).toFixed(2);
         rotYInput.value = THREE.MathUtils.radToDeg(rot.y).toFixed(2);
         rotZInput.value = THREE.MathUtils.radToDeg(rot.z).toFixed(2);
 
+
         sceneData.rotationX = THREE.MathUtils.radToDeg(rot.x).toFixed(2);
         sceneData.rotationY = THREE.MathUtils.radToDeg(rot.y).toFixed(2);
         sceneData.rotationZ = THREE.MathUtils.radToDeg(rot.z).toFixed(2);
 
-      initialRotationX = parseFloat(sceneData.rotationX);
-      initialRotationY = parseFloat(sceneData.rotationY);
-      initialRotationZ = parseFloat(sceneData.rotationZ);
 
-      if(animationActive)
-      {
-        mouseAnimationLink = true;
+
+        // initialRotationX = parseFloat(THREE.MathUtils.radToDeg(rot.x).toFixed(2));
+        // initialRotationY = parseFloat(THREE.MathUtils.radToDeg(rot.y).toFixed(2));
+        // initialRotationZ = parseFloat(THREE.MathUtils.radToDeg(rot.z).toFixed(2));
+        initialRotationX = parseFloat(sceneData.rotationX);
+        initialRotationY = parseFloat(sceneData.rotationY);
+        initialRotationZ = parseFloat(sceneData.rotationZ);
+
       }
+
 
       scaleInput.value = scale.x;
       sceneData.scale = scale.x;
@@ -308,6 +318,19 @@ window.onload = () =>
 
       // THREE.MathUtils.degToRad(sceneData.rotationX)
   };
+
+  // Store the initial rotation when interacting starts
+function transformDragStart() {
+    isTransforming = true;
+    // initialRotationX = parseFloat(sceneData.rotationX);
+    // initialRotationY = parseFloat(sceneData.rotationY);
+    // initialRotationZ = parseFloat(sceneData.rotationZ);
+}
+
+// Re-enable mouse rotation when interaction ends
+function transformDragEnd(){
+    isTransforming = false;
+}
 
 
 
@@ -355,7 +378,7 @@ window.onload = () =>
         // Map mouse position to rotation range
         // model.rotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * rotationRange);
         // model.rotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * rotationRange);
-        if(mouseAnimationLink)
+        if(mouseAnimationLink && !isTransforming)
         {
           model.rotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * mouseRotationX);
           model.rotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * mouseRotationY);
@@ -458,6 +481,16 @@ window.onload = () =>
         camera.aspect = container.clientWidth / container.clientHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(container.clientWidth, container.clientHeight);
+      }
+
+      window.onmousedown = function()
+      {
+        mouseDown = true;
+      }
+
+      window.onmouseup = function()
+      {
+        mouseDown = false;
       }
 
 }
