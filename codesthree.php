@@ -440,7 +440,7 @@ function threejs_editor_page($post) {
 
         <!-- <h1>3D Model Editor</h1> -->
 
-        <div id="threejs-canvas" style="width: 1000px; height: 500px;"></div>
+        <div id="threejs-canvas" style="width: 100%; height: 500px;"></div>
 
 
 

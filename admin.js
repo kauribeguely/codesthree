@@ -277,20 +277,29 @@ window.onload = () =>
       sceneData.positionY = pos.y;
       sceneData.positionZ = pos.z;
 
+      let animationActive = mouseAnimationLink;
+      if(animationActive)
+      {
+        mouseAnimationLink = false;
+      }
 
-      // Update rotation fields (converted from radians to degrees)
-      rotXInput.value = THREE.MathUtils.radToDeg(rot.x).toFixed(2);
-      rotYInput.value = THREE.MathUtils.radToDeg(rot.y).toFixed(2);
-      rotZInput.value = THREE.MathUtils.radToDeg(rot.z).toFixed(2);
+        // Update rotation fields (converted from radians to degrees)
+        rotXInput.value = THREE.MathUtils.radToDeg(rot.x).toFixed(2);
+        rotYInput.value = THREE.MathUtils.radToDeg(rot.y).toFixed(2);
+        rotZInput.value = THREE.MathUtils.radToDeg(rot.z).toFixed(2);
 
-      sceneData.rotationX = THREE.MathUtils.radToDeg(rot.x).toFixed(2);
-      sceneData.rotationY = THREE.MathUtils.radToDeg(rot.y).toFixed(2);
-      sceneData.rotationZ = THREE.MathUtils.radToDeg(rot.z).toFixed(2);
+        sceneData.rotationX = THREE.MathUtils.radToDeg(rot.x).toFixed(2);
+        sceneData.rotationY = THREE.MathUtils.radToDeg(rot.y).toFixed(2);
+        sceneData.rotationZ = THREE.MathUtils.radToDeg(rot.z).toFixed(2);
 
       initialRotationX = parseFloat(sceneData.rotationX);
       initialRotationY = parseFloat(sceneData.rotationY);
       initialRotationZ = parseFloat(sceneData.rotationZ);
 
+      if(animationActive)
+      {
+        mouseAnimationLink = true;
+      }
 
       scaleInput.value = scale.x;
       sceneData.scale = scale.x;
@@ -440,5 +449,16 @@ window.onload = () =>
                 break;
         }
     });
+
+    // Handle window resizing
+      window.addEventListener('resize', onWindowResize, false);
+
+      function onWindowResize() {
+        // Update camera aspect ratio and renderer size on window resize
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+      }
+
 }
 // });
