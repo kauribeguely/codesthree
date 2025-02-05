@@ -134,8 +134,20 @@ window.onload = () =>
     const container = document.getElementById('threejs-canvas');
     const labelContainer = document.getElementById('label'); // Label container for displaying object details
 
+    let isoZoom = 200;
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
+    // const orthCamera = new THREE.OrthographicCamera( container.clientWidth / - isoZoom, container.clientWidth / isoZoom, container.clientHeight / isoZoom, container.clientHeight / - isoZoom, 1, 1000 );
+
+    // if(isOrthCamera)
+    // {
+    //   camera = orthCamera;
+    // }
+    // else
+    // {
+    //   camera = perspectiveCamera;
+    // }
+
     let cameraPos = [0, 2, 5];
 
     camera.position.set(cameraPos[0], cameraPos[1], cameraPos[2]);
