@@ -356,6 +356,8 @@ function transformDragEnd(){
             preview.innerHTML = `Current Model: <a href="${attachment.url}" target="_blank">${attachment.url}</a>`;
             console.log(attachment.url);
             loadModel(attachment.url, sceneData);
+            loopDat(sceneData.modelUrl, 0.3, 40, 80, objGroup, [2, 0, 0]);
+            
 
         });
 
@@ -447,6 +449,93 @@ function transformDragEnd(){
         // Prevent the default scroll behavior
         event.preventDefault();
       }
+
+
+
+
+      let loopable;
+      let loopScale = 0.2;
+      let spacing = 1.1;
+      const objGroup = new THREE.Group();
+      scene.add(objGroup);
+
+      loopDat(sceneData.modelUrl, 0.3, 40, 80, objGroup, [2, 0, 0]);
+      // loopDat('obj/phoneIso.glb', 0.3, 40, 80, objGroup, [2, 0, 0]);
+
+      function loopDat(objectUrl, objScale, rowCount, columnCount, group, distances)
+      {
+        // loader.load('obj/laptopIso.glb',	function ( gltf )
+        // loader.load('obj/tabletIso.glb',	function ( gltf )
+        loader.load(objectUrl,	function ( gltf )
+        {
+          // deskObj
+          loopable = gltf.scene;
+          loopable.scale.set(objScale, objScale, objScale);
+          rowLoopGroup(loopable, rowCount, columnCount, group, distances);
+        });
+      }
+
+      function rowLoopGroup(object, rowCount, columnCount, group, distances)
+      {
+        for(let i = 0; i < rowCount; i++)
+        {
+          let row = new THREE.Group();
+          let center = i - (0.5*rowCount);
+          // row.position.set(0.5 * center, 2 * center, 0);
+          // row.position.set(0, center, 0);
+          let xSpace = 0.5*spacing;
+          // let xSpace = 0.8*spacing;
+          if(i % 2 == 1)
+          {
+            xSpace = 0;
+          }
+          row.position.set(xSpace, 1*i*spacing, 0);
+          // row.position.set(xSpace, 0.5*i*spacing, 0);
+
+          // row.position.set(0.5*center, center, 0);
+          // scene.add(row);
+          group.add(row);
+          // loopCreate(object, 10, [1, 0, 1], row); //good for screen
+          loopCreate(object, columnCount, distances, row);
+          // loopCreate(object, 100, [0, 0, 0.5], row);
+
+        }
+
+      }
+
+      function loopCreate(loopObject, loopCount, spaceArray, group)
+      {
+        //todo, dont loop inside a template
+        // let addToDiv = activeDiv;
+        // let loopCount = 20;
+        let randomMax = 1;
+        for(let i = 0; i < loopCount; i++)
+        {
+          let centerMath = i-(0.5*loopCount);
+          let y = centerMath * spaceArray[0];
+
+          //to go slightly off grid
+          let xRandomness = (Math.random() - 0.5) * randomMax;
+          let yRandomness = (Math.random() - 0.5) * randomMax;
+          // console.log('calc: '+centerMath);
+          // activeDiv = addToDiv; //should be the first one
+          // activeDivObj = null;
+          // addObj(loopObject);
+          let loopedObject = loopObject.clone();
+
+          //Screens
+          loopedObject.position.set(y, centerMath * spaceArray[1], centerMath * spaceArray[2]);
+
+          // Randomed
+          // loopedObject.position.set(y + xRandomness, centerMath * spaceArray[1] + yRandomness, centerMath * spaceArray[2]);
+          // selectedObj.setPosition(centerMath * spaceArray[0], centerMath * spaceArray[1], centerMath * spaceArray[2]);
+          group.add(loopedObject);
+          // starGroup.push(loopedObject);
+        }
+      }
+
+
+
 
 
     // Render loop
