@@ -192,7 +192,7 @@ window.onload = () =>
     // });
 
 
-    let controls;
+    let controls, groupControls;
     let model;
 
 
@@ -308,6 +308,8 @@ window.onload = () =>
         initialRotationY = parseFloat(sceneData.rotationY);
         initialRotationZ = parseFloat(sceneData.rotationZ);
 
+        refreshLoop();
+
       }
 
 
@@ -357,7 +359,7 @@ function transformDragEnd(){
             console.log(attachment.url);
             loadModel(attachment.url, sceneData);
             loopDat(sceneData.modelUrl, 0.3, 40, 80, objGroup, [2, 0, 0]);
-            
+
 
         });
 
@@ -385,10 +387,28 @@ function transformDragEnd(){
           model.rotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * mouseRotationX);
           model.rotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * mouseRotationY);
           model.rotation.z = THREE.MathUtils.degToRad(initialRotationZ + -mouseX * mouseRotationZ);
+
+          objGroup.rotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * mouseRotationX);
+          objGroup.rotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * mouseRotationY);
+          objGroup.rotation.z = THREE.MathUtils.degToRad(initialRotationZ + -mouseX * mouseRotationZ);
         }
         // console.log(initialRotationX + mouseY * rotationRange);
 
       };
+
+      function refreshLoop()
+      {
+        scene.remove(groupControls);
+        scene.remove(objGroup);
+        objGroup = new THREE.Group();
+        scene.add(objGroup);
+
+        groupControls = new TransformControls(camera, renderer.domElement);
+        groupControls.attach(objGroup);
+        scene.add(groupControls);
+
+        loopDat(sceneData.modelUrl, sceneData.scale, 40, 80, objGroup, [2, 0, 0]);
+      }
 
       // Get the canvas container element
       // const canvasContainer = document.getElementById('threejs-scene-container'); // Update the ID accordingly
@@ -456,10 +476,13 @@ function transformDragEnd(){
       let loopable;
       let loopScale = 0.2;
       let spacing = 1.1;
-      const objGroup = new THREE.Group();
+      let objGroup = new THREE.Group();
       scene.add(objGroup);
+      groupControls = new TransformControls(camera, renderer.domElement);
+      groupControls.attach(objGroup);
+      scene.add(groupControls);
+      loopDat(sceneData.modelUrl, sceneData.scale, 40, 80, objGroup, [2, 0, 0]);
 
-      loopDat(sceneData.modelUrl, 0.3, 40, 80, objGroup, [2, 0, 0]);
       // loopDat('obj/phoneIso.glb', 0.3, 40, 80, objGroup, [2, 0, 0]);
 
       function loopDat(objectUrl, objScale, rowCount, columnCount, group, distances)
@@ -552,12 +575,15 @@ function transformDragEnd(){
         switch (event.key) {
             case 't': // Translate mode
                 controls.setMode('translate');
+                groupControls.setMode('translate');
                 break;
             case 'r': // Rotate mode
                 controls.setMode('rotate');
+                groupControls.setMode('rotate');
                 break;
             case 's': // Scale mode
                 controls.setMode('scale');
+                groupControls.setMode('scale');
                 break;
         }
     });
