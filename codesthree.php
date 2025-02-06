@@ -31,6 +31,12 @@ function get_scene_data($post_id) {
         'scrollMoveZ' => get_post_meta($post_id, 'scrollMoveZ', true) ?: 0,
         'mouseAnimationLink' => get_post_meta($post_id, 'mouseAnimationLink', true) ?: '',
         'scrollAnimationLink' => get_post_meta($post_id, 'scrollAnimationLink', true) ?: '',
+        'loopActive' => get_post_meta($post_id, 'loopActive', true) === '1',
+        'loopCountX' => get_post_meta($post_id, 'loopCountX', true) ?: 3,
+        'loopCountY' => get_post_meta($post_id, 'loopCountY', true) ?: 3,
+        'loopCountZ' => get_post_meta($post_id, 'loopCountZ', true) ?: 3,
+        'itemSpacing' => get_post_meta($post_id, 'itemSpacing', true) ?: 1.0,
+        'isOrthoCamera' => get_post_meta($post_id, 'isOrthoCamera', true) === '1',
         'postID' => $post_id ?: 'no post id'
     );
 }
@@ -310,7 +316,13 @@ function save_scene_metadata($post_id) {
 
         // Animation Toggles
         'mouseAnimationLink',
-        'scrollAnimationLink'
+        'scrollAnimationLink',
+        'loopActive',
+        'loopCountX',
+        'loopCountY',
+        'loopCountZ',
+        'itemSpacing',
+        'isOrthoCamera'
 
     ];
 
@@ -416,6 +428,16 @@ function threejs_editor_page($post) {
   // Animation Toggles
   $mouse_enabled = isset($scene_data['mouseAnimationLink']) ? $scene_data['mouseAnimationLink'] : '';
   $scroll_enabled = isset($scene_data['scrollAnimationLink']) ? $scene_data['scrollAnimationLink'] : '';
+
+
+  $loop_active = $scene_data['loopActive'];
+  $loop_count_x = $scene_data['loopCountX'];
+  $loop_count_y = $scene_data['loopCountY'];
+  $loop_count_z = $scene_data['loopCountZ'];
+  $item_spacing = $scene_data['itemSpacing'];
+
+
+  $is_ortho_camera = $scene_data['isOrthoCamera'];
 
   $shortcode = '[codes_scene id="' . $post->ID . '"]';
 
@@ -541,6 +563,28 @@ function threejs_editor_page($post) {
       <label for="scrollMoveZ">Z:</label>
       <input type="number" name="scrollMoveZ" id="scrollMoveZ" step="0.01" value="<?php echo esc_attr($scroll_mov_z); ?>">
     </fieldset>
+
+
+    <!-- Toggle for Activating Loop -->
+    <label>
+        <input type="checkbox" name="loopActive" id="loopActive" <?php checked($loop_active, true); ?>>
+        Activate Loop
+    </label>
+
+    <!-- Number Inputs for X, Y, Z Loop Count -->
+    <label>X Count: <input type="number" name="loopCountX" id="loopCountX" step="1" value="<?php echo esc_attr($loop_count_x); ?>"></label>
+    <label>Y Count: <input type="number" name="loopCountY" id="loopCountY" step="1" value="<?php echo esc_attr($loop_count_y); ?>"></label>
+    <label>Z Count: <input type="number" name="loopCountZ" id="loopCountZ" step="1" value="<?php echo esc_attr($loop_count_z); ?>"></label>
+
+    <!-- Number Input for Spacing -->
+    <label>Spacing: <input type="number" name="itemSpacing" id="itemSpacing" step="0.1" value="<?php echo esc_attr($item_spacing); ?>"></label>
+
+    <!-- Toggle for isOrthoCamera -->
+    <label>
+        <input type="checkbox" name="isOrthoCamera" id="isOrthoCamera" <?php checked($is_ortho_camera, true); ?>>
+        Use Orthographic Camera
+    </label>
+
 
 
 

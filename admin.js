@@ -130,6 +130,69 @@ window.onload = () =>
   };
 
 
+  let loopActive = sceneData.loopActive || false;
+  let loopCountX = sceneData.loopCountX || 3;
+  let loopCountY = sceneData.loopCountY || 3;
+  let loopCountZ = sceneData.loopCountZ || 3;
+  let itemSpacing = sceneData.itemSpacing || 1.0;
+  let isOrthoCamera = sceneData.isOrthoCamera || false;
+
+  const loopActiveInput = document.getElementById('loopActive');
+  const loopCountXInput = document.getElementById('loopCountX');
+  const loopCountYInput = document.getElementById('loopCountY');
+  const loopCountZInput = document.getElementById('loopCountZ');
+  const itemSpacingInput = document.getElementById('itemSpacing');
+  const isOrthoCameraInput = document.getElementById('isOrthoCamera');
+
+
+loopActiveInput.oninput = () =>
+{
+    loopActive = loopActiveInput.checked;
+    if(loopActive)
+    {
+      //run loop function with all sceneData values
+      scene.remove(model);
+      scene.remove(controls);
+      refreshLoop();
+    }
+    else
+    {
+      scene.remove(groupControls);
+      scene.remove(objGroup);
+      scene.add(model);
+      scene.add(controls);
+
+    }
+};
+
+loopCountXInput.oninput = () => {
+    // loopCountX = parseInt(loopCountXInput.value) || 3;
+    sceneData.loopCountX = parseInt(loopCountXInput.value);
+    refreshLoop();    
+};
+
+loopCountYInput.oninput = () => {
+    // loopCountY = parseInt(loopCountYInput.value);
+    sceneData.loopCountY = parseInt(loopCountYInput.value);
+    refreshLoop();    
+
+};
+
+loopCountZInput.oninput = () => {
+    // loopCountZ = parseInt(loopCountZInput.value);
+    sceneData.loopCountZ = parseInt(loopCountZInput.value);
+    refreshLoop();    
+
+};
+
+itemSpacingInput.oninput = () => {
+    itemSpacing = parseFloat(itemSpacingInput.value);
+};
+
+isOrthoCameraInput.oninput = () => {
+    isOrthoCamera = isOrthoCameraInput.checked;
+};
+
 
     const container = document.getElementById('threejs-canvas');
     const labelContainer = document.getElementById('label'); // Label container for displaying object details
@@ -320,7 +383,7 @@ window.onload = () =>
         initialRotationY = parseFloat(sceneData.rotationY);
         initialRotationZ = parseFloat(sceneData.rotationZ);
 
-        refreshLoop();
+        // refreshLoop();
 
       }
 
@@ -369,8 +432,15 @@ function transformDragEnd(){
             sceneData.modelUrl = attachment.url;
             preview.innerHTML = `Current Model: <a href="${attachment.url}" target="_blank">${attachment.url}</a>`;
             console.log(attachment.url);
-            loadModel(attachment.url, sceneData);
-            loopDat(sceneData.modelUrl, 0.3, 40, 80, objGroup, [2, 0, 0]);
+            if(scene.loopActive)
+            {
+              // loopDat(sceneData.modelUrl, 0.3, 40, 80, objGroup, [2, 0, 0]);
+              sceneDataLoop();
+            }
+            else
+            {
+              loadModel(attachment.url, sceneData);
+            }
 
 
         });
@@ -419,7 +489,8 @@ function transformDragEnd(){
         groupControls.attach(objGroup);
         scene.add(groupControls);
 
-        loopDat(sceneData.modelUrl, sceneData.scale, 40, 80, objGroup, [2, 0, 0]);
+        // loopDat(sceneData.modelUrl, sceneData.scale, 40, 80, objGroup, [2, 0, 0]);
+        sceneDataLoop();
       }
 
       // Get the canvas container element
@@ -487,15 +558,32 @@ function transformDragEnd(){
 
       let loopable;
       let loopScale = 0.2;
-      let spacing = 1.1;
+      // let spacing = 1.1;
+      let spacing = sceneData.itemSpacing;
       let objGroup = new THREE.Group();
       scene.add(objGroup);
       groupControls = new TransformControls(camera, renderer.domElement);
       groupControls.attach(objGroup);
       scene.add(groupControls);
-      loopDat(sceneData.modelUrl, sceneData.scale, 40, 80, objGroup, [2, 0, 0]);
+
+
+      if(scene.loopActive)
+      {
+        // loopDat(sceneData.modelUrl, 0.3, 40, 80, objGroup, [2, 0, 0]);
+        sceneDataLoop();
+      }
+      else
+      {
+        loadModel(sceneData.modelUrl, sceneData);
+      }
+      // loopDat(sceneData.modelUrl, sceneData.scale, 40, 80, objGroup, [2, 0, 0]);
 
       // loopDat('obj/phoneIso.glb', 0.3, 40, 80, objGroup, [2, 0, 0]);
+
+      function sceneDataLoop()
+      {
+        loopDat(sceneData.modelUrl, sceneData.scale, sceneData.loopCountY, sceneData.loopCountX, objGroup, [1, 0, 0]);
+      }
 
       function loopDat(objectUrl, objScale, rowCount, columnCount, group, distances)
       {
