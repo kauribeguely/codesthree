@@ -524,9 +524,9 @@ function transformDragEnd(){
           model.rotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * mouseRotationY);
           model.rotation.z = THREE.MathUtils.degToRad(initialRotationZ + -mouseX * mouseRotationZ);
 
-          objGroup.rotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * mouseRotationX);
-          objGroup.rotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * mouseRotationY);
-          objGroup.rotation.z = THREE.MathUtils.degToRad(initialRotationZ + -mouseX * mouseRotationZ);
+          fullLoopGroup.rotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * mouseRotationX);
+          fullLoopGroup.rotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * mouseRotationY);
+          fullLoopGroup.rotation.z = THREE.MathUtils.degToRad(initialRotationZ + -mouseX * mouseRotationZ);
         }
         // console.log(initialRotationX + mouseY * rotationRange);
 
@@ -646,11 +646,11 @@ function transformDragEnd(){
 
       function sceneDataLoop()
       {
-        loopDat(sceneData.modelUrl, sceneData.scale, sceneData.loopCountY, sceneData.loopCountX, objGroup, [sceneData.itemSpacing, 0, 0]);
+        loopDat(sceneData.modelUrl, sceneData.scale, sceneData.loopCountY, sceneData.loopCountX, sceneData.loopCountZ, objGroup, [sceneData.itemSpacing, 0, 0]);
         transformObjectToSceneData(fullLoopGroup);
       }
 
-      function loopDat(objectUrl, objScale, rowCount, columnCount, group, distances)
+      function loopDat(objectUrl, objScale, rowCount, columnCount, zCount, group, distances)
       {
         // loader.load('obj/laptopIso.glb',	function ( gltf )
         // loader.load('obj/tabletIso.glb',	function ( gltf )
@@ -659,11 +659,26 @@ function transformDragEnd(){
           // deskObj
           loopable = gltf.scene;
           loopable.scale.set(objScale, objScale, objScale);
-          rowLoopGroup(loopable, rowCount, columnCount, group, distances);
+          zLoop(loopable, rowCount, columnCount, zCount, group, distances);
         });
       }
 
-      function rowLoopGroup(object, rowCount, columnCount, group, distances)
+      function zLoop(object, rowCount, columnCount, zCount, group, distances)
+      {
+        for(let i = 0; i < zCount; i++)
+        {
+          let zPlane = new THREE.Group();
+          let zAdjust = zCount/2 - 0.5;
+
+          zPlane.position.set(0, 0, i*sceneData.itemSpacing - zAdjust*sceneData.itemSpacing);
+          group.add(zPlane);
+          rowLoopGroup(loopable, rowCount, columnCount, zCount, zPlane, distances);
+
+
+        }
+      }
+
+      function rowLoopGroup(object, rowCount, columnCount, zCount, group, distances)
       {
         for(let i = 0; i < rowCount; i++)
         {
