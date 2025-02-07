@@ -684,7 +684,8 @@ function transformDragEnd(){
 
 
           // row.position.set(xSpace, 0.5*i*spacing, 0);
-          row.position.set(0, i*(sceneData.itemSpacing*rowCount), 0);
+          let yAdjust = rowCount/2 - 0.5;
+          row.position.set(0, i*sceneData.itemSpacing - yAdjust*sceneData.itemSpacing, 0);
           // row.position.set(0, (iPercent-0.5)*(sceneData.itemSpacing*rowCount), 0);
 
           //just normal add distance between row no centering
