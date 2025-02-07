@@ -210,26 +210,41 @@ itemSpacingInput.oninput = () => {
 };
 
 isOrthoCameraInput.oninput = () => {
-    isOrthoCamera = isOrthoCameraInput.checked;
+    sceneData.isOrthoCamera = isOrthoCameraInput.checked;
+    toggleCamera();
 };
+
+function toggleCamera()
+{
+    if (sceneData.isOrthoCamera) {
+        camera = orthoCamera;
+    } else {
+        camera = perspectiveCamera;
+    }
+    controls.camera = camera;
+    groupControls.camera = camera;
+
+    renderer.render(scene, camera);
+}
 
 
     const container = document.getElementById('threejs-canvas');
     const labelContainer = document.getElementById('label'); // Label container for displaying object details
 
-    let isoZoom = 200;
+    let isoZoom = 100;
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
-    // const orthCamera = new THREE.OrthographicCamera( container.clientWidth / - isoZoom, container.clientWidth / isoZoom, container.clientHeight / isoZoom, container.clientHeight / - isoZoom, 1, 1000 );
+    let camera;
+    const perspectiveCamera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
+    const orthoCamera = new THREE.OrthographicCamera( container.clientWidth / - isoZoom, container.clientWidth / isoZoom, container.clientHeight / isoZoom, container.clientHeight / - isoZoom, 1, 1000 );
 
-    // if(isOrthCamera)
-    // {
-    //   camera = orthCamera;
-    // }
-    // else
-    // {
-    //   camera = perspectiveCamera;
-    // }
+    if(sceneData.isOrthoCamera)
+    {
+      camera = orthoCamera;
+    }
+    else
+    {
+      camera = perspectiveCamera;
+    }
 
     let cameraPos = [0, 2, 5];
 
