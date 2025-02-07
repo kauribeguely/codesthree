@@ -147,41 +147,51 @@ window.onload = () =>
 
 loopActiveInput.oninput = () =>
 {
-    loopActive = loopActiveInput.checked;
-    if(loopActive)
-    {
-      //run loop function with all sceneData values
-      scene.remove(model);
-      scene.remove(controls);
-      refreshLoop();
-    }
-    else
-    {
-      scene.remove(groupControls);
-      scene.remove(objGroup);
-      scene.add(model);
-      scene.add(controls);
+  loopActive = loopActiveInput.checked;
 
-    }
+  toggleLoop();
 };
+
+function toggleLoop()
+{
+  sceneData.loopActive = loopActive;
+  if(loopActive)
+  {
+    //run loop function with all sceneData values
+    // scene.remove(model);
+    model.visible = false;
+    // scene.remove(controls);
+    refreshLoop();
+  }
+  else
+  {
+    scene.remove(groupControls);
+    scene.remove(fullLoopGroup);
+    model.visible = true;
+
+    // scene.add(model);
+    // scene.add(controls);
+
+  }
+}
 
 loopCountXInput.oninput = () => {
     // loopCountX = parseInt(loopCountXInput.value) || 3;
     sceneData.loopCountX = parseInt(loopCountXInput.value);
-    refreshLoop();    
+    refreshLoop();
 };
 
 loopCountYInput.oninput = () => {
     // loopCountY = parseInt(loopCountYInput.value);
     sceneData.loopCountY = parseInt(loopCountYInput.value);
-    refreshLoop();    
+    refreshLoop();
 
 };
 
 loopCountZInput.oninput = () => {
     // loopCountZ = parseInt(loopCountZInput.value);
     sceneData.loopCountZ = parseInt(loopCountZInput.value);
-    refreshLoop();    
+    refreshLoop();
 
 };
 
@@ -268,14 +278,34 @@ isOrthoCameraInput.oninput = () => {
 
 
     let controls, groupControls;
-    let model;
+    let model, loopGroup;
 
 
     // Load 3D Model
     // const loader = new THREE.GLTFLoader();
     const loader = new GLTFLoader();
 
+
+    let loopable;
+    // let spacing = 1.1;
+    let spacing = sceneData.itemSpacing;
+    let fullLoopGroup = new THREE.Group();
+    let objGroup = new THREE.Group();
+    fullLoopGroup.add(objGroup);
+    // scene.add(objGroup);
+    scene.add(fullLoopGroup);
+    groupControls = new TransformControls(camera, renderer.domElement);
+    // groupControls.attach(objGroup);
+    groupControls.attach(fullLoopGroup);
+    scene.add(groupControls);
+
     loadModel(sceneData.modelUrl, sceneData);
+
+
+    if(sceneData.loopActive)
+    {
+      sceneDataLoop();
+    }
     // loadModel('http://localhost/wPpractice/wp-content/uploads/2025/01/first-room.glb', sceneData);
 
     function loadModel(url, sceneData)
@@ -288,17 +318,19 @@ isOrthoCameraInput.oninput = () => {
           model = gltf.scene;
           scene.add(model);
 
-          model.position.set(
-              parseFloat(sceneData.positionX),
-              parseFloat(sceneData.positionY),
-              parseFloat(sceneData.positionZ)
-          );
+          transformObjectToSceneData(model);
 
-          model.rotation.set(
-              parseFloat(THREE.MathUtils.degToRad(sceneData.rotationX)),
-              parseFloat(THREE.MathUtils.degToRad(sceneData.rotationY)),
-              parseFloat(THREE.MathUtils.degToRad(sceneData.rotationZ))
-          );
+          // model.position.set(
+          //     parseFloat(sceneData.positionX),
+          //     parseFloat(sceneData.positionY),
+          //     parseFloat(sceneData.positionZ)
+          // );
+          //
+          // model.rotation.set(
+          //     parseFloat(THREE.MathUtils.degToRad(sceneData.rotationX)),
+          //     parseFloat(THREE.MathUtils.degToRad(sceneData.rotationY)),
+          //     parseFloat(THREE.MathUtils.degToRad(sceneData.rotationZ))
+          // );
 
           model.scale.set(sceneData.scale, sceneData.scale, sceneData.scale);
 
@@ -313,6 +345,11 @@ isOrthoCameraInput.oninput = () => {
           // if()
           window.addEventListener('mousemove', onMouseMove);
 
+          if(sceneData.loopActive)
+          {
+            scene.remove(model);
+            scene.remove(controls);
+          }
 
           // Save model position/rotation
           // document.getElementById('save-model-data').addEventListener('click', () => {
@@ -349,9 +386,23 @@ isOrthoCameraInput.oninput = () => {
     // };
 
     const updateTransforms = () => {
-      const pos = model.position;
-      const rot = model.rotation;
-      const scale = model.scale;
+      let pos = model.position;
+      let rot = model.rotation;
+      let scale = model.scale;
+
+      if(sceneData.loopActive)
+      {
+        pos = objGroup.position;
+        rot = objGroup.rotation;
+        scale = objGroup.scale;
+
+      }
+      else
+      {
+        pos = model.position;
+        rot = model.rotation;
+        scale = model.scale;
+      }
 
       // Update position fields
       posXInput.value = pos.x.toFixed(2);
@@ -480,17 +531,41 @@ function transformDragEnd(){
 
       function refreshLoop()
       {
-        scene.remove(groupControls);
-        scene.remove(objGroup);
-        objGroup = new THREE.Group();
-        scene.add(objGroup);
+        // scene.remove(groupControls);
+        // scene.remove(fullLoopGroup);
+        fullLoopGroup.remove(objGroup);
+        scene.add(fullLoopGroup);
 
-        groupControls = new TransformControls(camera, renderer.domElement);
-        groupControls.attach(objGroup);
+        objGroup = new THREE.Group();
+        fullLoopGroup.add(objGroup);
+        // groupControls = new TransformControls(camera, renderer.domElement);
+        // groupControls.attach(fullLoopGroup);
+        // groupControls.addEventListener('change', updateTransforms);
+        // groupControls.addEventListener('mouseDown', transformDragStart);
+        // groupControls.addEventListener('mouseUp', transformDragEnd);
+
+        transformObjectToSceneData(fullLoopGroup);
+
+
         scene.add(groupControls);
 
         // loopDat(sceneData.modelUrl, sceneData.scale, 40, 80, objGroup, [2, 0, 0]);
         sceneDataLoop();
+      }
+
+      function transformObjectToSceneData(object)
+      {
+        object.position.set(
+            parseFloat(sceneData.positionX),
+            parseFloat(sceneData.positionY),
+            parseFloat(sceneData.positionZ)
+        );
+
+        object.rotation.set(
+            parseFloat(THREE.MathUtils.degToRad(sceneData.rotationX)),
+            parseFloat(THREE.MathUtils.degToRad(sceneData.rotationY)),
+            parseFloat(THREE.MathUtils.degToRad(sceneData.rotationZ))
+        );
       }
 
       // Get the canvas container element
@@ -553,29 +628,15 @@ function transformDragEnd(){
         event.preventDefault();
       }
 
-
-
-
-      let loopable;
-      let loopScale = 0.2;
-      // let spacing = 1.1;
-      let spacing = sceneData.itemSpacing;
-      let objGroup = new THREE.Group();
-      scene.add(objGroup);
-      groupControls = new TransformControls(camera, renderer.domElement);
-      groupControls.attach(objGroup);
-      scene.add(groupControls);
-
-
-      if(scene.loopActive)
-      {
-        // loopDat(sceneData.modelUrl, 0.3, 40, 80, objGroup, [2, 0, 0]);
-        sceneDataLoop();
-      }
-      else
-      {
-        loadModel(sceneData.modelUrl, sceneData);
-      }
+      // if(scene.loopActive)
+      // {
+      //   // loopDat(sceneData.modelUrl, 0.3, 40, 80, objGroup, [2, 0, 0]);
+      //   sceneDataLoop();
+      // }
+      // else
+      // {
+      //   loadModel(sceneData.modelUrl, sceneData);
+      // }
       // loopDat(sceneData.modelUrl, sceneData.scale, 40, 80, objGroup, [2, 0, 0]);
 
       // loopDat('obj/phoneIso.glb', 0.3, 40, 80, objGroup, [2, 0, 0]);
@@ -583,6 +644,7 @@ function transformDragEnd(){
       function sceneDataLoop()
       {
         loopDat(sceneData.modelUrl, sceneData.scale, sceneData.loopCountY, sceneData.loopCountX, objGroup, [1, 0, 0]);
+        transformObjectToSceneData(fullLoopGroup);
       }
 
       function loopDat(objectUrl, objScale, rowCount, columnCount, group, distances)
@@ -606,13 +668,17 @@ function transformDragEnd(){
           let center = i - (0.5*rowCount);
           // row.position.set(0.5 * center, 2 * center, 0);
           // row.position.set(0, center, 0);
-          let xSpace = 0.5*spacing;
-          // let xSpace = 0.8*spacing;
-          if(i % 2 == 1)
-          {
-            xSpace = 0;
-          }
-          row.position.set(xSpace, 1*i*spacing, 0);
+          //TODO row offset
+
+          // let xSpace = 0.5*spacing;
+          // // let xSpace = 0.8*spacing;
+          // if(i % 2 == 1)
+          // {
+          //   xSpace = 0;
+          // }
+          // row.position.set(xSpace, 1*i*spacing, 0);
+
+
           // row.position.set(xSpace, 0.5*i*spacing, 0);
 
           // row.position.set(0.5*center, center, 0);
@@ -684,6 +750,10 @@ function transformDragEnd(){
             case 's': // Scale mode
                 controls.setMode('scale');
                 groupControls.setMode('scale');
+                break;
+            case 'l': // Scale mode
+                loopActive = !loopActive;
+                toggleLoop();
                 break;
         }
     });

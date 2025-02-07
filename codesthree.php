@@ -31,12 +31,12 @@ function get_scene_data($post_id) {
         'scrollMoveZ' => get_post_meta($post_id, 'scrollMoveZ', true) ?: 0,
         'mouseAnimationLink' => get_post_meta($post_id, 'mouseAnimationLink', true) ?: '',
         'scrollAnimationLink' => get_post_meta($post_id, 'scrollAnimationLink', true) ?: '',
-        'loopActive' => get_post_meta($post_id, 'loopActive', true) === '1',
+        'loopActive' => get_post_meta($post_id, 'loopActive', true) ?: '',
         'loopCountX' => get_post_meta($post_id, 'loopCountX', true) ?: 3,
         'loopCountY' => get_post_meta($post_id, 'loopCountY', true) ?: 3,
         'loopCountZ' => get_post_meta($post_id, 'loopCountZ', true) ?: 3,
         'itemSpacing' => get_post_meta($post_id, 'itemSpacing', true) ?: 1.0,
-        'isOrthoCamera' => get_post_meta($post_id, 'isOrthoCamera', true) === '1',
+        'isOrthoCamera' => get_post_meta($post_id, 'isOrthoCamera', true) ?: '',
         'postID' => $post_id ?: 'no post id'
     );
 }
@@ -430,14 +430,14 @@ function threejs_editor_page($post) {
   $scroll_enabled = isset($scene_data['scrollAnimationLink']) ? $scene_data['scrollAnimationLink'] : '';
 
 
-  $loop_active = $scene_data['loopActive'];
+  $loop_active = $scene_data['loopActive'] ? $scene_data['loopActive'] : '';
   $loop_count_x = $scene_data['loopCountX'];
   $loop_count_y = $scene_data['loopCountY'];
   $loop_count_z = $scene_data['loopCountZ'];
   $item_spacing = $scene_data['itemSpacing'];
 
 
-  $is_ortho_camera = $scene_data['isOrthoCamera'];
+  $is_ortho_camera = $scene_data['isOrthoCamera'] ? $scene_data['isOrthoCamera'] : '';
 
   $shortcode = '[codes_scene id="' . $post->ID . '"]';
 
@@ -567,7 +567,7 @@ function threejs_editor_page($post) {
 
     <!-- Toggle for Activating Loop -->
     <label>
-        <input type="checkbox" name="loopActive" id="loopActive" <?php checked($loop_active, true); ?>>
+        <input type="checkbox" name="loopActive" id="loopActive" <?php checked($loop_active, 'on'); ?>>
         Activate Loop
     </label>
 
