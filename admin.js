@@ -196,7 +196,8 @@ loopCountZInput.oninput = () => {
 };
 
 itemSpacingInput.oninput = () => {
-    itemSpacing = parseFloat(itemSpacingInput.value);
+    sceneData.itemSpacing = parseFloat(itemSpacingInput.value);
+    refreshLoop();
 };
 
 isOrthoCameraInput.oninput = () => {
@@ -297,13 +298,13 @@ isOrthoCameraInput.oninput = () => {
     groupControls = new TransformControls(camera, renderer.domElement);
     // groupControls.attach(objGroup);
     groupControls.attach(fullLoopGroup);
-    scene.add(groupControls);
 
     loadModel(sceneData.modelUrl, sceneData);
 
 
     if(sceneData.loopActive)
     {
+      scene.add(groupControls);
       sceneDataLoop();
     }
     // loadModel('http://localhost/wPpractice/wp-content/uploads/2025/01/first-room.glb', sceneData);
@@ -392,16 +393,18 @@ isOrthoCameraInput.oninput = () => {
 
       if(sceneData.loopActive)
       {
-        pos = objGroup.position;
-        rot = objGroup.rotation;
-        scale = objGroup.scale;
+        pos = fullLoopGroup.position;
+        // rot = objGroup.rotation;
+        rot = new THREE.Euler().setFromQuaternion(fullLoopGroup.quaternion); // Handle group rotation correctly
+        // scale = objGroup.scale;
+
 
       }
       else
       {
-        pos = model.position;
-        rot = model.rotation;
-        scale = model.scale;
+        // pos = model.position;
+        // rot = model.rotation;
+        // scale = model.scale;
       }
 
       // Update position fields
@@ -643,7 +646,7 @@ function transformDragEnd(){
 
       function sceneDataLoop()
       {
-        loopDat(sceneData.modelUrl, sceneData.scale, sceneData.loopCountY, sceneData.loopCountX, objGroup, [1, 0, 0]);
+        loopDat(sceneData.modelUrl, sceneData.scale, sceneData.loopCountY, sceneData.loopCountX, objGroup, [sceneData.itemSpacing, 0, 0]);
         transformObjectToSceneData(fullLoopGroup);
       }
 
@@ -666,6 +669,7 @@ function transformDragEnd(){
         {
           let row = new THREE.Group();
           let center = i - (0.5*rowCount);
+          let iPercent = i/rowCount;
           // row.position.set(0.5 * center, 2 * center, 0);
           // row.position.set(0, center, 0);
           //TODO row offset
@@ -680,6 +684,11 @@ function transformDragEnd(){
 
 
           // row.position.set(xSpace, 0.5*i*spacing, 0);
+          row.position.set(0, i*(sceneData.itemSpacing*rowCount), 0);
+          // row.position.set(0, (iPercent-0.5)*(sceneData.itemSpacing*rowCount), 0);
+
+          //just normal add distance between row no centering
+          // row.position.set(0, i*sceneData.itemSpacing, 0);
 
           // row.position.set(0.5*center, center, 0);
           // scene.add(row);
@@ -692,7 +701,7 @@ function transformDragEnd(){
 
       }
 
-      function loopCreate(loopObject, loopCount, spaceArray, group)
+      function loopCreate(loopObject, loopCount, distances, group)
       {
         //todo, dont loop inside a template
         // let addToDiv = activeDiv;
@@ -701,7 +710,7 @@ function transformDragEnd(){
         for(let i = 0; i < loopCount; i++)
         {
           let centerMath = i-(0.5*loopCount);
-          let y = centerMath * spaceArray[0];
+          let y = centerMath * distances[0];
 
           //to go slightly off grid
           let xRandomness = (Math.random() - 0.5) * randomMax;
@@ -713,11 +722,12 @@ function transformDragEnd(){
           let loopedObject = loopObject.clone();
 
           //Screens
-          loopedObject.position.set(y, centerMath * spaceArray[1], centerMath * spaceArray[2]);
+          // loopedObject.position.set(y, centerMath * distances[1], centerMath * distances[2]);
+          loopedObject.position.set(y, centerMath * distances[1], centerMath * distances[2]);
 
           // Randomed
-          // loopedObject.position.set(y + xRandomness, centerMath * spaceArray[1] + yRandomness, centerMath * spaceArray[2]);
-          // selectedObj.setPosition(centerMath * spaceArray[0], centerMath * spaceArray[1], centerMath * spaceArray[2]);
+          // loopedObject.position.set(y + xRandomness, centerMath * distances[1] + yRandomness, centerMath * distances[2]);
+          // selectedObj.setPosition(centerMath * distances[0], centerMath * distances[1], centerMath * distances[2]);
           group.add(loopedObject);
           // starGroup.push(loopedObject);
         }
@@ -753,6 +763,7 @@ function transformDragEnd(){
                 break;
             case 'l': // Scale mode
                 loopActive = !loopActive;
+                loopActiveInput.checked = loopActive;
                 toggleLoop();
                 break;
         }
