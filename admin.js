@@ -177,12 +177,18 @@ function toggleLoop()
 
 loopCountXInput.oninput = () => {
     // loopCountX = parseInt(loopCountXInput.value) || 3;
+    if (loopCountXInput.value < 1) {
+        loopCountXInput.value = 1;
+    }
     sceneData.loopCountX = parseInt(loopCountXInput.value);
     refreshLoop();
 };
 
 loopCountYInput.oninput = () => {
     // loopCountY = parseInt(loopCountYInput.value);
+    if (loopCountYInput.value < 1) {
+        loopCountYInput.value = 1;
+    }
     sceneData.loopCountY = parseInt(loopCountYInput.value);
     refreshLoop();
 
@@ -190,6 +196,9 @@ loopCountYInput.oninput = () => {
 
 loopCountZInput.oninput = () => {
     // loopCountZ = parseInt(loopCountZInput.value);
+    if (loopCountZInput.value < 1) {
+        loopCountZInput.value = 1;
+    }
     sceneData.loopCountZ = parseInt(loopCountZInput.value);
     refreshLoop();
 
