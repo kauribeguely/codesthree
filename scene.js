@@ -146,6 +146,7 @@ export function initializeThreeJsScene(sceneData, containerId)
    const rotationRange = 10; // Maximum rotation range in degrees
     const initialRotationX = parseFloat(sceneData.rotationX);
     const initialRotationY = parseFloat(sceneData.rotationY);
+    const initialRotationZ = parseFloat(sceneData.rotationZ);
     // Mousemove listener
     const onMouseMove = (event) => {
       const mouseX = (event.clientX / window.innerWidth) * 2 - 1; // Normalized between -1 and 1
@@ -165,7 +166,7 @@ export function initializeThreeJsScene(sceneData, containerId)
       {
         model.rotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * mouseRotationX);
         model.rotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * mouseRotationY);
-        model.rotation.z = THREE.MathUtils.degToRad(initialRotationX + -mouseX * mouseRotationZ);
+        model.rotation.z = THREE.MathUtils.degToRad(initialRotationZ + -mouseX * mouseRotationZ);
       }
 
       // console.log(initialRotationX + mouseY * rotationRange);
@@ -261,7 +262,7 @@ export function initializeThreeJsScene(sceneData, containerId)
         loopable.scale.set(objScale, objScale, objScale);
         zLoop(loopable, rowCount, columnCount, zCount, group, distances);
         if(mouseAnimationLink) window.addEventListener('mousemove', onMouseMove);
-        
+
       });
     }
 

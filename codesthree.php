@@ -462,8 +462,119 @@ function threejs_editor_page($post) {
 
         <!-- <h1>3D Model Editor</h1> -->
 
-        <div id="threejs-canvas" style="width: 100%; height: 500px;"></div>
 
+        <div id="threejs-canvas" style="width: 100%; height: 70vh;"></div>
+        <!-- <div id="codes_controls"> -->
+          <div class='topTransforms'>
+              <button type="button">Translate</button>
+              <button type="button">Rotate</button>
+              <button type="button">Scale</button>
+          </div>
+          <div class='leftControls'>
+          </div>
+          <div class='rightControls'>
+            <input type="hidden" id="threejs_model_url" name="threejs_model_url" value="<?php echo esc_url($model_url); ?>" />
+            <button type="button" class="button" id="threejs_model_url_button">Select Model</button>
+            <p id="threejs_model_url_preview">
+                <?php if ($model_url): ?>
+                    Current Model: <a href="<?php echo esc_url($model_url); ?>" target="_blank"><?php echo esc_url($model_url); ?></a>
+                <?php endif; ?>
+            </p>
+
+            <p>
+                <strong>Position (Transforms):</strong><br>
+                X: <input type="number" name="threejs_pos_x" id="threejs_position_x" value="<?php echo esc_attr($pos_x); ?>" step="0.01" />
+                Y: <input type="number" name="threejs_pos_y" id="threejs_position_y" value="<?php echo esc_attr($pos_y); ?>" step="0.01" />
+                Z: <input type="number" name="threejs_pos_z" id="threejs_position_z" value="<?php echo esc_attr($pos_z); ?>" step="0.01" />
+                <!-- X: <input type="number" name="threejs_position_x" id="threejs_position_x" value="<?php //echo esc_attr($position['x']); ?>" step="0.1" />
+                Y: <input type="number" name="threejs_position_y" id="threejs_position_y" value="<?php //echo esc_attr($position['y']); ?>" step="0.1" />
+                Z: <input type="number" name="threejs_position_z" id="threejs_position_z" value="<?php //echo esc_attr($position['z']); ?>" step="0.1" /> -->
+            </p>
+
+            <p>
+                <strong>Rotation (Transforms):</strong><br>
+                X: <input type="number" name="threejs_rot_x" id="threejs_rotation_x" value="<?php echo esc_attr($rot_x); ?>" step="0.01" />
+                Y: <input type="number" name="threejs_rot_y" id="threejs_rotation_y" value="<?php echo esc_attr($rot_y); ?>" step="0.01" />
+                Z: <input type="number" name="threejs_rot_z" id="threejs_rotation_z" value="<?php echo esc_attr($rot_z); ?>" step="0.01" />
+            </p>
+
+            <p>
+              <strong>Scale: </strong><input type="number" name="scale" id="codes_scale" value="<?php echo esc_attr($scale); ?>" step="0.01" />
+
+            </p>
+
+
+
+            <p>
+                <label for="ambient-light-slider">Light Intensity:</label><br>
+                <input type="range" name="ambient_light_intensity" id="ambient-light-slider" min="0" max="3" step="0.05" value="<?php echo esc_attr($light_intensity); ?>" />
+                <span id="light_intensity_value"><?php echo esc_attr($light_intensity); ?></span>
+            </p>
+
+            <!-- Mouse Animation Link -->
+            <label for="mouseAnimationLink">Enable Mouse Animation</label>
+            <input type="checkbox" name="mouseAnimationLink" id="mouseAnimationLink" <?php checked($mouse_enabled, 'on'); ?>>
+
+          <!-- Mouse Rotation Strength -->
+          <fieldset>
+            <legend>Mouse Rotation Strength</legend>
+            <label for="mouseRotationX">X:</label>
+            <input type="number" name="mouseRotationX" id="mouseRotationX" step="1" value="<?php echo esc_attr($mouse_rot_x); ?>">
+
+            <label for="mouseRotationY">Y:</label>
+            <input type="number" name="mouseRotationY" id="mouseRotationY" step="1" value="<?php echo esc_attr($mouse_rot_y); ?>">
+
+            <label for="mouseRotationZ">Z:</label>
+            <input type="number" name="mouseRotationZ" id="mouseRotationZ" step="1" value="<?php echo esc_attr($mouse_rot_z); ?>">
+          </fieldset>
+
+          <!-- Scroll Animation Link -->
+          <label for="scrollAnimationLink">Enable Scroll Animation</label>
+          <input type="checkbox" name="scrollAnimationLink" id="scrollAnimationLink" <?php checked($scroll_enabled, 'on'); ?>>
+
+          <!-- Scroll Camera Movement -->
+          <fieldset>
+            <legend>Scroll Camera Movement</legend>
+            <label for="scrollMoveX">X:</label>
+            <input type="number" name="scrollMoveX" id="scrollMoveX" step="0.01" value="<?php echo esc_attr($scroll_mov_x); ?>">
+
+            <label for="scrollMoveY">Y:</label>
+            <input type="number" name="scrollMoveY" id="scrollMoveY" step="0.01" value="<?php echo esc_attr($scroll_mov_y); ?>">
+
+            <label for="scrollMoveZ">Z:</label>
+            <input type="number" name="scrollMoveZ" id="scrollMoveZ" step="0.01" value="<?php echo esc_attr($scroll_mov_z); ?>">
+          </fieldset>
+
+
+          <!-- Toggle for Activating Loop -->
+          <label>
+              <input type="checkbox" name="loopActive" id="loopActive" <?php checked($loop_active, 'on'); ?>>
+              Activate Loop
+          </label>
+
+          <!-- Number Inputs for X, Y, Z Loop Count -->
+          <label>X Count: <input type="number" name="loopCountX" id="loopCountX" step="1" value="<?php echo esc_attr($loop_count_x); ?>"></label>
+          <label>Y Count: <input type="number" name="loopCountY" id="loopCountY" step="1" value="<?php echo esc_attr($loop_count_y); ?>"></label>
+          <label>Z Count: <input type="number" name="loopCountZ" id="loopCountZ" step="1" value="<?php echo esc_attr($loop_count_z); ?>"></label>
+
+          <!-- Number Input for Spacing -->
+          <label>Spacing: <input type="number" name="itemSpacing" id="itemSpacing" step="0.1" value="<?php echo esc_attr($item_spacing); ?>"></label>
+
+          <!-- Toggle for isOrthoCamera -->
+          <label>
+              <input type="checkbox" name="isOrthoCamera" id="isOrthoCamera" <?php checked($is_ortho_camera, 'on'); ?>>
+              Use Orthographic Camera
+          </label>
+
+
+
+
+            <p>Use this shortcode to display the scene on your site:</p>
+            <textarea readonly style="width: 100%;"><?php echo esc_html($shortcode); ?></textarea>
+
+          </div>
+
+        <!-- </div> -->
 
 
         <!-- <button id="save-model-data">Save Changes</button> -->
@@ -489,107 +600,6 @@ function threejs_editor_page($post) {
 
       <!-- <h1>NEW</h1> -->
 
-      <p>
-          <label for="threejs_model_url">Model File:</label><br>
-          <input type="hidden" id="threejs_model_url" name="threejs_model_url" value="<?php echo esc_url($model_url); ?>" />
-          <button type="button" class="button" id="threejs_model_url_button">Select Model</button>
-          <p id="threejs_model_url_preview">
-              <?php if ($model_url): ?>
-                  Current Model: <a href="<?php echo esc_url($model_url); ?>" target="_blank"><?php echo esc_url($model_url); ?></a>
-              <?php endif; ?>
-          </p>
-      </p>
-
-      <p>
-          <strong>Position (Transforms):</strong><br>
-          X: <input type="number" name="threejs_pos_x" id="threejs_position_x" value="<?php echo esc_attr($pos_x); ?>" step="0.01" />
-          Y: <input type="number" name="threejs_pos_y" id="threejs_position_y" value="<?php echo esc_attr($pos_y); ?>" step="0.01" />
-          Z: <input type="number" name="threejs_pos_z" id="threejs_position_z" value="<?php echo esc_attr($pos_z); ?>" step="0.01" />
-          <!-- X: <input type="number" name="threejs_position_x" id="threejs_position_x" value="<?php //echo esc_attr($position['x']); ?>" step="0.1" />
-          Y: <input type="number" name="threejs_position_y" id="threejs_position_y" value="<?php //echo esc_attr($position['y']); ?>" step="0.1" />
-          Z: <input type="number" name="threejs_position_z" id="threejs_position_z" value="<?php //echo esc_attr($position['z']); ?>" step="0.1" /> -->
-      </p>
-
-      <p>
-          <strong>Rotation (Transforms):</strong><br>
-          X: <input type="number" name="threejs_rot_x" id="threejs_rotation_x" value="<?php echo esc_attr($rot_x); ?>" step="0.01" />
-          Y: <input type="number" name="threejs_rot_y" id="threejs_rotation_y" value="<?php echo esc_attr($rot_y); ?>" step="0.01" />
-          Z: <input type="number" name="threejs_rot_z" id="threejs_rotation_z" value="<?php echo esc_attr($rot_z); ?>" step="0.01" />
-      </p>
-
-      <p>
-        <strong>Scale: </strong><input type="number" name="scale" id="codes_scale" value="<?php echo esc_attr($scale); ?>" step="0.01" />
-
-      </p>
-
-
-
-      <p>
-          <label for="ambient-light-slider">Light Intensity:</label><br>
-          <input type="range" name="ambient_light_intensity" id="ambient-light-slider" min="0" max="3" step="0.05" value="<?php echo esc_attr($light_intensity); ?>" />
-          <span id="light_intensity_value"><?php echo esc_attr($light_intensity); ?></span>
-      </p>
-
-      <!-- Mouse Animation Link -->
-      <label for="mouseAnimationLink">Enable Mouse Animation</label>
-      <input type="checkbox" name="mouseAnimationLink" id="mouseAnimationLink" <?php checked($mouse_enabled, 'on'); ?>>
-
-    <!-- Mouse Rotation Strength -->
-    <fieldset>
-      <legend>Mouse Rotation Strength</legend>
-      <label for="mouseRotationX">X:</label>
-      <input type="number" name="mouseRotationX" id="mouseRotationX" step="1" value="<?php echo esc_attr($mouse_rot_x); ?>">
-
-      <label for="mouseRotationY">Y:</label>
-      <input type="number" name="mouseRotationY" id="mouseRotationY" step="1" value="<?php echo esc_attr($mouse_rot_y); ?>">
-
-      <label for="mouseRotationZ">Z:</label>
-      <input type="number" name="mouseRotationZ" id="mouseRotationZ" step="1" value="<?php echo esc_attr($mouse_rot_z); ?>">
-    </fieldset>
-
-    <!-- Scroll Animation Link -->
-    <label for="scrollAnimationLink">Enable Scroll Animation</label>
-    <input type="checkbox" name="scrollAnimationLink" id="scrollAnimationLink" <?php checked($scroll_enabled, 'on'); ?>>
-
-    <!-- Scroll Camera Movement -->
-    <fieldset>
-      <legend>Scroll Camera Movement</legend>
-      <label for="scrollMoveX">X:</label>
-      <input type="number" name="scrollMoveX" id="scrollMoveX" step="0.01" value="<?php echo esc_attr($scroll_mov_x); ?>">
-
-      <label for="scrollMoveY">Y:</label>
-      <input type="number" name="scrollMoveY" id="scrollMoveY" step="0.01" value="<?php echo esc_attr($scroll_mov_y); ?>">
-
-      <label for="scrollMoveZ">Z:</label>
-      <input type="number" name="scrollMoveZ" id="scrollMoveZ" step="0.01" value="<?php echo esc_attr($scroll_mov_z); ?>">
-    </fieldset>
-
-
-    <!-- Toggle for Activating Loop -->
-    <label>
-        <input type="checkbox" name="loopActive" id="loopActive" <?php checked($loop_active, 'on'); ?>>
-        Activate Loop
-    </label>
-
-    <!-- Number Inputs for X, Y, Z Loop Count -->
-    <label>X Count: <input type="number" name="loopCountX" id="loopCountX" step="1" value="<?php echo esc_attr($loop_count_x); ?>"></label>
-    <label>Y Count: <input type="number" name="loopCountY" id="loopCountY" step="1" value="<?php echo esc_attr($loop_count_y); ?>"></label>
-    <label>Z Count: <input type="number" name="loopCountZ" id="loopCountZ" step="1" value="<?php echo esc_attr($loop_count_z); ?>"></label>
-
-    <!-- Number Input for Spacing -->
-    <label>Spacing: <input type="number" name="itemSpacing" id="itemSpacing" step="0.1" value="<?php echo esc_attr($item_spacing); ?>"></label>
-
-    <!-- Toggle for isOrthoCamera -->
-    <label>
-        <input type="checkbox" name="isOrthoCamera" id="isOrthoCamera" <?php checked($is_ortho_camera, 'on'); ?>>
-        Use Orthographic Camera
-    </label>
-
-
-
-
-      <p>Use this shortcode to display the scene on your site:</p>
-      <textarea readonly style="width: 100%;"><?php echo esc_html($shortcode); ?></textarea>
 
 
       <script>

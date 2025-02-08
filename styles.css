@@ -21,3 +21,46 @@
   display: flex;
   justify-content: center;
 }
+
+/* #codes_controls {
+    position: absolute;
+    top: 0; */
+
+
+  .leftControls {
+      left: 0;
+      width: 223px;
+  }
+
+  .rightControls {
+      right: 0;
+      width: 223px;
+  }
+
+  .topTransforms {
+    top: 0;
+    width: 223px;
+    left: 50%;
+    transform: translate(-50%);
+    position: absolute;
+
+      button
+      {
+
+      }
+  }
+
+  .rightControls, .leftControls {
+      position: absolute;
+      display: flex;
+      flex-wrap: wrap;
+      flex-direction: column;
+      top: 0;
+      background: #ffffffb8;
+      /* padding: 15px; */
+      height: 100%;
+      width: 217px;
+  }
+
+
+/* } */
