@@ -25,9 +25,22 @@ export function initializeThreeJsScene(sceneData, containerId)
     const mouseRotationZ = sceneData.mouseRotationZ; // Maximum rotation range in degrees
     let mouseAnimationLink = sceneData.mouseAnimationLink === 'on';
     let scrollAnimationLink = sceneData.scrollAnimationLink === 'on';
+    let isOrthoCamera = sceneData.isOrthoCamera === 'on';
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
+    let camera;
+    const perspectiveCamera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
+
+    const orthoCamera = new THREE.OrthographicCamera( container.clientWidth / - isoZoom, container.clientWidth / isoZoom, container.clientHeight / isoZoom, container.clientHeight / - isoZoom, 1, 1000 );
+
+    if(isOrthoCamera)
+    {
+      camera = orthoCamera;
+    }
+    else
+    {
+      camera = perspectiveCamera;
+    }
 
     // const camera = new THREE.OrthographicCamera( width / - 2, width / 2, height / 2, height / - 2, 1, 1000 );
 

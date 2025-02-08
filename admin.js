@@ -125,8 +125,18 @@ window.onload = () =>
 
 
   const scaleInput = document.getElementById('codes_scale');
-  scaleInput.oninput = () => {
-      model.scale.set(scaleInput.value, scaleInput.value, scaleInput.value);
+  scaleInput.oninput = () =>
+  {
+    model.scale.set(scaleInput.value, scaleInput.value, scaleInput.value);
+    sceneData.scale = scaleInput.value;
+    if(sceneData.loopActive)
+    {
+      refreshLoop();
+    }
+    else
+    {
+
+    }
   };
 
 
@@ -160,14 +170,20 @@ function toggleLoop()
     //run loop function with all sceneData values
     // scene.remove(model);
     model.visible = false;
+    controls.visible = false;
+
     // scene.remove(controls);
     refreshLoop();
   }
   else
   {
-    scene.remove(groupControls);
-    scene.remove(fullLoopGroup);
+    // scene.remove(groupControls);
+    // scene.remove(fullLoopGroup);
+    fullLoopGroup.visible = false;
+    groupControls.visible = false;
     model.visible = true;
+    controls.visible = true;
+
 
     // scene.add(model);
     // scene.add(controls);
@@ -322,6 +338,7 @@ function toggleCamera()
     groupControls = new TransformControls(camera, renderer.domElement);
     // groupControls.attach(objGroup);
     groupControls.attach(fullLoopGroup);
+    groupControls.setSpace('local');  // Ensure local space is used
 
     loadModel(sceneData.modelUrl, sceneData);
 
@@ -362,6 +379,8 @@ function toggleCamera()
           // Allow rotation/repositioning
           controls = new TransformControls(camera, renderer.domElement);
           controls.attach(model);
+          controls.setSpace('local');  // Ensure local space is used
+
           scene.add(controls);
           // Listen for changes in the TransformControls
           controls.addEventListener('change', updateTransforms);
@@ -372,8 +391,10 @@ function toggleCamera()
 
           if(sceneData.loopActive)
           {
-            scene.remove(model);
-            scene.remove(controls);
+            model.visible = false;
+            controls.visible = false;
+            // scene.remove(model);
+            // scene.remove(controls);
           }
 
           // Save model position/rotation
@@ -410,6 +431,11 @@ function toggleCamera()
     //     `;
     // };
 
+    function round(value, precision) {
+        var multiplier = Math.pow(10, precision || 0);
+        return Math.round(value * multiplier) / multiplier;
+    }
+
     const updateTransforms = () => {
       let pos = model.position;
       let rot = model.rotation;
@@ -422,7 +448,10 @@ function toggleCamera()
         rot = new THREE.Euler().setFromQuaternion(fullLoopGroup.quaternion); // Handle group rotation correctly
         // scale = objGroup.scale;
 
-
+        // if(controls.mode === "scale" || groupControls.mode === "scale")
+        // {
+        //   refreshLoop();
+        // }
       }
       else
       {
@@ -466,8 +495,8 @@ function toggleCamera()
       }
 
 
-      scaleInput.value = scale.x;
-      sceneData.scale = scale.x;
+      scaleInput.value = round(scale.x, 2);
+      sceneData.scale = round(scale.x, 2);
 
       // console.log(scale, scale.x);
 
@@ -561,7 +590,9 @@ function transformDragEnd(){
         // scene.remove(groupControls);
         // scene.remove(fullLoopGroup);
         fullLoopGroup.remove(objGroup);
-        scene.add(fullLoopGroup);
+        // scene.add(fullLoopGroup);
+        fullLoopGroup.visible = true;
+        groupControls.visible = true;
 
         objGroup = new THREE.Group();
         fullLoopGroup.add(objGroup);
@@ -574,7 +605,7 @@ function transformDragEnd(){
         transformObjectToSceneData(fullLoopGroup);
 
 
-        scene.add(groupControls);
+        // scene.add(groupControls);
 
         // loopDat(sceneData.modelUrl, sceneData.scale, 40, 80, objGroup, [2, 0, 0]);
         sceneDataLoop();
@@ -799,7 +830,9 @@ function transformDragEnd(){
                 break;
             case 's': // Scale mode
                 controls.setMode('scale');
-                groupControls.setMode('scale');
+
+                // dont allow scaling of group, must be set via single or input
+                // groupControls.setMode('scale');
                 break;
             case 'l': // Scale mode
                 loopActive = !loopActive;
