@@ -135,7 +135,7 @@ window.onload = () =>
   let loopCountY = sceneData.loopCountY || 3;
   let loopCountZ = sceneData.loopCountZ || 3;
   let itemSpacing = sceneData.itemSpacing || 1.0;
-  let isOrthoCamera = sceneData.isOrthoCamera || false;
+  let isOrthoCamera = sceneData.isOrthoCamera === 'on';
 
   const loopActiveInput = document.getElementById('loopActive');
   const loopCountXInput = document.getElementById('loopCountX');

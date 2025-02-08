@@ -581,7 +581,7 @@ function threejs_editor_page($post) {
 
     <!-- Toggle for isOrthoCamera -->
     <label>
-        <input type="checkbox" name="isOrthoCamera" id="isOrthoCamera" <?php checked($is_ortho_camera, true); ?>>
+        <input type="checkbox" name="isOrthoCamera" id="isOrthoCamera" <?php checked($is_ortho_camera, 'on'); ?>>
         Use Orthographic Camera
     </label>
 
