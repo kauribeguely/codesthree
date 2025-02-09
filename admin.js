@@ -53,14 +53,20 @@ window.onload = () =>
   // oninput for mouse rotation values
   mouseRotXInput.oninput = () => {
     mouseRotationX = parseFloat(mouseRotXInput.value) || 0;
+
+
   };
 
   mouseRotYInput.oninput = () => {
     mouseRotationY = parseFloat(mouseRotYInput.value) || 0;
+
+
   };
 
   mouseRotZInput.oninput = () => {
     mouseRotationZ = parseFloat(mouseRotZInput.value) || 0;
+
+
   };
 
   // oninput for toggle (checkbox)
@@ -95,13 +101,27 @@ window.onload = () =>
   const posZInput = document.getElementById('threejs_position_z');
 
   posXInput.oninput = () => {
-    model.position.x = parseFloat(posXInput.value) || 0;
+    // model.position.x = parseFloat(posXInput.value) || 0;
+    sceneData.positionX = parseFloat(posXInput.value);
+
+    transformObjectToSceneData(fullLoopGroup);
+    transformObjectToSceneData(model);
   };
+
   posYInput.oninput = () => {
-      model.position.y = parseFloat(posYInput.value) || 0;
+      // model.position.y = parseFloat(posYInput.value) || 0;
+      sceneData.positionY = parseFloat(posYInput.value);
+
+      transformObjectToSceneData(fullLoopGroup);
+      transformObjectToSceneData(model);
   };
+
   posZInput.oninput = () => {
-      model.position.z = parseFloat(posZInput.value) || 0;
+      // model.position.z = parseFloat(posZInput.value) || 0;
+      sceneData.positionZ = parseFloat(posZInput.value);
+
+      transformObjectToSceneData(fullLoopGroup);
+      transformObjectToSceneData(model);
   };
 
 
@@ -114,12 +134,30 @@ window.onload = () =>
 
   rotXInput.oninput = () => {
       model.rotation.x = THREE.MathUtils.degToRad(parseFloat(rotXInput.value) || 0);
+      model.rotation.x = THREE.MathUtils.degToRad(parseFloat(rotXInput.value) || 0);
+
+      sceneData.rotationX = parseFloat(rotXInput.value);
+      initialRotationX = sceneData.rotationX;
+      transformObjectToSceneData(fullLoopGroup);
+      transformObjectToSceneData(model);
   };
   rotYInput.oninput = () => {
       model.rotation.y = THREE.MathUtils.degToRad(parseFloat(rotYInput.value) || 0);
+      model.rotation.y = THREE.MathUtils.degToRad(parseFloat(rotYInput.value) || 0);
+
+      sceneData.rotationY = parseFloat(rotYInput.value);
+      initialRotationY = sceneData.rotationY;
+      transformObjectToSceneData(fullLoopGroup);
+      transformObjectToSceneData(model);
   };
   rotZInput.oninput = () => {
       model.rotation.z = THREE.MathUtils.degToRad(parseFloat(rotZInput.value) || 0);
+      model.rotation.z = THREE.MathUtils.degToRad(parseFloat(rotZInput.value) || 0);
+
+      sceneData.rotationZ = parseFloat(rotZInput.value);
+      initialRotationZ = sceneData.rotationZ;
+      transformObjectToSceneData(fullLoopGroup);
+      transformObjectToSceneData(model);
   };
 
 

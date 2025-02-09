@@ -530,9 +530,10 @@ function threejs_editor_page($post) {
 
 
             <!-- Mouse Animation Link -->
-            <label for="mouseAnimationLink">Enable Mouse Animation</label>
-            <input type="checkbox" name="mouseAnimationLink" id="mouseAnimationLink" <?php checked($mouse_enabled, 'on'); ?>>
-
+            <div class="checkbox-group">
+              <input type="checkbox" name="mouseAnimationLink" id="mouseAnimationLink" <?php checked($mouse_enabled, 'on'); ?>>
+              <label for="mouseAnimationLink">Enable Mouse Animation</label>
+            </div>
             <!-- Mouse Rotation Strength -->
             <fieldset>
                 <legend>Mouse Rotation Strength</legend>
@@ -554,8 +555,8 @@ function threejs_editor_page($post) {
 
             <!-- Scroll Animation Link -->
             <div class="checkbox-group">
-                <label for="scrollAnimationLink">Enable Scroll Animation</label>
                 <input type="checkbox" name="scrollAnimationLink" id="scrollAnimationLink" <?php checked($scroll_enabled, 'on'); ?>>
+                <label for="scrollAnimationLink">Enable Scroll Animation</label>
             </div>
 
             <!-- Scroll Camera Movement -->
