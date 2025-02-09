@@ -74,11 +74,14 @@ window.onload = () =>
     mouseAnimationLink = mouseAnimationLinkInput.checked;
     if(!mouseAnimationLink)
     {
-      model.rotation.set(
-          parseFloat(THREE.MathUtils.degToRad(sceneData.rotationX)),
-          parseFloat(THREE.MathUtils.degToRad(sceneData.rotationY)),
-          parseFloat(THREE.MathUtils.degToRad(sceneData.rotationZ))
-      );
+      // model.rotation.set(
+      //     parseFloat(THREE.MathUtils.degToRad(sceneData.rotationX)),
+      //     parseFloat(THREE.MathUtils.degToRad(sceneData.rotationY)),
+      //     parseFloat(THREE.MathUtils.degToRad(sceneData.rotationZ))
+      // );
+      transformObjectToSceneData(model);
+      transformObjectToSceneData(fullLoopGroup);
+
     }
   };
 
@@ -141,6 +144,7 @@ window.onload = () =>
       transformObjectToSceneData(fullLoopGroup);
       transformObjectToSceneData(model);
   };
+
   rotYInput.oninput = () => {
       model.rotation.y = THREE.MathUtils.degToRad(parseFloat(rotYInput.value) || 0);
       model.rotation.y = THREE.MathUtils.degToRad(parseFloat(rotYInput.value) || 0);
@@ -150,6 +154,7 @@ window.onload = () =>
       transformObjectToSceneData(fullLoopGroup);
       transformObjectToSceneData(model);
   };
+
   rotZInput.oninput = () => {
       model.rotation.z = THREE.MathUtils.degToRad(parseFloat(rotZInput.value) || 0);
       model.rotation.z = THREE.MathUtils.degToRad(parseFloat(rotZInput.value) || 0);
@@ -886,6 +891,7 @@ function transformDragEnd(){
     {
 
       controls.setMode(mode);
+      groupControls.setMode(mode);
       if(mode != 'scale')
       {
         groupControls.setMode(mode);
