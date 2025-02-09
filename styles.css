@@ -39,10 +39,11 @@
 
   .topTransforms {
     top: 0;
-    width: 223px;
+    /* width: 223px; */
     left: 50%;
     transform: translate(-50%);
     position: absolute;
+    
 
       button
       {
@@ -59,8 +60,34 @@
       background: #ffffffb8;
       /* padding: 15px; */
       height: 100%;
-      width: 217px;
+      padding: 15px;
+      /* width: 217px; */
   }
+
+  .transform-group {
+    display: flex;
+    /* flex-direction: column; */
+    gap: 8px; /* Adds spacing between input groups */
+}
+
+.transform-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.transform-field label {
+    font-weight: bold;
+    margin-bottom: 3px; /* Adds spacing between label and input */
+    text-align: center;
+}
+
+.transform-field input {
+    width: 100%;
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
 
 
 /* } */

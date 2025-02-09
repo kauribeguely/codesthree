@@ -171,7 +171,7 @@ function toggleLoop()
     // scene.remove(model);
     model.visible = false;
     controls.visible = false;
-
+    document.querySelector('#codesScaleButton').disabled = true;
     // scene.remove(controls);
     refreshLoop();
   }
@@ -179,6 +179,7 @@ function toggleLoop()
   {
     // scene.remove(groupControls);
     // scene.remove(fullLoopGroup);
+    document.querySelector('#codesScaleButton').disabled = false;
     fullLoopGroup.visible = false;
     groupControls.visible = false;
     model.visible = true;
@@ -317,7 +318,7 @@ function toggleCamera()
     //     lightValue.textContent = lightSlider.value;
     // });
 
-
+    //INIT
     let controls, groupControls;
     let model, loopGroup;
 
@@ -347,6 +348,8 @@ function toggleCamera()
     {
       scene.add(groupControls);
       sceneDataLoop();
+      document.querySelector('#codesScaleButton').disabled = true;
+
     }
     // loadModel('http://localhost/wPpractice/wp-content/uploads/2025/01/first-room.glb', sceneData);
 
@@ -817,19 +820,18 @@ function transformDragEnd(){
     // updateLabel();//show initial values
 
 
+
     // Optional: Enable drag interaction with the transform controls
     window.addEventListener('keydown', (event) => {
         switch (event.key) {
             case 't': // Translate mode
-                controls.setMode('translate');
-                groupControls.setMode('translate');
+                setTransformMode('translate');
                 break;
             case 'r': // Rotate mode
-                controls.setMode('rotate');
-                groupControls.setMode('rotate');
+                setTransformMode('rotate');
                 break;
             case 's': // Scale mode
-                controls.setMode('scale');
+                setTransformMode('scale');
 
                 // dont allow scaling of group, must be set via single or input
                 // groupControls.setMode('scale');
@@ -841,6 +843,18 @@ function transformDragEnd(){
                 break;
         }
     });
+
+    function setTransformMode(mode)
+    {
+
+      controls.setMode(mode);
+      if(mode != 'scale')
+      {
+        groupControls.setMode(mode);
+      }
+
+    }
+    window.setTransformMode = setTransformMode;
 
     // Handle window resizing
       window.addEventListener('resize', onWindowResize, false);
@@ -863,4 +877,7 @@ function transformDragEnd(){
       }
 
 }
+
+
+
 // });
