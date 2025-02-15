@@ -14,6 +14,9 @@ window.onload = () =>
   // Get the toggle elements (checkboxes)
   const mouseAnimationLinkInput = document.getElementById('mouseAnimationLink');
   const scrollAnimationLinkInput = document.getElementById('scrollAnimationLink');
+  // Mousemove listener
+  const targetRotation = new THREE.Vector3(); // Store the target rotation
+  const currentRotation = new THREE.Vector3(); // Store the current rotation
 
   // Get the scroll move inputs
   const scrollXInput = document.getElementById('scrollMoveX');
@@ -608,28 +611,37 @@ function transformDragEnd(){
       let initialRotationX = parseFloat(sceneData.rotationX);
       let initialRotationY = parseFloat(sceneData.rotationY);
       let initialRotationZ = parseFloat(sceneData.rotationZ);
-      // Mousemove listener
-      const onMouseMove = (event) =>
-      {
-        const mouseX = (event.clientX / window.innerWidth) * 2 - 1; // Normalized between -1 and 1
-        const mouseY = -(event.clientY / window.innerHeight) * 2 + 1; // Normalized between -1 and 1
 
-        // Map mouse position to rotation range
-        // model.rotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * rotationRange);
-        // model.rotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * rotationRange);
-        if(mouseAnimationLink && !isTransforming)
-        {
-          model.rotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * mouseRotationX);
-          model.rotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * mouseRotationY);
-          model.rotation.z = THREE.MathUtils.degToRad(initialRotationZ + -mouseX * mouseRotationZ);
+      const onMouseMove = (event) => {
+          const mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+          const mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
 
-          fullLoopGroup.rotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * mouseRotationX);
-          fullLoopGroup.rotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * mouseRotationY);
-          fullLoopGroup.rotation.z = THREE.MathUtils.degToRad(initialRotationZ + -mouseX * mouseRotationZ);
-        }
-        // console.log(initialRotationX + mouseY * rotationRange);
+          // Calculate target rotation
+          targetRotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * mouseRotationX);
+          targetRotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * mouseRotationY);
+          targetRotation.z = THREE.MathUtils.degToRad(initialRotationZ + -mouseX * mouseRotationZ);
 
+          if (mouseAnimationLink && !isTransforming) {
+              // Smoothly interpolate to the target rotation
+              // const easing = 0.1; // Adjust this value for speed (lower = slower)
+              const easing = 1 + (1 - 0.1) * 0.05; // Increase easing slightly on each move to simulate ease-out.  Adjust 0.05 for strength.
+
+              currentRotation.x = THREE.MathUtils.lerp(currentRotation.x, targetRotation.x, easing);
+              currentRotation.y = THREE.MathUtils.lerp(currentRotation.y, targetRotation.y, easing);
+              currentRotation.z = THREE.MathUtils.lerp(currentRotation.z, targetRotation.z, easing);
+
+              model.rotation.x = currentRotation.x;
+              model.rotation.y = currentRotation.y;
+              model.rotation.z = currentRotation.z;
+
+              fullLoopGroup.rotation.x = currentRotation.x;
+              fullLoopGroup.rotation.y = currentRotation.y;
+              fullLoopGroup.rotation.z = currentRotation.z;
+          }
       };
+
+      // Initialize currentRotation (important!)
+      // currentRotation.copy(model.rotation); // Or set to initial values
 
       function refreshLoop()
       {
@@ -670,6 +682,8 @@ function transformDragEnd(){
             parseFloat(THREE.MathUtils.degToRad(sceneData.rotationY)),
             parseFloat(THREE.MathUtils.degToRad(sceneData.rotationZ))
         );
+
+        currentRotation.copy(object.rotation); // The most direct way
       }
 
       // Get the canvas container element
