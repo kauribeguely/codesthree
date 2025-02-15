@@ -279,6 +279,11 @@ isOrthoCameraInput.oninput = () => {
 
 function toggleCamera()
 {
+  // perspectiveCamera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
+  // orthoCamera = new THREE.OrthographicCamera( container.clientWidth / - isoZoom, container.clientWidth / isoZoom, container.clientHeight / isoZoom, container.clientHeight / - isoZoom, 1, 1000 );
+
+
+  scene.remove(camera);
     if (sceneData.isOrthoCamera) {
         camera = orthoCamera;
     } else {
@@ -286,6 +291,9 @@ function toggleCamera()
     }
     controls.camera = camera;
     groupControls.camera = camera;
+
+    camera.position.set(cameraPos[0], cameraPos[1], cameraPos[2]);
+    scene.add(camera);
 
     renderer.render(scene, camera);
 }
