@@ -217,6 +217,11 @@ function toggleLoop()
     // scene.remove(model);
     model.visible = false;
     controls.visible = false;
+    groupControls.visible = true;
+    if (groupControls.parent !== scene) { // Check if groupControls is NOT already a child of the scene
+      scene.add(groupControls);
+    }
+    fullLoopGroup.visible = true;
     document.querySelector('#codesScaleButton').disabled = true;
     // scene.remove(controls);
     refreshLoop();
@@ -302,7 +307,7 @@ function toggleCamera()
     const container = document.getElementById('threejs-canvas');
     const labelContainer = document.getElementById('label'); // Label container for displaying object details
 
-    let isoZoom = 100;
+    let isoZoom = 250;
     const scene = new THREE.Scene();
     let camera;
     const perspectiveCamera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
@@ -317,7 +322,7 @@ function toggleCamera()
       camera = perspectiveCamera;
     }
 
-    let cameraPos = [0, 2, 5];
+    let cameraPos = [0, 0, 5];
 
     camera.position.set(cameraPos[0], cameraPos[1], cameraPos[2]);
 
@@ -411,12 +416,16 @@ function toggleCamera()
       }
 
 
+      scene.add(groupControls);
       if(sceneData.loopActive)
       {
-        scene.add(groupControls);
         sceneDataLoop();
         document.querySelector('#codesScaleButton').disabled = true;
 
+      }
+      else
+      {        
+        groupControls.visible = false;
       }
     }
 
