@@ -468,7 +468,10 @@ function threejs_editor_page($post) {
 
         <!-- <h1>3D Model Editor</h1> -->
 
-
+      <div id="newScenePopup">
+        Upload/open a model to get started
+        <button type="button" class="button" id="popup_media_button">Select Model</button>
+      </div>
         <div id="threejs-canvas" style="width: 100%; height: 70vh;"></div>
         <!-- <div id="codes_controls"> -->
           <div class='topTransforms'>
@@ -478,13 +481,7 @@ function threejs_editor_page($post) {
               <button id='codesScaleButton' title="not available in loop mode, use scale text input on left" type="button" onmousedown="setTransformMode('scale')">Scale (S)</button>
           </div>
           <div class='leftControls'>
-            <input type="hidden" id="threejs_model_url" name="threejs_model_url" value="<?php echo esc_url($model_url); ?>" />
-            <button type="button" class="button" id="threejs_model_url_button">Select Model</button>
-            <p id="threejs_model_url_preview">
-                <?php if ($model_url): ?>
-                    Current Model: <a href="<?php echo esc_url($model_url); ?>" target="_blank"><?php echo esc_url($model_url); ?></a>
-                <?php endif; ?>
-            </p>
+
 
 
             <strong>Position</strong>
@@ -531,6 +528,15 @@ function threejs_editor_page($post) {
                 <input type="range" name="ambient_light_intensity" id="ambient-light-slider" min="0" max="3" step="0.05" value="<?php echo esc_attr($light_intensity); ?>" />
                 <span id="light_intensity_value"><?php echo esc_attr($light_intensity); ?></span>
             </p>
+
+            <input type="hidden" id="threejs_model_url" name="threejs_model_url" value="<?php echo esc_url($model_url); ?>" />
+            <button type="button" class="button" id="threejs_model_url_button">Change Model</button>
+            <p id="threejs_model_url_preview">
+                <?php if ($model_url): ?>
+                    Current Model: <a href="<?php echo esc_url($model_url); ?>" target="_blank"><?php echo esc_url($model_url); ?></a>
+                <?php endif; ?>
+            </p>
+
           </div>
           <div class='rightControls'>
 

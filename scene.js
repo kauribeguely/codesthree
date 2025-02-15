@@ -161,7 +161,7 @@ export function initializeThreeJsScene(sceneData, containerId)
       // Map mouse position to rotation range
       // model.rotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * rotationRange);
       // model.rotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * rotationRange);
-      const easing = 1 + (1 - 0.1) * 0.05; // Increase easing slightly on each move to simulate ease-out.  Adjust 0.05 for strength.
+      const easing = 0.1 + (1 - 0.1) * 0.05; // Increase easing slightly on each move to simulate ease-out.  Adjust 0.05 for strength.
 
       targetRotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * mouseRotationX);
       targetRotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * mouseRotationY);

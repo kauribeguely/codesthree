@@ -379,24 +379,39 @@ function toggleCamera()
     let spacing = sceneData.itemSpacing;
     let fullLoopGroup = new THREE.Group();
     let objGroup = new THREE.Group();
-    fullLoopGroup.add(objGroup);
-    // scene.add(objGroup);
-    scene.add(fullLoopGroup);
-    groupControls = new TransformControls(camera, renderer.domElement);
-    // groupControls.attach(objGroup);
-    groupControls.attach(fullLoopGroup);
-    groupControls.setSpace('local');  // Ensure local space is used
-
-    loadModel(sceneData.modelUrl, sceneData);
 
 
-    if(sceneData.loopActive)
+    function init()
     {
-      scene.add(groupControls);
-      sceneDataLoop();
-      document.querySelector('#codesScaleButton').disabled = true;
+      fullLoopGroup.add(objGroup);
+      // scene.add(objGroup);
+      scene.add(fullLoopGroup);
+      groupControls = new TransformControls(camera, renderer.domElement);
+      // groupControls.attach(objGroup);
+      groupControls.attach(fullLoopGroup);
+      groupControls.setSpace('local');  // Ensure local space is used
 
+      if(sceneData.modelUrl != "")
+      {
+        loadModel(sceneData.modelUrl, sceneData);
+      }
+      else
+      {
+        //when intiate new scene, show the open popup
+        popup.style.display = 'flex';
+        popupOpen = true;
+      }
+
+
+      if(sceneData.loopActive)
+      {
+        scene.add(groupControls);
+        sceneDataLoop();
+        document.querySelector('#codesScaleButton').disabled = true;
+
+      }
     }
+
     // loadModel('http://localhost/wPpractice/wp-content/uploads/2025/01/first-room.glb', sceneData);
 
     function loadModel(url, sceneData)
@@ -570,42 +585,53 @@ function transformDragEnd(){
 
     // Handle WordPress Media Library for Model URL
     const mediaButton = document.getElementById('threejs_model_url_button');
+    const popupMediaButton = document.getElementById('popup_media_button');
+    const popup = document.getElementById('newScenePopup');
     const modelUrlField = document.getElementById('threejs_model_url');
     const preview = document.getElementById('threejs_model_url_preview');
 
+
+    let popupOpen = false;
+    popupMediaButton.addEventListener('click', function (e) {
+      e.preventDefault();
+      mediaUploader.open();
+    });
+
     mediaButton.addEventListener('click', function (e) {
         e.preventDefault();
-
-        const mediaUploader = wp.media({
-            title: 'Select 3D Model',
-            button: { text: 'Use this model' },
-            multiple: false
-        });
-
-        mediaUploader.on('select', function () {
-            const attachment = mediaUploader.state().get('selection').first().toJSON();
-            modelUrlField.value = attachment.url;
-            sceneData.modelUrl = attachment.url;
-            preview.innerHTML = `Current Model: <a href="${attachment.url}" target="_blank">${attachment.url}</a>`;
-            console.log(attachment.url);
-            if(scene.loopActive)
-            {
-              // loopDat(sceneData.modelUrl, 0.3, 40, 80, objGroup, [2, 0, 0]);
-              sceneDataLoop();
-            }
-            else
-            {
-              loadModel(attachment.url, sceneData);
-            }
-
-
-        });
-
         mediaUploader.open();
-
     });
 
 
+    const mediaUploader = wp.media({
+        title: 'Select 3D Model',
+        button: { text: 'Use this model' },
+        multiple: false
+    });
+
+    mediaUploader.on('select', function () {
+        const attachment = mediaUploader.state().get('selection').first().toJSON();
+        modelUrlField.value = attachment.url;
+        sceneData.modelUrl = attachment.url;
+        preview.innerHTML = `Current Model: <a href="${attachment.url}" target="_blank">${attachment.url}</a>`;
+        console.log(attachment.url);
+        if(scene.loopActive)
+        {
+          // loopDat(sceneData.modelUrl, 0.3, 40, 80, objGroup, [2, 0, 0]);
+          sceneDataLoop();
+        }
+        else
+        {
+          loadModel(attachment.url, sceneData);
+        }
+
+        if(popupOpen)
+        {
+          popupOpen = false;
+          popup.style.display = 'none';
+        }
+
+    });
 
 
       let initialRotationX = parseFloat(sceneData.rotationX);
@@ -624,7 +650,7 @@ function transformDragEnd(){
           if (mouseAnimationLink && !isTransforming) {
               // Smoothly interpolate to the target rotation
               // const easing = 0.1; // Adjust this value for speed (lower = slower)
-              const easing = 1 + (1 - 0.1) * 0.05; // Increase easing slightly on each move to simulate ease-out.  Adjust 0.05 for strength.
+              const easing = 0.1 + (1 - 0.1) * 0.05; // Increase easing slightly on each move to simulate ease-out.  Adjust 0.05 for strength.
 
               currentRotation.x = THREE.MathUtils.lerp(currentRotation.x, targetRotation.x, easing);
               currentRotation.y = THREE.MathUtils.lerp(currentRotation.y, targetRotation.y, easing);
@@ -933,6 +959,8 @@ function transformDragEnd(){
       {
         mouseDown = false;
       }
+
+      init();
 
 }
 
