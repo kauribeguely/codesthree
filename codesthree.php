@@ -518,26 +518,25 @@ function threejs_editor_page($post) {
 
             <p>
               <strong>Scale: </strong><input type="number" name="scale" id="codes_scale" value="<?php echo esc_attr($scale); ?>" step="0.01" />
-
             </p>
 
-
+            <hr>
 
             <p>
                 <label for="ambient-light-slider">Light Intensity:</label><br>
                 <input type="range" name="ambient_light_intensity" id="ambient-light-slider" min="0" max="3" step="0.05" value="<?php echo esc_attr($light_intensity); ?>" />
                 <span id="light_intensity_value"><?php echo esc_attr($light_intensity); ?></span>
             </p>
+            <hr>
 
-            <input type="hidden" id="threejs_model_url" name="threejs_model_url" value="<?php echo esc_url($model_url); ?>" />
-            <button type="button" class="button" id="threejs_model_url_button">Change Model</button>
-            <p id="threejs_model_url_preview">
-                <?php if ($model_url): ?>
-                    Current Model: <a href="<?php echo esc_url($model_url); ?>" target="_blank"><?php echo esc_url($model_url); ?></a>
-                <?php endif; ?>
-            </p>
-
+            <!-- Toggle for isOrthoCamera -->
+            <label>
+                <input type="checkbox" name="isOrthoCamera" id="isOrthoCamera" <?php checked($is_ortho_camera, 'on'); ?>>
+                Use Orthographic Camera
+            </label>
           </div>
+
+
           <div class='rightControls'>
 
 
@@ -565,6 +564,7 @@ function threejs_editor_page($post) {
                 </div>
             </fieldset>
 
+            <hr>
             <!-- Scroll Animation Link -->
             <div class="checkbox-group">
                 <input type="checkbox" name="scrollAnimationLink" id="scrollAnimationLink" <?php checked($scroll_enabled, 'on'); ?>>
@@ -590,6 +590,7 @@ function threejs_editor_page($post) {
                 </div>
             </fieldset>
 
+            <hr>
             <!-- Toggle for Activating Loop -->
             <label>
               <input type="checkbox" name="loopActive" id="loopActive" <?php checked($loop_active, 'on'); ?>>
@@ -618,21 +619,28 @@ function threejs_editor_page($post) {
 
 
           <!-- Number Input for Spacing -->
-          <label>Spacing: <input type="number" name="itemSpacing" id="itemSpacing" step="0.1" value="<?php echo esc_attr($item_spacing); ?>"></label>
-
-          <!-- Toggle for isOrthoCamera -->
-          <label>
-              <input type="checkbox" name="isOrthoCamera" id="isOrthoCamera" <?php checked($is_ortho_camera, 'on'); ?>>
-              Use Orthographic Camera
-          </label>
+          <label>Item Spacing: <input type="number" name="itemSpacing" id="itemSpacing" step="0.1" value="<?php echo esc_attr($item_spacing); ?>"></label>
 
 
 
 
-            <p>Use this shortcode to display the scene on your site:</p>
-            <textarea readonly style="width: 100%;"><?php echo esc_html($shortcode); ?></textarea>
+
 
           </div>
+
+          <p>Use this shortcode to display the scene on your site:</p>
+          <textarea readonly style="width: 100%;"><?php echo esc_html($shortcode); ?></textarea>
+
+
+          <hr>
+
+          <input type="hidden" id="threejs_model_url" name="threejs_model_url" value="<?php echo esc_url($model_url); ?>" />
+          <button type="button" class="button" id="threejs_model_url_button">Change Model</button>
+          <p id="threejs_model_url_preview">
+              <?php if ($model_url): ?>
+                  Current Model: <a href="<?php echo esc_url($model_url); ?>" target="_blank"><?php echo esc_url($model_url); ?></a>
+              <?php endif; ?>
+          </p>
 
         <!-- </div> -->
 

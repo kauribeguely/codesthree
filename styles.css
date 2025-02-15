@@ -29,7 +29,7 @@
 
   .leftControls {
       left: 0;
-      width: 223px;
+      width: 241px;
   }
 
   .rightControls {
@@ -103,6 +103,13 @@
     border: 1px solid #e2e2e2;
     justify-content: center;
     align-items: center;
+}
+
+hr
+{
+    width: 100%;
+    border-top: 1px solid #b2b2b2;
+    margin: 0;
 }
 
 
