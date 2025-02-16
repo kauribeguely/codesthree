@@ -69,7 +69,7 @@ function create_scene_shortcode($atts)
 {
   $atts = shortcode_atts(array(
         'id' => get_the_ID(),
-        'width' => '100%',  // Default width is 1000px
+        'width' => '100%',  // Default width is 100%
         'height' => '500px', // Default height is 500px
     ), $atts);
     $post_id = intval($atts['id']);

@@ -37,7 +37,7 @@ export function initializeThreeJsScene(sceneData, containerId)
     let camera;
     const perspectiveCamera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
 
-    let isoZoom = 100;
+    let isoZoom = 250;
     const orthoCamera = new THREE.OrthographicCamera( container.clientWidth / - isoZoom, container.clientWidth / isoZoom, container.clientHeight / isoZoom, container.clientHeight / - isoZoom, 1, 1000 );
 
     if(isOrthoCamera)
@@ -65,7 +65,7 @@ export function initializeThreeJsScene(sceneData, containerId)
     //     1000                               // far
     // );
 
-    let cameraPos = [0, 2, 5];
+    let cameraPos = [0, 0, 5];
 
     camera.position.set(cameraPos[0], cameraPos[1], cameraPos[2]);
 
