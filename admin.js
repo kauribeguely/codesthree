@@ -3,6 +3,13 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
 // document.addEventListener('DOMContentLoaded', () => {
+
+let keyXRot = false;
+let keyYRot = false;
+let keyZRot = false;
+let keyZTrans = false;
+let keyScale = false;
+let keysDown = 0;
 window.onload = () =>
 {
 
@@ -82,11 +89,16 @@ window.onload = () =>
       //     parseFloat(THREE.MathUtils.degToRad(sceneData.rotationY)),
       //     parseFloat(THREE.MathUtils.degToRad(sceneData.rotationZ))
       // );
-      transformObjectToSceneData(model);
-      transformObjectToSceneData(fullLoopGroup);
+      updateModelAndLoopGroup();
 
     }
   };
+
+  function updateModelAndLoopGroup()
+  {
+    transformObjectToSceneData(model);
+    transformObjectToSceneData(fullLoopGroup);
+  }
 
   function resetObjRotation()
   {
@@ -424,7 +436,7 @@ function toggleCamera()
 
       }
       else
-      {        
+      {
         groupControls.visible = false;
       }
     }
@@ -923,6 +935,11 @@ function transformDragEnd(){
 
     // Optional: Enable drag interaction with the transform controls
     window.addEventListener('keydown', (event) => {
+      if(!event.repeat)
+      {
+        keysDown++;
+        // console.log('keyDown', keysDown);
+      }
         switch (event.key) {
             case 't': // Translate mode
                 setTransformMode('translate');
@@ -936,13 +953,71 @@ function transformDragEnd(){
                 // dont allow scaling of group, must be set via single or input
                 // groupControls.setMode('scale');
                 break;
-            case 'l': // Scale mode
+            case 'l': // Loop
                 loopActive = !loopActive;
                 loopActiveInput.checked = loopActive;
                 toggleLoop();
                 break;
+
+          case "q":
+            keyXRot = true;
+
+            break;
+          case "w":
+            keyYRot = true;
+            break;
+          case "e":
+            keyZRot = true;
+            break;
+
+          case "f":
+            keyZTrans = true;
         }
     });
+
+    window.onkeyup = function(e)
+    {
+      keysDown--;
+      switch (event.key)
+      {
+        case "q":
+          keyXRot = false;
+          break;
+        case "w":
+          keyYRot = false;
+          break;
+        case "e":
+          keyZRot = false;
+          break;
+        case "f":
+          keyZTrans = false;
+          break;
+      }
+    }
+
+    document.addEventListener('wheel', handleScroll, { passive: false });
+
+    function handleScroll(e)
+    {
+      if(keysDown > 0)
+      {
+        e.preventDefault();
+      }
+      if (e.wheelDelta > 0) { // scroll up, away
+          if (keyZTrans) sceneData.positionZ -= 2;
+          if (keyXRot) sceneData.rotationX -= 5; // Changed to sceneData.rotationX
+          if (keyYRot) sceneData.rotationY -= 5; // Changed to sceneData.rotationY
+          if (keyZRot) sceneData.rotationZ -= 5; // Changed to sceneData.rotationZ
+          if (keyScale) sceneData.scale -= 1;      // Changed to sceneData.scale
+      } else {
+          if (keyZTrans) sceneData.positionZ += 2;
+          if (keyXRot) sceneData.rotationX += 5; // Changed to sceneData.rotationX
+          if (keyYRot) sceneData.rotationY += 5; // Changed to sceneData.rotationY
+          if (keyZRot) sceneData.rotationZ += 5; // Changed to sceneData.rotationZ
+          if (keyScale) sceneData.scale += 1;      // Changed to sceneData.scale
+      }
+      updateModelAndLoopGroup();
+    }
 
     function setTransformMode(mode)
     {
