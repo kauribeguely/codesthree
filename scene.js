@@ -24,6 +24,10 @@ export function initializeThreeJsScene(sceneData, containerId)
     const mouseRotationY = sceneData.mouseRotationY; // Maximum rotation range in degrees
     const mouseRotationZ = sceneData.mouseRotationZ; // Maximum rotation range in degrees
     let mouseAnimationLink = sceneData.mouseAnimationLink === 'on';
+    // Mousemove listener
+    const targetRotation = new THREE.Vector3(); // Store the target rotation
+    const currentRotation = new THREE.Vector3(); // Store the current rotation
+
 
     let scrollAnimationLink = sceneData.scrollAnimationLink === 'on';
     let isOrthoCamera = sceneData.isOrthoCamera === 'on';
@@ -33,7 +37,7 @@ export function initializeThreeJsScene(sceneData, containerId)
     let camera;
     const perspectiveCamera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
 
-    let isoZoom = 100;
+    let isoZoom = 250;
     const orthoCamera = new THREE.OrthographicCamera( container.clientWidth / - isoZoom, container.clientWidth / isoZoom, container.clientHeight / isoZoom, container.clientHeight / - isoZoom, 1, 1000 );
 
     if(isOrthoCamera)
@@ -61,7 +65,7 @@ export function initializeThreeJsScene(sceneData, containerId)
     //     1000                               // far
     // );
 
-    let cameraPos = [0, 2, 5];
+    let cameraPos = [0, 0, 5];
 
     camera.position.set(cameraPos[0], cameraPos[1], cameraPos[2]);
 
@@ -113,6 +117,7 @@ export function initializeThreeJsScene(sceneData, containerId)
           model = gltf.scene;
           scene.add(model);
 
+
           model.position.set(
               parseFloat(sceneData.positionX),
               parseFloat(sceneData.positionY),
@@ -124,6 +129,7 @@ export function initializeThreeJsScene(sceneData, containerId)
               parseFloat(THREE.MathUtils.degToRad(sceneData.rotationY)),
               parseFloat(THREE.MathUtils.degToRad(sceneData.rotationZ))
           );
+          currentRotation.copy(model.rotation); // The most direct way
 
           model.scale.set(sceneData.scale, sceneData.scale, sceneData.scale);
 
@@ -146,6 +152,7 @@ export function initializeThreeJsScene(sceneData, containerId)
    const rotationRange = 10; // Maximum rotation range in degrees
     const initialRotationX = parseFloat(sceneData.rotationX);
     const initialRotationY = parseFloat(sceneData.rotationY);
+    const initialRotationZ = parseFloat(sceneData.rotationZ);
     // Mousemove listener
     const onMouseMove = (event) => {
       const mouseX = (event.clientX / window.innerWidth) * 2 - 1; // Normalized between -1 and 1
@@ -154,18 +161,27 @@ export function initializeThreeJsScene(sceneData, containerId)
       // Map mouse position to rotation range
       // model.rotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * rotationRange);
       // model.rotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * rotationRange);
+      const easing = 0.1 + (1 - 0.1) * 0.05; // Increase easing slightly on each move to simulate ease-out.  Adjust 0.05 for strength.
+
+      targetRotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * mouseRotationX);
+      targetRotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * mouseRotationY);
+      targetRotation.z = THREE.MathUtils.degToRad(initialRotationZ + -mouseX * mouseRotationZ);
+
+
+      currentRotation.x = THREE.MathUtils.lerp(currentRotation.x, targetRotation.x, easing);
+      currentRotation.y = THREE.MathUtils.lerp(currentRotation.y, targetRotation.y, easing);
+      currentRotation.z = THREE.MathUtils.lerp(currentRotation.z, targetRotation.z, easing);
 
       if(loopActive)
       {
-        fullLoopGroup.rotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * mouseRotationX);
-        fullLoopGroup.rotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * mouseRotationY);
-        fullLoopGroup.rotation.z = THREE.MathUtils.degToRad(initialRotationZ + -mouseX * mouseRotationZ);
-      }
+        fullLoopGroup.rotation.x = currentRotation.x;
+        fullLoopGroup.rotation.y = currentRotation.y;
+        fullLoopGroup.rotation.z = currentRotation.z;      }
       else
       {
-        model.rotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * mouseRotationX);
-        model.rotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * mouseRotationY);
-        model.rotation.z = THREE.MathUtils.degToRad(initialRotationX + -mouseX * mouseRotationZ);
+        model.rotation.x = currentRotation.x;
+        model.rotation.y = currentRotation.y;
+        model.rotation.z = currentRotation.z;
       }
 
       // console.log(initialRotationX + mouseY * rotationRange);
@@ -261,7 +277,7 @@ export function initializeThreeJsScene(sceneData, containerId)
         loopable.scale.set(objScale, objScale, objScale);
         zLoop(loopable, rowCount, columnCount, zCount, group, distances);
         if(mouseAnimationLink) window.addEventListener('mousemove', onMouseMove);
-        
+
       });
     }
 

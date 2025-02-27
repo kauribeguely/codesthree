@@ -14,6 +14,9 @@ window.onload = () =>
   // Get the toggle elements (checkboxes)
   const mouseAnimationLinkInput = document.getElementById('mouseAnimationLink');
   const scrollAnimationLinkInput = document.getElementById('scrollAnimationLink');
+  // Mousemove listener
+  const targetRotation = new THREE.Vector3(); // Store the target rotation
+  const currentRotation = new THREE.Vector3(); // Store the current rotation
 
   // Get the scroll move inputs
   const scrollXInput = document.getElementById('scrollMoveX');
@@ -53,14 +56,20 @@ window.onload = () =>
   // oninput for mouse rotation values
   mouseRotXInput.oninput = () => {
     mouseRotationX = parseFloat(mouseRotXInput.value) || 0;
+
+
   };
 
   mouseRotYInput.oninput = () => {
     mouseRotationY = parseFloat(mouseRotYInput.value) || 0;
+
+
   };
 
   mouseRotZInput.oninput = () => {
     mouseRotationZ = parseFloat(mouseRotZInput.value) || 0;
+
+
   };
 
   // oninput for toggle (checkbox)
@@ -68,11 +77,14 @@ window.onload = () =>
     mouseAnimationLink = mouseAnimationLinkInput.checked;
     if(!mouseAnimationLink)
     {
-      model.rotation.set(
-          parseFloat(THREE.MathUtils.degToRad(sceneData.rotationX)),
-          parseFloat(THREE.MathUtils.degToRad(sceneData.rotationY)),
-          parseFloat(THREE.MathUtils.degToRad(sceneData.rotationZ))
-      );
+      // model.rotation.set(
+      //     parseFloat(THREE.MathUtils.degToRad(sceneData.rotationX)),
+      //     parseFloat(THREE.MathUtils.degToRad(sceneData.rotationY)),
+      //     parseFloat(THREE.MathUtils.degToRad(sceneData.rotationZ))
+      // );
+      transformObjectToSceneData(model);
+      transformObjectToSceneData(fullLoopGroup);
+
     }
   };
 
@@ -95,13 +107,27 @@ window.onload = () =>
   const posZInput = document.getElementById('threejs_position_z');
 
   posXInput.oninput = () => {
-    model.position.x = parseFloat(posXInput.value) || 0;
+    // model.position.x = parseFloat(posXInput.value) || 0;
+    sceneData.positionX = parseFloat(posXInput.value);
+
+    transformObjectToSceneData(fullLoopGroup);
+    transformObjectToSceneData(model);
   };
+
   posYInput.oninput = () => {
-      model.position.y = parseFloat(posYInput.value) || 0;
+      // model.position.y = parseFloat(posYInput.value) || 0;
+      sceneData.positionY = parseFloat(posYInput.value);
+
+      transformObjectToSceneData(fullLoopGroup);
+      transformObjectToSceneData(model);
   };
+
   posZInput.oninput = () => {
-      model.position.z = parseFloat(posZInput.value) || 0;
+      // model.position.z = parseFloat(posZInput.value) || 0;
+      sceneData.positionZ = parseFloat(posZInput.value);
+
+      transformObjectToSceneData(fullLoopGroup);
+      transformObjectToSceneData(model);
   };
 
 
@@ -114,12 +140,32 @@ window.onload = () =>
 
   rotXInput.oninput = () => {
       model.rotation.x = THREE.MathUtils.degToRad(parseFloat(rotXInput.value) || 0);
+      model.rotation.x = THREE.MathUtils.degToRad(parseFloat(rotXInput.value) || 0);
+
+      sceneData.rotationX = parseFloat(rotXInput.value);
+      initialRotationX = sceneData.rotationX;
+      transformObjectToSceneData(fullLoopGroup);
+      transformObjectToSceneData(model);
   };
+
   rotYInput.oninput = () => {
       model.rotation.y = THREE.MathUtils.degToRad(parseFloat(rotYInput.value) || 0);
+      model.rotation.y = THREE.MathUtils.degToRad(parseFloat(rotYInput.value) || 0);
+
+      sceneData.rotationY = parseFloat(rotYInput.value);
+      initialRotationY = sceneData.rotationY;
+      transformObjectToSceneData(fullLoopGroup);
+      transformObjectToSceneData(model);
   };
+
   rotZInput.oninput = () => {
       model.rotation.z = THREE.MathUtils.degToRad(parseFloat(rotZInput.value) || 0);
+      model.rotation.z = THREE.MathUtils.degToRad(parseFloat(rotZInput.value) || 0);
+
+      sceneData.rotationZ = parseFloat(rotZInput.value);
+      initialRotationZ = sceneData.rotationZ;
+      transformObjectToSceneData(fullLoopGroup);
+      transformObjectToSceneData(model);
   };
 
 
@@ -171,7 +217,12 @@ function toggleLoop()
     // scene.remove(model);
     model.visible = false;
     controls.visible = false;
-
+    groupControls.visible = true;
+    if (groupControls.parent !== scene) { // Check if groupControls is NOT already a child of the scene
+      scene.add(groupControls);
+    }
+    fullLoopGroup.visible = true;
+    document.querySelector('#codesScaleButton').disabled = true;
     // scene.remove(controls);
     refreshLoop();
   }
@@ -179,6 +230,7 @@ function toggleLoop()
   {
     // scene.remove(groupControls);
     // scene.remove(fullLoopGroup);
+    document.querySelector('#codesScaleButton').disabled = false;
     fullLoopGroup.visible = false;
     groupControls.visible = false;
     model.visible = true;
@@ -232,6 +284,11 @@ isOrthoCameraInput.oninput = () => {
 
 function toggleCamera()
 {
+  // perspectiveCamera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
+  // orthoCamera = new THREE.OrthographicCamera( container.clientWidth / - isoZoom, container.clientWidth / isoZoom, container.clientHeight / isoZoom, container.clientHeight / - isoZoom, 1, 1000 );
+
+
+  scene.remove(camera);
     if (sceneData.isOrthoCamera) {
         camera = orthoCamera;
     } else {
@@ -240,6 +297,9 @@ function toggleCamera()
     controls.camera = camera;
     groupControls.camera = camera;
 
+    camera.position.set(cameraPos[0], cameraPos[1], cameraPos[2]);
+    scene.add(camera);
+
     renderer.render(scene, camera);
 }
 
@@ -247,7 +307,7 @@ function toggleCamera()
     const container = document.getElementById('threejs-canvas');
     const labelContainer = document.getElementById('label'); // Label container for displaying object details
 
-    let isoZoom = 100;
+    let isoZoom = 250;
     const scene = new THREE.Scene();
     let camera;
     const perspectiveCamera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
@@ -262,7 +322,7 @@ function toggleCamera()
       camera = perspectiveCamera;
     }
 
-    let cameraPos = [0, 2, 5];
+    let cameraPos = [0, 0, 5];
 
     camera.position.set(cameraPos[0], cameraPos[1], cameraPos[2]);
 
@@ -317,7 +377,7 @@ function toggleCamera()
     //     lightValue.textContent = lightSlider.value;
     // });
 
-
+    //INIT
     let controls, groupControls;
     let model, loopGroup;
 
@@ -332,22 +392,43 @@ function toggleCamera()
     let spacing = sceneData.itemSpacing;
     let fullLoopGroup = new THREE.Group();
     let objGroup = new THREE.Group();
-    fullLoopGroup.add(objGroup);
-    // scene.add(objGroup);
-    scene.add(fullLoopGroup);
-    groupControls = new TransformControls(camera, renderer.domElement);
-    // groupControls.attach(objGroup);
-    groupControls.attach(fullLoopGroup);
-    groupControls.setSpace('local');  // Ensure local space is used
-
-    loadModel(sceneData.modelUrl, sceneData);
 
 
-    if(sceneData.loopActive)
+    function init()
     {
+      fullLoopGroup.add(objGroup);
+      // scene.add(objGroup);
+      scene.add(fullLoopGroup);
+      groupControls = new TransformControls(camera, renderer.domElement);
+      // groupControls.attach(objGroup);
+      groupControls.attach(fullLoopGroup);
+      groupControls.setSpace('local');  // Ensure local space is used
+
+      if(sceneData.modelUrl != "")
+      {
+        loadModel(sceneData.modelUrl, sceneData);
+      }
+      else
+      {
+        //when intiate new scene, show the open popup
+        popup.style.display = 'flex';
+        popupOpen = true;
+      }
+
+
       scene.add(groupControls);
-      sceneDataLoop();
+      if(sceneData.loopActive)
+      {
+        sceneDataLoop();
+        document.querySelector('#codesScaleButton').disabled = true;
+
+      }
+      else
+      {        
+        groupControls.visible = false;
+      }
     }
+
     // loadModel('http://localhost/wPpractice/wp-content/uploads/2025/01/first-room.glb', sceneData);
 
     function loadModel(url, sceneData)
@@ -521,69 +602,89 @@ function transformDragEnd(){
 
     // Handle WordPress Media Library for Model URL
     const mediaButton = document.getElementById('threejs_model_url_button');
+    const popupMediaButton = document.getElementById('popup_media_button');
+    const popup = document.getElementById('newScenePopup');
     const modelUrlField = document.getElementById('threejs_model_url');
     const preview = document.getElementById('threejs_model_url_preview');
 
+
+    let popupOpen = false;
+    popupMediaButton.addEventListener('click', function (e) {
+      e.preventDefault();
+      mediaUploader.open();
+    });
+
     mediaButton.addEventListener('click', function (e) {
         e.preventDefault();
-
-        const mediaUploader = wp.media({
-            title: 'Select 3D Model',
-            button: { text: 'Use this model' },
-            multiple: false
-        });
-
-        mediaUploader.on('select', function () {
-            const attachment = mediaUploader.state().get('selection').first().toJSON();
-            modelUrlField.value = attachment.url;
-            sceneData.modelUrl = attachment.url;
-            preview.innerHTML = `Current Model: <a href="${attachment.url}" target="_blank">${attachment.url}</a>`;
-            console.log(attachment.url);
-            if(scene.loopActive)
-            {
-              // loopDat(sceneData.modelUrl, 0.3, 40, 80, objGroup, [2, 0, 0]);
-              sceneDataLoop();
-            }
-            else
-            {
-              loadModel(attachment.url, sceneData);
-            }
-
-
-        });
-
         mediaUploader.open();
-
     });
 
 
+    const mediaUploader = wp.media({
+        title: 'Select 3D Model',
+        button: { text: 'Use this model' },
+        multiple: false
+    });
+
+    mediaUploader.on('select', function () {
+        const attachment = mediaUploader.state().get('selection').first().toJSON();
+        modelUrlField.value = attachment.url;
+        sceneData.modelUrl = attachment.url;
+        preview.innerHTML = `Current Model: <a href="${attachment.url}" target="_blank">${attachment.url}</a>`;
+        console.log(attachment.url);
+        if(scene.loopActive)
+        {
+          // loopDat(sceneData.modelUrl, 0.3, 40, 80, objGroup, [2, 0, 0]);
+          sceneDataLoop();
+        }
+        else
+        {
+          loadModel(attachment.url, sceneData);
+        }
+
+        if(popupOpen)
+        {
+          popupOpen = false;
+          popup.style.display = 'none';
+        }
+
+    });
 
 
       let initialRotationX = parseFloat(sceneData.rotationX);
       let initialRotationY = parseFloat(sceneData.rotationY);
       let initialRotationZ = parseFloat(sceneData.rotationZ);
-      // Mousemove listener
-      const onMouseMove = (event) =>
-      {
-        const mouseX = (event.clientX / window.innerWidth) * 2 - 1; // Normalized between -1 and 1
-        const mouseY = -(event.clientY / window.innerHeight) * 2 + 1; // Normalized between -1 and 1
 
-        // Map mouse position to rotation range
-        // model.rotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * rotationRange);
-        // model.rotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * rotationRange);
-        if(mouseAnimationLink && !isTransforming)
-        {
-          model.rotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * mouseRotationX);
-          model.rotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * mouseRotationY);
-          model.rotation.z = THREE.MathUtils.degToRad(initialRotationZ + -mouseX * mouseRotationZ);
+      const onMouseMove = (event) => {
+          const mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+          const mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
 
-          fullLoopGroup.rotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * mouseRotationX);
-          fullLoopGroup.rotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * mouseRotationY);
-          fullLoopGroup.rotation.z = THREE.MathUtils.degToRad(initialRotationZ + -mouseX * mouseRotationZ);
-        }
-        // console.log(initialRotationX + mouseY * rotationRange);
+          // Calculate target rotation
+          targetRotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * mouseRotationX);
+          targetRotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * mouseRotationY);
+          targetRotation.z = THREE.MathUtils.degToRad(initialRotationZ + -mouseX * mouseRotationZ);
 
+          if (mouseAnimationLink && !isTransforming) {
+              // Smoothly interpolate to the target rotation
+              // const easing = 0.1; // Adjust this value for speed (lower = slower)
+              const easing = 0.1 + (1 - 0.1) * 0.05; // Increase easing slightly on each move to simulate ease-out.  Adjust 0.05 for strength.
+
+              currentRotation.x = THREE.MathUtils.lerp(currentRotation.x, targetRotation.x, easing);
+              currentRotation.y = THREE.MathUtils.lerp(currentRotation.y, targetRotation.y, easing);
+              currentRotation.z = THREE.MathUtils.lerp(currentRotation.z, targetRotation.z, easing);
+
+              model.rotation.x = currentRotation.x;
+              model.rotation.y = currentRotation.y;
+              model.rotation.z = currentRotation.z;
+
+              fullLoopGroup.rotation.x = currentRotation.x;
+              fullLoopGroup.rotation.y = currentRotation.y;
+              fullLoopGroup.rotation.z = currentRotation.z;
+          }
       };
+
+      // Initialize currentRotation (important!)
+      // currentRotation.copy(model.rotation); // Or set to initial values
 
       function refreshLoop()
       {
@@ -624,6 +725,8 @@ function transformDragEnd(){
             parseFloat(THREE.MathUtils.degToRad(sceneData.rotationY)),
             parseFloat(THREE.MathUtils.degToRad(sceneData.rotationZ))
         );
+
+        currentRotation.copy(object.rotation); // The most direct way
       }
 
       // Get the canvas container element
@@ -817,19 +920,18 @@ function transformDragEnd(){
     // updateLabel();//show initial values
 
 
+
     // Optional: Enable drag interaction with the transform controls
     window.addEventListener('keydown', (event) => {
         switch (event.key) {
             case 't': // Translate mode
-                controls.setMode('translate');
-                groupControls.setMode('translate');
+                setTransformMode('translate');
                 break;
             case 'r': // Rotate mode
-                controls.setMode('rotate');
-                groupControls.setMode('rotate');
+                setTransformMode('rotate');
                 break;
             case 's': // Scale mode
-                controls.setMode('scale');
+                setTransformMode('scale');
 
                 // dont allow scaling of group, must be set via single or input
                 // groupControls.setMode('scale');
@@ -841,6 +943,19 @@ function transformDragEnd(){
                 break;
         }
     });
+
+    function setTransformMode(mode)
+    {
+
+      controls.setMode(mode);
+      groupControls.setMode(mode);
+      if(mode != 'scale')
+      {
+        groupControls.setMode(mode);
+      }
+
+    }
+    window.setTransformMode = setTransformMode;
 
     // Handle window resizing
       window.addEventListener('resize', onWindowResize, false);
@@ -862,5 +977,10 @@ function transformDragEnd(){
         mouseDown = false;
       }
 
+      init();
+
 }
+
+
+
 // });
