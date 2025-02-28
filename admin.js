@@ -2,6 +2,7 @@ import * as THREE from 'three';
 // import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 // document.addEventListener('DOMContentLoaded', () => {
 window.onload = () =>
 {
@@ -379,7 +380,7 @@ function toggleCamera()
     //     lightValue.textContent = lightSlider.value;
     // });
 
-    //INIT
+    //INIT()
     let controls, groupControls;
     let model, loopGroup;
 
@@ -394,6 +395,8 @@ function toggleCamera()
     let spacing = sceneData.itemSpacing;
     let fullLoopGroup = new THREE.Group();
     let objGroup = new THREE.Group();
+    // Load Environment Map (HDR)
+    const rgbeLoader = new RGBELoader();
 
 
     function init()
@@ -401,6 +404,10 @@ function toggleCamera()
       fullLoopGroup.add(objGroup);
       // scene.add(objGroup);
       scene.add(fullLoopGroup);
+
+      // loadEnvTexture('sunset.hdr');
+      // loadEnvTexture('studio.hdr');
+
       groupControls = new TransformControls(camera, renderer.domElement);
       // groupControls.attach(objGroup);
       groupControls.attach(fullLoopGroup);
@@ -429,6 +436,18 @@ function toggleCamera()
       {
         groupControls.visible = false;
       }
+    }
+
+    function loadEnvTexture(url)
+    {
+      // rgbeLoader.load('../wp-content/plugins/codesthree/sunset.hdr', function (texture)
+      rgbeLoader.load('../wp-content/plugins/codesthree/'+ url, function (texture)
+      {
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        texture.mapping = THREE.EquirectangularReflectionMapping;
+        scene.environment = texture;
+        // scene.background = texture;
+      });
     }
 
     // loadModel('http://localhost/wPpractice/wp-content/uploads/2025/01/first-room.glb', sceneData);
