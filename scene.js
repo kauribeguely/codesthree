@@ -88,6 +88,12 @@ export function initializeThreeJsScene(sceneData, containerId)
     scene.add(alight);
 
 
+    const dlight = new THREE.DirectionalLight(0xffffff, 1);
+    let dlightIntensity = 1;
+    dlight.position.set(5, 5, 5);
+    scene.add(dlight);
+
+
     let model, loopGroup, loopable;
     let spacing = sceneData.itemSpacing;
     let fullLoopGroup = new THREE.Group();

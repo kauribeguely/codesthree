@@ -335,7 +335,7 @@ function toggleCamera()
     const dlight = new THREE.DirectionalLight(0xffffff, 1);
     let dlightIntensity = 1;
     dlight.position.set(5, 5, 5);
-    // scene.add(dlight);
+    scene.add(dlight);
 
     const alight = new THREE.AmbientLight(0xffffff, 1);
     let alightIntensity = 1;
@@ -361,7 +361,9 @@ function toggleCamera()
       light.intensity = parseFloat(intensity);
     }
 
+    console.log('Light: ' + sceneData.lightIntensity);
     setLightIntensity(alight, sceneData.lightIntensity);
+
     //
     // // Event listener to change the intensity of the directional light
     // directionalLightSlider.addEventListener('input', function() {
@@ -424,7 +426,7 @@ function toggleCamera()
 
       }
       else
-      {        
+      {
         groupControls.visible = false;
       }
     }

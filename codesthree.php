@@ -22,7 +22,7 @@ function get_scene_data($post_id) {
         'rotationY' => get_post_meta($post_id, 'threejs_rot_y', true) ?: 0,
         'rotationZ' => get_post_meta($post_id, 'threejs_rot_z', true) ?: 0,
         'scale' => get_post_meta($post_id, 'scale', true) ?: 1,
-        'lightIntensity' => get_post_meta($post_id, 'ambient_light_intensity', true) ?: 0.5,
+        'lightIntensity' => get_post_meta($post_id, 'ambient_light_intensity', true) ?: 0,
         'mouseRotationX' => get_post_meta($post_id, 'mouseRotationX', true) ?: 5,
         'mouseRotationY' => get_post_meta($post_id, 'mouseRotationY', true) ?: 5,
         'mouseRotationZ' => get_post_meta($post_id, 'mouseRotationZ', true) ?: 0,
@@ -524,7 +524,7 @@ function threejs_editor_page($post) {
 
             <p>
                 <label for="ambient-light-slider">Light Intensity:</label><br>
-                <input type="range" name="ambient_light_intensity" id="ambient-light-slider" min="0" max="3" step="0.05" value="<?php echo esc_attr($light_intensity); ?>" />
+                <input type="range" name="ambient_light_intensity" id="ambient-light-slider" max="3" step="0.05" value="<?php echo esc_attr($light_intensity); ?>" />
                 <span id="light_intensity_value"><?php echo esc_attr($light_intensity); ?></span>
             </p>
             <hr>
