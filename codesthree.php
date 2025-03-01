@@ -41,7 +41,7 @@ function get_scene_data($post_id) {
         'lightPosX' => get_post_meta($post_id, 'lightPosX', true) ?: 0,
         'lightPosY' => get_post_meta($post_id, 'lightPosY', true) ?: 10,
         'lightPosZ' => get_post_meta($post_id, 'lightPosZ', true) ?: 0,
-        'useEnvLight' => get_post_meta($post_id, 'useEnvLight', true) === '1',
+        'useEnvLight' => get_post_meta($post_id, 'useEnvLight', true) ?: '',
         'loopGroupScale' => get_post_meta($post_id, 'loopGroupScale', true) ?: 1.0,
 
 
@@ -572,7 +572,7 @@ function threejs_editor_page($post) {
             </div>
 
             <label>
-                <input type="checkbox" name="useEnvLight" id="useEnvLight" <?php checked($use_env_light, true); ?>>
+                <input type="checkbox" name="useEnvLight" id="useEnvLight" <?php checked($use_env_light, 'on'); ?>>
                 Use Environment Light (HDR)
             </label>
 

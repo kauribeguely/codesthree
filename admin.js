@@ -48,12 +48,12 @@ window.onload = () =>
   const useEnvLightInput = document.getElementById('useEnvLight');
   const loopGroupScaleInput = document.getElementById('loopGroupScale');
 
-  let lightIntensity = sceneData.lightIntensity || 1.0;
-  let lightPosX = sceneData.lightPosX || 0;
-  let lightPosY = sceneData.lightPosY || 10;
-  let lightPosZ = sceneData.lightPosZ || 0;
-  let useEnvLight = sceneData.useEnvLight || false;
-  let loopGroupScale = sceneData.loopGroupScale || 1.0;
+  // let lightIntensity = sceneData.lightIntensity || 1.0;
+  // let lightPosX = sceneData.lightPosX || 0;
+  // let lightPosY = sceneData.lightPosY || 10;
+  // let lightPosZ = sceneData.lightPosZ || 0;
+  let useEnvLight = sceneData.useEnvLight  === 'on';
+  // let loopGroupScale = sceneData.loopGroupScale || 1.0;
 
   lightIntensityInput.oninput = () => {
     sceneData.lightIntensity = parseFloat(lightIntensityInput.value) || 1.0;
@@ -73,7 +73,21 @@ window.onload = () =>
 
   useEnvLightInput.oninput = () => {
       sceneData.useEnvLight = useEnvLightInput.checked;
+      useEnvLight = useEnvLightInput.checked;;
+      updateEnvTexture();
   };
+
+  function updateEnvTexture()
+  {
+    if(useEnvLight)
+    {
+      loadEnvTexture('sunset.hdr');
+    }
+    else
+    {
+      scene.environment = null;
+    }
+  }
 
   loopGroupScaleInput.oninput = () => {
       sceneData.loopGroupScale = parseFloat(loopGroupScaleInput.value) || 1.0;
@@ -362,6 +376,12 @@ function toggleCamera()
       camera = perspectiveCamera;
     }
 
+    
+    const rgbeLoader = new RGBELoader();
+
+    updateEnvTexture();
+
+
     let cameraPos = [0, 0, 5];
 
     camera.position.set(cameraPos[0], cameraPos[1], cameraPos[2]);
@@ -435,7 +455,6 @@ function toggleCamera()
     let fullLoopGroup = new THREE.Group();
     let objGroup = new THREE.Group();
     // Load Environment Map (HDR)
-    const rgbeLoader = new RGBELoader();
 
 
     function init()
