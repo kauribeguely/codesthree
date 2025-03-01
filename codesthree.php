@@ -517,7 +517,7 @@ function threejs_editor_page($post) {
             </div>
 
             <p>
-              <strong>Scale: </strong><input type="number" name="scale" id="codes_scale" value="<?php echo esc_attr($scale); ?>" step="0.01" />
+              <strong>Scale (model): </strong><input type="number" name="scale" id="codes_scale" value="<?php echo esc_attr($scale); ?>" step="0.01" />
             </p>
 
             <hr>
@@ -527,6 +527,31 @@ function threejs_editor_page($post) {
                 <input type="range" name="ambient_light_intensity" id="ambient-light-slider" max="3" step="0.05" value="<?php echo esc_attr($light_intensity); ?>" />
                 <span id="light_intensity_value"><?php echo esc_attr($light_intensity); ?></span>
             </p>
+
+            <!-- Directional Light Intensity -->
+            <label>Light Intensity: <input type="number" name="lightIntensity" id="lightIntensity" step="0.1" value="<?php echo esc_attr($light_intensity); ?>"></label>
+
+            <!-- Directional Light Position -->
+            <div class="transform-group">
+              <div class="transform-field">
+                  <label for="lightPosX">X</label>
+                  <input type="number" name="lightPosX" id="lightPosX" step="0.1" value="<?php echo esc_attr($light_pos_x); ?>">
+              </div>
+              <div class="transform-field">
+                  <label for="lightPosY">Y</label>
+                  <input type="number" name="lightPosY" id="lightPosY" step="0.1" value="<?php echo esc_attr($light_pos_y); ?>">
+              </div>
+              <div class="transform-field">
+                  <label for="lightPosZ">Z</label>
+                  <input type="number" name="lightPosZ" id="lightPosZ" step="0.1" value="<?php echo esc_attr($light_pos_z); ?>">
+              </div>
+            </div>
+
+            <label>
+                <input type="checkbox" name="useEnvLight" id="useEnvLight" <?php checked($use_env_light, true); ?>>
+                Use Environment Light (HDR)
+            </label>
+
             <hr>
 
             <!-- Toggle for isOrthoCamera -->
@@ -615,6 +640,7 @@ function threejs_editor_page($post) {
                     </div>
                 </div>
             </fieldset>
+            <label>Loop Group Scale: <input type="number" name="loopGroupScale" id="loopGroupScale" step="0.1" value="<?php echo esc_attr($loop_group_scale); ?>"></label>
 
 
 

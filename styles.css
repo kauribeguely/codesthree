@@ -61,7 +61,7 @@
       /* padding: 15px; */
       /* height: 100%; */
       padding: 15px;
-      gap: 18px;
+      gap: 6px;
       /* width: 217px; */
   }
 
@@ -84,7 +84,7 @@
 
 .transform-field input {
     width: 100%;
-    padding: 6px;
+    /* padding: 6px; */
     border: 1px solid #ccc;
     border-radius: 4px;
     font-size: 14px;
