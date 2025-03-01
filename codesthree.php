@@ -438,6 +438,18 @@ function populate_codes_scene_shortcode_column($column, $post_id) {
 add_action('manage_codes_scene_posts_custom_column', 'populate_codes_scene_shortcode_column', 10, 2); // Replace 'your_custom_post_type'
 
 
+function set_default_one_column_layout($default, $option, $value) {
+    $screen = get_current_screen();
+
+    if ($screen && $screen->id === 'codes_scene') { // Replace 'your_custom_post_type'
+        return 1; // Set to 1 column
+    }
+
+    return $default;
+}
+add_filter('default_option_screen_layout_your_custom_post_type', 'set_default_one_column_layout', 10, 3); // Replace your_custom_post_type
+
+
 // Admin page content
 function threejs_editor_page($post) {
 
