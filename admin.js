@@ -34,8 +34,8 @@ window.onload = () =>
   const mouseRotZInput = document.getElementById('mouseRotationZ');
 
 
-  let mouseRotationX = sceneData.mouseRotationX || 5; // Maximum rotation range in degrees
-  let mouseRotationY = sceneData.mouseRotationY || 5; // Maximum rotation range in degrees
+  let mouseRotationX = sceneData.mouseRotationX || 0; // Maximum rotation range in degrees
+  let mouseRotationY = sceneData.mouseRotationY || 0; // Maximum rotation range in degrees
   let mouseRotationZ = sceneData.mouseRotationZ || 0; // Maximum rotation range in degrees
 
   let mouseAnimationLink = sceneData.mouseAnimationLink === 'on';
@@ -61,15 +61,23 @@ window.onload = () =>
 
   lightPosXInput.oninput = () => {
       sceneData.lightPosX = parseFloat(lightPosXInput.value) || 0;
+      updateDLightPos();
   };
 
   lightPosYInput.oninput = () => {
-      sceneData.lightPosY = parseFloat(lightPosYInput.value) || 10;
+      sceneData.lightPosY = parseFloat(lightPosYInput.value) || 0;
+      updateDLightPos();
   };
 
   lightPosZInput.oninput = () => {
       sceneData.lightPosZ = parseFloat(lightPosZInput.value) || 0;
+      updateDLightPos();
   };
+
+  function updateDLightPos()
+  {
+    dlight.position.set(sceneData.lightPosX, sceneData.lightPosY, sceneData.lightPosZ);
+  }
 
   useEnvLightInput.oninput = () => {
       sceneData.useEnvLight = useEnvLightInput.checked;
@@ -394,7 +402,7 @@ function toggleCamera()
 
     const dlight = new THREE.DirectionalLight(0xffffff, 1);
     let dlightIntensity = sceneData.directionalLightIntensity;
-    dlight.position.set(5, 5, 5);
+    dlight.position.set(sceneData.lightPosX, sceneData.lightPosY, sceneData.lightPosZ);
     scene.add(dlight);
 
     const alight = new THREE.AmbientLight(0xffffff, 1);
