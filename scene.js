@@ -9,6 +9,7 @@ import * as THREE from 'three';
 // import { Mesh } from 'three';
 // import { AmbientLight } from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 
 
 export function initializeThreeJsScene(sceneData, containerId)
@@ -19,7 +20,7 @@ export function initializeThreeJsScene(sceneData, containerId)
         return;
     }
 
-
+    // console.log(pluginData.pluginUrl);
     const mouseRotationX = sceneData.mouseRotationX; // Maximum rotation range in degrees
     const mouseRotationY = sceneData.mouseRotationY; // Maximum rotation range in degrees
     const mouseRotationZ = sceneData.mouseRotationZ; // Maximum rotation range in degrees
@@ -32,6 +33,9 @@ export function initializeThreeJsScene(sceneData, containerId)
     let scrollAnimationLink = sceneData.scrollAnimationLink === 'on';
     let isOrthoCamera = sceneData.isOrthoCamera === 'on';
     let loopActive = sceneData.loopActive === 'on';
+    let useEnvLight = sceneData.useEnvLight  === 'on';
+
+
 
     const scene = new THREE.Scene();
     let camera;
@@ -104,7 +108,9 @@ export function initializeThreeJsScene(sceneData, containerId)
     // Load 3D Model
     // const loader = new THREE.GLTFLoader();
     const loader = new GLTFLoader();
+    const rgbeLoader = new RGBELoader();
 
+    updateEnvTexture();
 
     if(loopActive)
     {
@@ -387,5 +393,32 @@ export function initializeThreeJsScene(sceneData, containerId)
           parseFloat(THREE.MathUtils.degToRad(sceneData.rotationZ))
       );
     }
+
+    function updateEnvTexture()
+    {
+      if(useEnvLight)
+      {
+        loadEnvTexture('sunset.hdr');
+      }
+      else
+      {
+        scene.environment = null;
+      }
+    }
+
+    function loadEnvTexture(url)
+    {
+      // rgbeLoader.load('../wp-content/plugins/codesthree/sunset.hdr', function (texture)
+      // rgbeLoader.load('../wp-content/plugins/codesthree/'+ url, function (texture)
+      rgbeLoader.load(pluginData.pluginUrl+ url, function (texture)
+      {
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        texture.mapping = THREE.EquirectangularReflectionMapping;
+        scene.environment = texture;
+        // scene.background = texture;
+      });
+    }
+
+
 
 }

@@ -73,48 +73,69 @@ function inject_threejs_assets() {
 // Hook into the wp_head to ensure the assets are loaded globally
 add_action('wp_head', 'inject_threejs_assets', 0);
 
+
+function enqueue_scene_script() {
+    static $script_loaded = false;
+
+    if (!$script_loaded) {
+        wp_enqueue_script(
+            'my-plugin-script',
+            plugin_dir_url(__FILE__) . 'scene.js',
+            array(),
+            '1.0',
+            true
+        );
+
+        // Pass plugin URL to JavaScript
+        wp_localize_script('my-plugin-script', 'pluginData', array(
+            'pluginUrl' => plugin_dir_url(__FILE__)
+        ));
+
+        $script_loaded = true;
+    }
+}
+add_action('wp_enqueue_scripts', 'enqueue_scene_script');
+
 // function create_scene_shortcode($post_id)
-function create_scene_shortcode($atts)
-{
-  $atts = shortcode_atts(array(
+function create_scene_shortcode($atts) {
+    $atts = shortcode_atts(array(
         'id' => get_the_ID(),
-        'width' => '100%',  // Default width is 100%
-        'height' => '500px', // Default height is 500px
+        'width' => '100%',
+        'height' => '500px',
     ), $atts);
+
     $post_id = intval($atts['id']);
     $scene_data = get_scene_data($post_id);
-    ob_start();
 
+    ob_start();
     ?>
 
     <!-- <h1>Scene Below</h1> -->
-    <div id="scene-<?php echo esc_attr($post_id); ?>-<?php echo uniqid(); ?>" class="codes_scene" data-scene-id="<?php echo esc_attr($post_id); ?>" style="width: <?php echo esc_attr($atts['width']); ?>; height: <?php echo esc_attr($atts['height']); ?>;"></div>
+    <div id="scene-<?php echo esc_attr($post_id); ?>-<?php echo uniqid(); ?>"
+         class="codes_scene"
+         data-scene-id="<?php echo esc_attr($post_id); ?>"
+         style="width: <?php echo esc_attr($atts['width']); ?>; height: <?php echo esc_attr($atts['height']); ?>;">
+    </div>
+
     <script type="module">
-      import { initializeThreeJsScene } from "<?php echo plugins_url('scene.js', __FILE__); ?>";
-      const sceneData = <?php echo json_encode($scene_data); ?>;
-      const containerID = "threejs-scene-container-<?php echo esc_js($post_id); ?>";
-      // Get all elements with the same class
-      // const containers = document.querySelectorAll('.codes_scene');
-      const containers = document.querySelectorAll('[data-scene-id="<?php echo esc_js($post_id); ?>"]');  // Replace 287 with the desired scene ID
+        // Ensure this runs once per page
+        if (!window.sceneShortcodeInit) {
+            window.sceneShortcodeInit = true;
 
-      containers.forEach((container) => {
-          const containerID = container.id;
-
-          // Check if the scene has already been initialized for this container
-          if (!container.hasAttribute('data-scene-initialized')) {
-              container.setAttribute('data-scene-initialized', 'true');
-
-              // Initialize the Three.js scene
-              console.log(sceneData);
-              if (typeof initializeThreeJsScene === "function") {
-                  initializeThreeJsScene(sceneData, containerID);
-              }
-          } else {
-              console.log(`Scene for ${containerID} has already been initialized.`);
-          }
-      });
+            // Wait for the script to load
+            import("<?php echo plugins_url('scene.js', __FILE__); ?>")
+                .then(({ initializeThreeJsScene }) => {
+                    document.querySelectorAll('.codes_scene').forEach(container => {
+                        if (!container.hasAttribute('data-scene-initialized')) {
+                            container.setAttribute('data-scene-initialized', 'true');
+                            const sceneData = <?php echo json_encode($scene_data); ?>;
+                            initializeThreeJsScene(sceneData, container.id);
+                        }
+                    });
+                })
+                .catch(error => console.error("Error loading Three.js scene script:", error));
+        }
     </script>
-
 
     <?php
     return ob_get_clean();
