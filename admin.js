@@ -47,6 +47,38 @@ window.onload = () =>
   const lightPosZInput = document.getElementById('lightPosZ');
   const useEnvLightInput = document.getElementById('useEnvLight');
 
+
+  const toggleButton = document.getElementById('toggleControls');
+  let isControlsVisible = true;
+  toggleButton.addEventListener('click', () => {
+      isControlsVisible = !isControlsVisible;
+
+      function toggleVisibility(selector) {
+          document.querySelector(selector).style.display = isControlsVisible ? 'flex' : 'none';
+      }
+
+      toggleVisibility('.rightControls');
+      toggleVisibility('.leftControls');
+      toggleVisibility('.topTransforms');
+
+      controls.visible = isControlsVisible;
+      groupControls.visible = isControlsVisible;
+
+      if(isControlsVisible)
+      {
+        if(loopActive)
+        {
+          controls.visible = false;
+          groupControls.visible = true;
+        }
+        else
+        {
+          controls.visible = true;
+          groupControls.visible = false;
+        }
+      }
+  });
+
   const loopGroupScaleInput = document.getElementById('loopGroupScale');
   loopGroupScaleInput.oninput = () =>
   {

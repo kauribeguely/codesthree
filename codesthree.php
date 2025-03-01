@@ -506,6 +506,7 @@ function threejs_editor_page($post) {
               <button type="button" onmousedown="setTransformMode('rotate')">Rotate (R)</button>
               <button id='codesScaleButton' title="not available in loop mode, use scale text input on left" type="button" onmousedown="setTransformMode('scale')">Scale (S)</button>
           </div>
+          <button id="toggleControls" type="button">Toggle Controls</button>
           <div class='leftControls'>
 
 
@@ -668,15 +669,9 @@ function threejs_editor_page($post) {
                     </div>
                 </div>
             </fieldset>
+            <!-- Number Input for Spacing -->
+            <label>Item Spacing: <input type="number" name="itemSpacing" id="itemSpacing" step="0.1" value="<?php echo esc_attr($item_spacing); ?>"></label>
             <label>Loop Group Scale: <input type="number" name="loopGroupScale" id="loopGroupScale" step="0.01" value="<?php echo esc_attr($loop_group_scale); ?>"></label>
-
-
-
-          <!-- Number Input for Spacing -->
-          <label>Item Spacing: <input type="number" name="itemSpacing" id="itemSpacing" step="0.1" value="<?php echo esc_attr($item_spacing); ?>"></label>
-
-
-
 
 
 
