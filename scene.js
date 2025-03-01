@@ -105,7 +105,7 @@ export function initializeThreeJsScene(sceneData, containerId, pluginUrl)
     fullLoopGroup.add(objGroup);
     scene.add(fullLoopGroup);
     fullLoopGroup.scale.set(sceneData.loopGroupScale, sceneData.loopGroupScale, sceneData.loopGroupScale);
-    
+
 
     // Load 3D Model
     // const loader = new THREE.GLTFLoader();
@@ -150,7 +150,7 @@ export function initializeThreeJsScene(sceneData, containerId, pluginUrl)
           if(mouseAnimationLink) window.addEventListener('mousemove', onMouseMove);
 
           renderer.render(scene, camera);
-          applyScrollTransforms();
+          if(scrollAnimationLink) applyScrollTransforms();
         });
     }
 
