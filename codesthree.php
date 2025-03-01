@@ -423,6 +423,21 @@ function custom_codes_scene_template_redirect($template) {
 }
 add_filter('template_include', 'custom_codes_scene_template_redirect');
 
+
+function add_codes_scene_shortcode_column($columns) {
+    $columns['codes_scene_shortcode'] = 'Shortcode';
+    return $columns;
+}
+add_filter('manage_codes_scene_posts_columns', 'add_codes_scene_shortcode_column'); // Replace 'your_custom_post_type'
+
+function populate_codes_scene_shortcode_column($column, $post_id) {
+    if ($column === 'codes_scene_shortcode') {
+        echo '[codes_scene id="' . $post_id . '"]';
+    }
+}
+add_action('manage_codes_scene_posts_custom_column', 'populate_codes_scene_shortcode_column', 10, 2); // Replace 'your_custom_post_type'
+
+
 // Admin page content
 function threejs_editor_page($post) {
 
