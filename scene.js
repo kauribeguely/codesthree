@@ -104,6 +104,8 @@ export function initializeThreeJsScene(sceneData, containerId, pluginUrl)
     let objGroup = new THREE.Group();
     fullLoopGroup.add(objGroup);
     scene.add(fullLoopGroup);
+    fullLoopGroup.scale.set(sceneData.loopGroupScale, sceneData.loopGroupScale, sceneData.loopGroupScale);
+    
 
     // Load 3D Model
     // const loader = new THREE.GLTFLoader();
