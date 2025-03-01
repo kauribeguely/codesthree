@@ -41,6 +41,45 @@ window.onload = () =>
   let mouseAnimationLink = sceneData.mouseAnimationLink === 'on';
   let scrollAnimationLink = sceneData.scrollAnimationLink === 'on';
 
+  const lightIntensityInput = document.getElementById('lightIntensity');
+  const lightPosXInput = document.getElementById('lightPosX');
+  const lightPosYInput = document.getElementById('lightPosY');
+  const lightPosZInput = document.getElementById('lightPosZ');
+  const useEnvLightInput = document.getElementById('useEnvLight');
+  const loopGroupScaleInput = document.getElementById('loopGroupScale');
+
+  let lightIntensity = sceneData.lightIntensity || 1.0;
+  let lightPosX = sceneData.lightPosX || 0;
+  let lightPosY = sceneData.lightPosY || 10;
+  let lightPosZ = sceneData.lightPosZ || 0;
+  let useEnvLight = sceneData.useEnvLight || false;
+  let loopGroupScale = sceneData.loopGroupScale || 1.0;
+
+  lightIntensityInput.oninput = () => {
+    sceneData.lightIntensity = parseFloat(lightIntensityInput.value) || 1.0;
+  };
+
+  lightPosXInput.oninput = () => {
+      sceneData.lightPosX = parseFloat(lightPosXInput.value) || 0;
+  };
+
+  lightPosYInput.oninput = () => {
+      sceneData.lightPosY = parseFloat(lightPosYInput.value) || 10;
+  };
+
+  lightPosZInput.oninput = () => {
+      sceneData.lightPosZ = parseFloat(lightPosZInput.value) || 0;
+  };
+
+  useEnvLightInput.oninput = () => {
+      sceneData.useEnvLight = useEnvLightInput.checked;
+  };
+
+  loopGroupScaleInput.oninput = () => {
+      sceneData.loopGroupScale = parseFloat(loopGroupScaleInput.value) || 1.0;
+  };
+
+
   // oninput for scroll move values
   scrollXInput.oninput = () => {
     scrollMoveX = parseFloat(scrollXInput.value) || 0;

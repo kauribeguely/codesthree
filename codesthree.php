@@ -37,6 +37,15 @@ function get_scene_data($post_id) {
         'loopCountZ' => get_post_meta($post_id, 'loopCountZ', true) ?: 3,
         'itemSpacing' => get_post_meta($post_id, 'itemSpacing', true) ?: 1.0,
         'isOrthoCamera' => get_post_meta($post_id, 'isOrthoCamera', true) ?: '',
+        'lightIntensity' => get_post_meta($post_id, 'lightIntensity', true) ?: 1.0,
+        'lightPosX' => get_post_meta($post_id, 'lightPosX', true) ?: 0,
+        'lightPosY' => get_post_meta($post_id, 'lightPosY', true) ?: 10,
+        'lightPosZ' => get_post_meta($post_id, 'lightPosZ', true) ?: 0,
+        'useEnvLight' => get_post_meta($post_id, 'useEnvLight', true) === '1',
+        'loopGroupScale' => get_post_meta($post_id, 'loopGroupScale', true) ?: 1.0,
+
+
+
         'postID' => $post_id ?: 'no post id'
     );
 }
@@ -317,12 +326,20 @@ function save_scene_metadata($post_id) {
         // Animation Toggles
         'mouseAnimationLink',
         'scrollAnimationLink',
+
         'loopActive',
         'loopCountX',
         'loopCountY',
         'loopCountZ',
         'itemSpacing',
-        'isOrthoCamera'
+        'isOrthoCamera',
+
+        'lightIntensity',
+        'lightPosX',
+        'lightPosY',
+        'lightPosZ',
+        'useEnvLight',
+        'loopGroupScale'
 
     ];
 
@@ -446,6 +463,13 @@ function threejs_editor_page($post) {
   $is_ortho_camera = $scene_data['isOrthoCamera'] ? $scene_data['isOrthoCamera'] : '';
 
   $shortcode = '[codes_scene id="' . $post->ID . '"]';
+
+  $light_intensity = $scene_data['lightIntensity'];
+  $light_pos_x = $scene_data['lightPosX'];
+  $light_pos_y = $scene_data['lightPosY'];
+  $light_pos_z = $scene_data['lightPosZ'];
+  $use_env_light = $scene_data['useEnvLight'];
+  $loop_group_scale = $scene_data['loopGroupScale'];
 
 
   wp_nonce_field('save_scene_metadata', 'scene_meta_nonce');
