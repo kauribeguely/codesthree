@@ -46,7 +46,13 @@ window.onload = () =>
   const lightPosYInput = document.getElementById('lightPosY');
   const lightPosZInput = document.getElementById('lightPosZ');
   const useEnvLightInput = document.getElementById('useEnvLight');
+
   const loopGroupScaleInput = document.getElementById('loopGroupScale');
+  loopGroupScaleInput.oninput = () =>
+  {
+    sceneData.loopGroupScale = parseFloat(loopGroupScaleInput.value) || 1.0;
+    fullLoopGroup.scale.set(loopGroupScaleInput.value, loopGroupScaleInput.value, loopGroupScaleInput.value);
+  };
 
   // let lightIntensity = sceneData.lightIntensity || 1.0;
   // let lightPosX = sceneData.lightPosX || 0;
@@ -96,11 +102,6 @@ window.onload = () =>
       scene.environment = null;
     }
   }
-
-  loopGroupScaleInput.oninput = () => {
-      sceneData.loopGroupScale = parseFloat(loopGroupScaleInput.value) || 1.0;
-  };
-
 
   // oninput for scroll move values
   scrollXInput.oninput = () => {
@@ -475,6 +476,7 @@ function toggleCamera()
     function init()
     {
       fullLoopGroup.add(objGroup);
+      fullLoopGroup.scale.set(sceneData.loopGroupScale, sceneData.loopGroupScale, sceneData.loopGroupScale);
       // scene.add(objGroup);
       scene.add(fullLoopGroup);
 
@@ -622,7 +624,8 @@ function toggleCamera()
         // rot = objGroup.rotation;
         rot = new THREE.Euler().setFromQuaternion(fullLoopGroup.quaternion); // Handle group rotation correctly
         // scale = objGroup.scale;
-
+        sceneData.loopGroupScale = fullLoopGroup.scale;
+        loopGroupScaleInput.value = round(fullLoopGroup.scale.x, 2);;
         // if(controls.mode === "scale" || groupControls.mode === "scale")
         // {
         //   refreshLoop();

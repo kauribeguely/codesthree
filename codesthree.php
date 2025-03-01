@@ -555,8 +555,10 @@ function threejs_editor_page($post) {
             </p>
 
             <!-- Directional Light Intensity -->
-            <label>Directional Intensity: <input type="range" name="directionalLightIntensity" id="directionalLightIntensity" max="3" step="0.05" value="<?php echo esc_attr($directional_light_intensity); ?>"></label>
-            <span id="directional_intensity_value"><?php echo esc_attr($directional_light_intensity); ?></span>
+            <p>
+              <label>Directional Intensity: <input type="range" name="directionalLightIntensity" id="directionalLightIntensity" max="3" step="0.05" value="<?php echo esc_attr($directional_light_intensity); ?>"></label>
+              <span id="directional_intensity_value"><?php echo esc_attr($directional_light_intensity); ?></span>
+            </p>
             <!-- Directional Light Position -->
             <div class="transform-group">
               <div class="transform-field">
@@ -666,7 +668,7 @@ function threejs_editor_page($post) {
                     </div>
                 </div>
             </fieldset>
-            <label>Loop Group Scale: <input type="number" name="loopGroupScale" id="loopGroupScale" step="0.1" value="<?php echo esc_attr($loop_group_scale); ?>"></label>
+            <label>Loop Group Scale: <input type="number" name="loopGroupScale" id="loopGroupScale" step="0.01" value="<?php echo esc_attr($loop_group_scale); ?>"></label>
 
 
 
