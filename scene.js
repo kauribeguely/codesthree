@@ -12,7 +12,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 
 
-export function initializeThreeJsScene(sceneData, containerId)
+export function initializeThreeJsScene(sceneData, containerId, pluginUrl)
 {
     const container = document.getElementById(containerId);
     if (!container) {
@@ -21,6 +21,7 @@ export function initializeThreeJsScene(sceneData, containerId)
     }
 
     // console.log(pluginData.pluginUrl);
+    // console.log(pluginUrl);
     const mouseRotationX = sceneData.mouseRotationX; // Maximum rotation range in degrees
     const mouseRotationY = sceneData.mouseRotationY; // Maximum rotation range in degrees
     const mouseRotationZ = sceneData.mouseRotationZ; // Maximum rotation range in degrees
@@ -410,7 +411,9 @@ export function initializeThreeJsScene(sceneData, containerId)
     {
       // rgbeLoader.load('../wp-content/plugins/codesthree/sunset.hdr', function (texture)
       // rgbeLoader.load('../wp-content/plugins/codesthree/'+ url, function (texture)
-      rgbeLoader.load(pluginData.pluginUrl+ url, function (texture)
+      // rgbeLoader.load(pluginData.pluginUrl+ url, function (texture)
+      console.log(pluginUrl +'/codesthree/');
+      rgbeLoader.load(pluginUrl +'/codesthree/'+ url, function (texture)
       {
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         texture.mapping = THREE.EquirectangularReflectionMapping;
