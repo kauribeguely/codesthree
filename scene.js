@@ -88,13 +88,12 @@ export function initializeThreeJsScene(sceneData, containerId, pluginUrl)
     container.appendChild(renderer.domElement);
 
     const alight = new THREE.AmbientLight(0xffffff, sceneData.lightIntensity);
-    // let alightIntensity = sceneData.lightIntensity;
     // alight.position.set(5, 5, 5);
     scene.add(alight);
 
 
-    const dlight = new THREE.DirectionalLight(0xffffff, 1);
-    let dlightIntensity = 1;
+    const dlight = new THREE.DirectionalLight(0xffffff, sceneData.directionalLightIntensity);
+    let ddirectionalLightIntes = 1;
     dlight.position.set(5, 5, 5);
     scene.add(dlight);
 

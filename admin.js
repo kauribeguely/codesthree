@@ -55,9 +55,9 @@ window.onload = () =>
   let useEnvLight = sceneData.useEnvLight  === 'on';
   // let loopGroupScale = sceneData.loopGroupScale || 1.0;
 
-  lightIntensityInput.oninput = () => {
-    sceneData.lightIntensity = parseFloat(lightIntensityInput.value) || 1.0;
-  };
+  // directionalLightIntensityInput.oninput = () => {
+  //   sceneData.directionalLightIntensity = parseFloat(directionalLightIntensityInput.value) || 1.0;
+  // };
 
   lightPosXInput.oninput = () => {
       sceneData.lightPosX = parseFloat(lightPosXInput.value) || 0;
@@ -376,7 +376,7 @@ function toggleCamera()
       camera = perspectiveCamera;
     }
 
-    
+
     const rgbeLoader = new RGBELoader();
 
     updateEnvTexture();
@@ -393,27 +393,34 @@ function toggleCamera()
 
 
     const dlight = new THREE.DirectionalLight(0xffffff, 1);
-    let dlightIntensity = 1;
+    let dlightIntensity = sceneData.directionalLightIntensity;
     dlight.position.set(5, 5, 5);
     scene.add(dlight);
 
     const alight = new THREE.AmbientLight(0xffffff, 1);
-    let alightIntensity = 1;
+    let alightIntensity = sceneData.lightIntensity;
     // alight.position.set(5, 5, 5);
     scene.add(alight);
 
     // Get the sliders by their IDs
-    const ambientLightSlider = document.getElementById('ambient-light-slider');
+    const ambientLightSlider = document.getElementById('ambient_light_intensity');
     const lightValue = document.getElementById('light_intensity_value');
 
 
-    const directionalLightSlider = document.getElementById('directional-light-slider');
+    const directionalLightSlider = document.getElementById('directionalLightIntensity');
+    const dirLightValue = document.getElementById('directional_intensity_value');
 
     // Event listener to change the intensity of the ambient light
     ambientLightSlider.addEventListener('input', function() {
         alight.intensity = parseFloat(ambientLightSlider.value);
         setLightIntensity(alight, ambientLightSlider.value);
         lightValue.textContent = ambientLightSlider.value;
+    });
+
+    directionalLightSlider.addEventListener('input', function() {
+        dlight.intensity = parseFloat(directionalLightSlider.value);
+        setLightIntensity(dlight, directionalLightSlider.value);
+        dirLightValue.textContent = directionalLightSlider.value;
     });
 
     function setLightIntensity(light, intensity)

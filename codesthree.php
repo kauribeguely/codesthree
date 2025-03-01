@@ -37,10 +37,11 @@ function get_scene_data($post_id) {
         'loopCountZ' => get_post_meta($post_id, 'loopCountZ', true) ?: 3,
         'itemSpacing' => get_post_meta($post_id, 'itemSpacing', true) ?: 1.0,
         'isOrthoCamera' => get_post_meta($post_id, 'isOrthoCamera', true) ?: '',
-        'lightIntensity' => get_post_meta($post_id, 'lightIntensity', true) ?: 1.0,
-        'lightPosX' => get_post_meta($post_id, 'lightPosX', true) ?: 0,
-        'lightPosY' => get_post_meta($post_id, 'lightPosY', true) ?: 10,
-        'lightPosZ' => get_post_meta($post_id, 'lightPosZ', true) ?: 0,
+        'directionalLightIntensity' => get_post_meta($post_id, 'directionalLightIntensity', true),
+        // 'directionalLightIntensity' => get_post_meta($post_id, 'directionalLightIntensity', true) ?: 0,
+        'lightPosX' => get_post_meta($post_id, 'lightPosX', true) ?: 5,
+        'lightPosY' => get_post_meta($post_id, 'lightPosY', true) ?: 5,
+        'lightPosZ' => get_post_meta($post_id, 'lightPosZ', true) ?: 5,
         'useEnvLight' => get_post_meta($post_id, 'useEnvLight', true) ?: '',
         'loopGroupScale' => get_post_meta($post_id, 'loopGroupScale', true) ?: 1.0,
 
@@ -335,7 +336,7 @@ function save_scene_metadata($post_id) {
         'itemSpacing',
         'isOrthoCamera',
 
-        'lightIntensity',
+        'directionalLightIntensity',
         'lightPosX',
         'lightPosY',
         'lightPosZ',
@@ -465,7 +466,7 @@ function threejs_editor_page($post) {
 
   $shortcode = '[codes_scene id="' . $post->ID . '"]';
 
-  $light_intensity = $scene_data['lightIntensity'];
+  $directional_light_intensity = $scene_data['directionalLightIntensity'];
   $light_pos_x = $scene_data['lightPosX'];
   $light_pos_y = $scene_data['lightPosY'];
   $light_pos_z = $scene_data['lightPosZ'];
@@ -548,14 +549,14 @@ function threejs_editor_page($post) {
             <hr>
 
             <p>
-                <label for="ambient-light-slider">Light Intensity:</label><br>
-                <input type="range" name="ambient_light_intensity" id="ambient-light-slider" max="3" step="0.05" value="<?php echo esc_attr($light_intensity); ?>" />
+                <label for="ambient-light-slider">Ambient Intensity:</label><br>
+                <input type="range" name="ambient_light_intensity" id="ambient_light_intensity" max="3" step="0.05" value="<?php echo esc_attr($light_intensity); ?>" />
                 <span id="light_intensity_value"><?php echo esc_attr($light_intensity); ?></span>
             </p>
 
             <!-- Directional Light Intensity -->
-            <label>Light Intensity: <input type="number" name="lightIntensity" id="lightIntensity" step="0.1" value="<?php echo esc_attr($light_intensity); ?>"></label>
-
+            <label>Directional Intensity: <input type="range" name="directionalLightIntensity" id="directionalLightIntensity" max="3" step="0.05" value="<?php echo esc_attr($directional_light_intensity); ?>"></label>
+            <span id="directional_intensity_value"><?php echo esc_attr($directional_light_intensity); ?></span>
             <!-- Directional Light Position -->
             <div class="transform-group">
               <div class="transform-field">
