@@ -190,7 +190,8 @@ export function initializeThreeJsScene(sceneData, containerId, pluginUrl)
       {
         fullLoopGroup.rotation.x = currentRotation.x;
         fullLoopGroup.rotation.y = currentRotation.y;
-        fullLoopGroup.rotation.z = currentRotation.z;      }
+        fullLoopGroup.rotation.z = currentRotation.z;
+      }
       else
       {
         model.rotation.x = currentRotation.x;

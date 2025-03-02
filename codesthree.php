@@ -32,9 +32,9 @@ function get_scene_data($post_id) {
         'mouseAnimationLink' => get_post_meta($post_id, 'mouseAnimationLink', true) ?: '',
         'scrollAnimationLink' => get_post_meta($post_id, 'scrollAnimationLink', true) ?: '',
         'loopActive' => get_post_meta($post_id, 'loopActive', true) ?: '',
-        'loopCountX' => get_post_meta($post_id, 'loopCountX', true) ?: 1,
-        'loopCountY' => get_post_meta($post_id, 'loopCountY', true) ?: 1,
-        'loopCountZ' => get_post_meta($post_id, 'loopCountZ', true) ?: 1,
+        'loopCountX' => get_post_meta($post_id, 'loopCountX', true) ?: 3,
+        'loopCountY' => get_post_meta($post_id, 'loopCountY', true) ?: 3,
+        'loopCountZ' => get_post_meta($post_id, 'loopCountZ', true) ?: 3,
         'itemSpacing' => get_post_meta($post_id, 'itemSpacing', true) ?: 1.0,
         'isOrthoCamera' => get_post_meta($post_id, 'isOrthoCamera', true) ?: '',
         'directionalLightIntensity' => get_post_meta($post_id, 'directionalLightIntensity', true),
@@ -441,13 +441,13 @@ add_action('manage_codes_scene_posts_custom_column', 'populate_codes_scene_short
 function set_default_one_column_layout($default, $option, $value) {
     $screen = get_current_screen();
 
-    if ($screen && $screen->id === 'codes_scene') { // Replace 'your_custom_post_type'
+    if ($screen && $screen->id === 'codes_scene') {
         return 1; // Set to 1 column
     }
 
     return $default;
 }
-add_filter('default_option_screen_layout_your_custom_post_type', 'set_default_one_column_layout', 10, 3); // Replace your_custom_post_type
+add_filter('default_option_screen_layout_codes_scene', 'set_default_one_column_layout', 10, 3); // Replace your_custom_post_type
 
 
 // Admin page content
