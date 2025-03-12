@@ -111,7 +111,8 @@ export function initializeThreeJsScene(sceneData, containerId, pluginUrl)
     // const loader = new THREE.GLTFLoader();
     const loader = new GLTFLoader();
     const rgbeLoader = new RGBELoader();
-
+    const sphereGroup = new THREE.Group();
+    createLoadScreen();
     updateEnvTexture();
 
     if(loopActive)
@@ -151,14 +152,50 @@ export function initializeThreeJsScene(sceneData, containerId, pluginUrl)
 
           renderer.render(scene, camera);
           if(scrollAnimationLink) applyScrollTransforms();
+
+          hideLoadScreen();
+
         });
+    }
+
+    function hideLoadScreen()
+    {
+      sphereGroup.children.forEach((sphere) => {
+        sphere.geometry.dispose();
+        sphere.material.dispose();
+      });
+
+      scene.remove(sphereGroup);
+
+      sphereGroup.clear();
+    }
+
+    function createLoadScreen()
+    {
+      const sphereGeometry = new THREE.SphereGeometry(0.5, 32, 32);
+      const sphereMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+
+      const numSpheres = 3;
+      const sphereRadius = 2;
+
+
+      scene.add(sphereGroup);
+
+      for (let i = 0; i < numSpheres; i++)
+      {
+        const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+        const angle = (i / numSpheres) * Math.PI * 2;
+        sphere.position.set(Math.cos(angle) * sphereRadius, 0, Math.sin(angle) * sphereRadius);
+        sphereGroup.add(sphere);
+      }
     }
 
     const animate = function ()
     {
        requestAnimationFrame(animate);
        renderer.render(scene, camera);
-     };
+       sphereGroup.rotation.y += 0.02; // Rotate the entire group
+   };
 
      animate();
 
