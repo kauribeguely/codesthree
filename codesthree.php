@@ -89,7 +89,16 @@ function create_scene_shortcode($atts)
     ?>
 
     <!-- <h1>Scene Below</h1> -->
-    <div id="scene-<?php echo esc_attr($post_id); ?>-<?php echo uniqid(); ?>" class="codes_scene" data-scene-id="<?php echo esc_attr($post_id); ?>" style="width: <?php echo esc_attr($atts['width']); ?>; height: <?php echo esc_attr($atts['height']); ?>;"></div>
+    <div id="scene-<?php echo esc_attr($post_id); ?>-<?php echo uniqid(); ?>" class="codes_scene" data-scene-id="<?php echo esc_attr($post_id); ?>" style="width: <?php echo esc_attr($atts['width']); ?>; height: <?php echo esc_attr($atts['height']); ?>;">
+      <div class = "loadScreen">
+        <div class = "loadCircle">
+          <div class = "loadInnerCircle">
+          </div>
+        </div>
+      </div>
+
+    </div>
+
     <script type="module">
       import { initializeThreeJsScene } from "<?php echo plugins_url('scene.js', __FILE__); ?>";
       const sceneData = <?php echo json_encode($scene_data); ?>;

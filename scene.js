@@ -11,10 +11,11 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 
-
 export function initializeThreeJsScene(sceneData, containerId, pluginUrl)
 {
+  let numLoaded = 0;
     const container = document.getElementById(containerId);
+    const loadScreen = container.querySelector('.loadScreen');
     if (!container) {
         console.error("Container not found:", containerId);
         return;
@@ -112,7 +113,6 @@ export function initializeThreeJsScene(sceneData, containerId, pluginUrl)
     const loader = new GLTFLoader();
     const rgbeLoader = new RGBELoader();
     const sphereGroup = new THREE.Group();
-    createLoadScreen();
     updateEnvTexture();
 
     if(loopActive)
@@ -160,33 +160,15 @@ export function initializeThreeJsScene(sceneData, containerId, pluginUrl)
 
     function hideLoadScreen()
     {
-      sphereGroup.children.forEach((sphere) => {
-        sphere.geometry.dispose();
-        sphere.material.dispose();
-      });
-
-      scene.remove(sphereGroup);
-
-      sphereGroup.clear();
-    }
-
-    function createLoadScreen()
-    {
-      const sphereGeometry = new THREE.SphereGeometry(0.5, 32, 32);
-      const sphereMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-
-      const numSpheres = 3;
-      const sphereRadius = 2;
-
-
-      scene.add(sphereGroup);
-
-      for (let i = 0; i < numSpheres; i++)
+      numLoaded++;
+      if(useEnvLight && numLoaded > 1)
       {
-        const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-        const angle = (i / numSpheres) * Math.PI * 2;
-        sphere.position.set(Math.cos(angle) * sphereRadius, 0, Math.sin(angle) * sphereRadius);
-        sphereGroup.add(sphere);
+        loadScreen.style.display = "none";
+      }
+
+      if(!useEnvLight)
+      {
+        loadScreen.style.display = "none";
       }
     }
 
@@ -196,7 +178,6 @@ export function initializeThreeJsScene(sceneData, containerId, pluginUrl)
        renderer.render(scene, camera);
        sphereGroup.rotation.y += 0.02; // Rotate the entire group
    };
-
      animate();
 
 
@@ -329,6 +310,7 @@ export function initializeThreeJsScene(sceneData, containerId, pluginUrl)
         loopable.scale.set(objScale, objScale, objScale);
         zLoop(loopable, rowCount, columnCount, zCount, group, distances);
         if(mouseAnimationLink) window.addEventListener('mousemove', onMouseMove);
+        hideLoadScreen();
 
       });
     }
@@ -457,6 +439,7 @@ export function initializeThreeJsScene(sceneData, containerId, pluginUrl)
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         texture.mapping = THREE.EquirectangularReflectionMapping;
         scene.environment = texture;
+        hideLoadScreen();
         // scene.background = texture;
       });
     }
