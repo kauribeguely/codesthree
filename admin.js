@@ -949,7 +949,8 @@ function transformDragEnd(){
                 break;
             case 's': // Scale mode
                 setTransformMode('scale');
-
+                keyZTrans = true;
+                
                 // dont allow scaling of group, must be set via single or input
                 // groupControls.setMode('scale');
                 break;
