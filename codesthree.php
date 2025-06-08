@@ -12,42 +12,155 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 
+// function get_scene_data($post_id) {
+//     return array(
+//         'modelUrl' => get_post_meta($post_id, 'threejs_model_url', true) ?: "",
+//         'positionX' => get_post_meta($post_id, 'threejs_pos_x', true) ?: 0,
+//         'positionY' => get_post_meta($post_id, 'threejs_pos_y', true) ?: 0,
+//         'positionZ' => get_post_meta($post_id, 'threejs_pos_z', true) ?: 0,
+//         'rotationX' => get_post_meta($post_id, 'threejs_rot_x', true) ?: 0,
+//         'rotationY' => get_post_meta($post_id, 'threejs_rot_y', true) ?: 0,
+//         'rotationZ' => get_post_meta($post_id, 'threejs_rot_z', true) ?: 0,
+//         'scale' => get_post_meta($post_id, 'scale', true) ?: 1,
+//         'lightIntensity' => get_post_meta($post_id, 'ambient_light_intensity', true) ?: 0,
+//         'mouseRotationX' => get_post_meta($post_id, 'mouseRotationX', true) ?: 0,
+//         'mouseRotationY' => get_post_meta($post_id, 'mouseRotationY', true) ?: 0,
+//         'mouseRotationZ' => get_post_meta($post_id, 'mouseRotationZ', true) ?: 0,
+//         'scrollMoveX' => get_post_meta($post_id, 'scrollMoveX', true) ?: 0,
+//         'scrollMoveY' => get_post_meta($post_id, 'scrollMoveY', true) ?: 0,
+//         'scrollMoveZ' => get_post_meta($post_id, 'scrollMoveZ', true) ?: 0,
+//         'mouseAnimationLink' => get_post_meta($post_id, 'mouseAnimationLink', true) ?: '',
+//         'scrollAnimationLink' => get_post_meta($post_id, 'scrollAnimationLink', true) ?: '',
+//         'loopActive' => get_post_meta($post_id, 'loopActive', true) ?: '',
+//         'loopCountX' => get_post_meta($post_id, 'loopCountX', true) ?: 3,
+//         'loopCountY' => get_post_meta($post_id, 'loopCountY', true) ?: 3,
+//         'loopCountZ' => get_post_meta($post_id, 'loopCountZ', true) ?: 3,
+//         'itemSpacing' => get_post_meta($post_id, 'itemSpacing', true) ?: 1.0,
+//         'isOrthoCamera' => get_post_meta($post_id, 'isOrthoCamera', true) ?: '',
+//         'directionalLightIntensity' => get_post_meta($post_id, 'directionalLightIntensity', true),
+//         // 'directionalLightIntensity' => get_post_meta($post_id, 'directionalLightIntensity', true) ?: 0,
+//         'lightPosX' => get_post_meta($post_id, 'lightPosX', true) ?: 0,
+//         'lightPosY' => get_post_meta($post_id, 'lightPosY', true) ?: 0,
+//         'lightPosZ' => get_post_meta($post_id, 'lightPosZ', true) ?: 0,
+//         'useEnvLight' => get_post_meta($post_id, 'useEnvLight', true) ?: '',
+//         'loopGroupScale' => get_post_meta($post_id, 'loopGroupScale', true) ?: 1.0,
+
+
+
+//         'postID' => $post_id ?: 'no post id'
+//     );
+// }
+
 function get_scene_data($post_id) {
+    // --- STATIC ALL MODELS ARRAY FOR TESTING ---
+    $all_models_array = array(
+        array(
+            'modelId'           => 'test_model_1',
+            'modelUrl'          => 'http://localhost/wpLocalEdge/wp-content/uploads/2025/06/a.glb', // REMEMBER TO CHANGE THIS TO A VALID URL
+            'positionX'         => -0.5,
+            'positionY'         => 0.0,
+            'positionZ'         => 0.0,
+            'rotationX'         => 0.0,
+            'rotationY'         => 45.0, // Rotated to see it better
+            'rotationZ'         => 0.0,
+            'scale'             => 0.8,
+            'modelName'         => 'Test Model A (Single)',
+            'loopActive'        => '', // No loop
+            'loopCountX'        => 1,
+            'loopCountY'        => 1,
+            'loopCountZ'        => 1,
+            'loopItemSpacingX'  => 0.0,
+            'loopItemSpacingY'  => 0.0,
+            'loopItemSpacingZ'  => 0.0,
+            'loopGroupScale'    => 1.0,
+        ),
+        array(
+            'modelId'           => 'test_model_2',
+            'modelUrl'          => 'http://localhost/wpLocalEdge/wp-content/uploads/2025/06/a.glb', // REMEMBER TO CHANGE THIS TO A VALID URL
+            'positionX'         => 0.0,
+            'positionY'         => 1.0, // Placed higher
+            'positionZ'         => 0.0,
+            'rotationX'         => 0.0,
+            'rotationY'         => 0.0,
+            'rotationZ'         => 0.0,
+            'scale'             => 0.5,
+            'modelName'         => 'Test Model B (Row of 3)',
+            'loopActive'        => 'on', // Loop active
+            'loopCountX'        => 3,    // 3 items in X
+            'loopCountY'        => 1,
+            'loopCountZ'        => 1,
+            'loopItemSpacingX'  => 1.5,  // Spaced out
+            'loopItemSpacingY'  => 0.0,
+            'loopItemSpacingZ'  => 0.0,
+            'loopGroupScale'    => 1.0,
+        ),
+        array(
+            'modelId'           => 'test_model_3',
+            'modelUrl'          => 'http://localhost/wpLocalEdge/wp-content/uploads/2025/06/a.glb', // REMEMBER TO CHANGE THIS TO A VALID URL
+            'positionX'         => -2.0,
+            'positionY'         => -1.0, // Placed lower and left
+            'positionZ'         => 0.0,
+            'rotationX'         => 0.0,
+            'rotationY'         => 0.0,
+            'rotationZ'         => 0.0,
+            'scale'             => 0.4,
+            'modelName'         => 'Test Model C (2x2 Grid)',
+            'loopActive'        => 'on', // Loop active
+            'loopCountX'        => 2,    // 2 items in X
+            'loopCountY'        => 2,    // 2 items in Y
+            'loopCountZ'        => 1,
+            'loopItemSpacingX'  => 1.2,
+            'loopItemSpacingY'  => 1.2,
+            'loopItemSpacingZ'  => 0.0,
+            'loopGroupScale'    => 1.0,
+        ),
+        // Add more test models here as needed!
+    );
+    // --- END STATIC ALL MODELS ARRAY FOR TESTING ---
+
+
+    // --- Global Scene Settings (still fetched from post meta) ---
+    $is_ortho_camera = get_post_meta($post_id, 'is_ortho_camera', true) ?: '';
+    $directional_light_intensity = get_post_meta($post_id, 'directional_light_intensity', true) ?: 0.0;
+    $ambient_light_intensity = get_post_meta($post_id, 'ambient_light_intensity', true) ?: 0.0;
+    $light_pos_x = get_post_meta($post_id, 'light_pos_x', true) ?: 0.0;
+    $light_pos_y = get_post_meta($post_id, 'light_pos_y', true) ?: 0.0;
+    $light_pos_z = get_post_meta($post_id, 'light_pos_z', true) ?: 0.0;
+    $use_env_light = get_post_meta($post_id, 'use_env_light', true) ?: '';
+
+    // Global Interaction Settings
+    $mouse_animation_link = get_post_meta($post_id, 'mouse_animation_link', true) ?: '';
+    $mouse_rotation_x = get_post_meta($post_id, 'mouse_rotation_x', true) ?: 0.0;
+    $mouse_rotation_y = get_post_meta($post_id, 'mouse_rotation_y', true) ?: 0.0;
+    $mouse_rotation_z = get_post_meta($post_id, 'mouse_rotation_z', true) ?: 0.0;
+    $scroll_animation_link = get_post_meta($post_id, 'scroll_animation_link', true) ?: '';
+    $scroll_move_x = get_post_meta($post_id, 'scroll_move_x', true) ?: 0.0;
+    $scroll_move_y = get_post_meta($post_id, 'scroll_move_y', true) ?: 0.0;
+    $scroll_move_z = get_post_meta($post_id, 'scroll_move_z', true) ?: 0.0;
+
+    // --- Return Combined Scene Data ---
     return array(
-        'modelUrl' => get_post_meta($post_id, 'threejs_model_url', true) ?: "",
-        'positionX' => get_post_meta($post_id, 'threejs_pos_x', true) ?: 0,
-        'positionY' => get_post_meta($post_id, 'threejs_pos_y', true) ?: 0,
-        'positionZ' => get_post_meta($post_id, 'threejs_pos_z', true) ?: 0,
-        'rotationX' => get_post_meta($post_id, 'threejs_rot_x', true) ?: 0,
-        'rotationY' => get_post_meta($post_id, 'threejs_rot_y', true) ?: 0,
-        'rotationZ' => get_post_meta($post_id, 'threejs_rot_z', true) ?: 0,
-        'scale' => get_post_meta($post_id, 'scale', true) ?: 1,
-        'lightIntensity' => get_post_meta($post_id, 'ambient_light_intensity', true) ?: 0,
-        'mouseRotationX' => get_post_meta($post_id, 'mouseRotationX', true) ?: 0,
-        'mouseRotationY' => get_post_meta($post_id, 'mouseRotationY', true) ?: 0,
-        'mouseRotationZ' => get_post_meta($post_id, 'mouseRotationZ', true) ?: 0,
-        'scrollMoveX' => get_post_meta($post_id, 'scrollMoveX', true) ?: 0,
-        'scrollMoveY' => get_post_meta($post_id, 'scrollMoveY', true) ?: 0,
-        'scrollMoveZ' => get_post_meta($post_id, 'scrollMoveZ', true) ?: 0,
-        'mouseAnimationLink' => get_post_meta($post_id, 'mouseAnimationLink', true) ?: '',
-        'scrollAnimationLink' => get_post_meta($post_id, 'scrollAnimationLink', true) ?: '',
-        'loopActive' => get_post_meta($post_id, 'loopActive', true) ?: '',
-        'loopCountX' => get_post_meta($post_id, 'loopCountX', true) ?: 3,
-        'loopCountY' => get_post_meta($post_id, 'loopCountY', true) ?: 3,
-        'loopCountZ' => get_post_meta($post_id, 'loopCountZ', true) ?: 3,
-        'itemSpacing' => get_post_meta($post_id, 'itemSpacing', true) ?: 1.0,
-        'isOrthoCamera' => get_post_meta($post_id, 'isOrthoCamera', true) ?: '',
-        'directionalLightIntensity' => get_post_meta($post_id, 'directionalLightIntensity', true),
-        // 'directionalLightIntensity' => get_post_meta($post_id, 'directionalLightIntensity', true) ?: 0,
-        'lightPosX' => get_post_meta($post_id, 'lightPosX', true) ?: 0,
-        'lightPosY' => get_post_meta($post_id, 'lightPosY', true) ?: 0,
-        'lightPosZ' => get_post_meta($post_id, 'lightPosZ', true) ?: 0,
-        'useEnvLight' => get_post_meta($post_id, 'useEnvLight', true) ?: '',
-        'loopGroupScale' => get_post_meta($post_id, 'loopGroupScale', true) ?: 1.0,
+        'isOrthoCamera'             => $is_ortho_camera,
+        'directionalLightIntensity' => (float)$directional_light_intensity,
+        'lightIntensity'            => (float)$ambient_light_intensity,
+        'lightPosX'                 => (float)$light_pos_x,
+        'lightPosY'                 => (float)$light_pos_y,
+        'lightPosZ'                 => (float)$light_pos_z,
+        'useEnvLight'               => $use_env_light,
 
+        'mouseAnimationLink'        => $mouse_animation_link,
+        'mouseRotationX'            => (float)$mouse_rotation_x,
+        'mouseRotationY'            => (float)$mouse_rotation_y,
+        'mouseRotationZ'            => (float)$mouse_rotation_z,
+        'scrollAnimationLink'       => $scroll_animation_link,
+        'scrollMoveX'               => (float)$scroll_move_x,
+        'scrollMoveY'               => (float)$scroll_move_y,
+        'scrollMoveZ'               => (float)$scroll_move_z,
 
+        // The static array of all models
+        'allModels'                 => $all_models_array,
 
-        'postID' => $post_id ?: 'no post id'
+        'postID'                    => $post_id,
     );
 }
 
@@ -462,52 +575,78 @@ add_filter('default_option_screen_layout_codes_scene', 'set_default_one_column_l
 // Admin page content
 function threejs_editor_page($post) {
 
-  $scene_data = get_scene_data($post->ID);
-
-  $model_url = $scene_data['modelUrl'];
-  $pos_x = $scene_data['positionX'];
-  $pos_y = $scene_data['positionY'];
-  $pos_z = $scene_data['positionZ'];
-  $rot_x = $scene_data['rotationX'];
-  $rot_y = $scene_data['rotationY'];
-  $rot_z = $scene_data['rotationZ'];
-  $scale = $scene_data['scale'];
-  $light_intensity = $scene_data['lightIntensity'];
+  // Assuming $post->ID is available here
+    $scene_data = get_scene_data($post->ID); // This function now returns the structure with 'allModels' array inside it.
 
 
-  // Mouse Rotation Strength
-  $mouse_rot_x = $scene_data['mouseRotationX'];
-  // $mouse_rot_x = isset($scene_data['mouseRotationX']) ? $scene_data['mouseRotationX'] : '';
-  $mouse_rot_y = isset($scene_data['mouseRotationY']) ? $scene_data['mouseRotationY'] : '';
-  $mouse_rot_z = isset($scene_data['mouseRotationZ']) ? $scene_data['mouseRotationZ'] : '';
+    $all_models = $scene_data['allModels']; // Get the array of all models
+    // --- Global Scene Settings ---
+    // These are still direct properties of $scene_data
+    $is_ortho_camera = $scene_data['isOrthoCamera'] ?: '';
 
-  // Scroll Camera Movement
-  $scroll_mov_x = isset($scene_data['scrollMoveX']) ? $scene_data['scrollMoveX'] : '';
-  $scroll_mov_y = isset($scene_data['scrollMoveY']) ? $scene_data['scrollMoveY'] : '';
-  $scroll_mov_z = isset($scene_data['scrollMoveZ']) ? $scene_data['scrollMoveZ'] : '';
-
-  // Animation Toggles
-  $mouse_enabled = isset($scene_data['mouseAnimationLink']) ? $scene_data['mouseAnimationLink'] : '';
-  $scroll_enabled = isset($scene_data['scrollAnimationLink']) ? $scene_data['scrollAnimationLink'] : '';
-
-
-  $loop_active = $scene_data['loopActive'] ? $scene_data['loopActive'] : '';
-  $loop_count_x = $scene_data['loopCountX'];
-  $loop_count_y = $scene_data['loopCountY'];
-  $loop_count_z = $scene_data['loopCountZ'];
-  $item_spacing = $scene_data['itemSpacing'];
+    // Light settings (global)
+    $directional_light_intensity = $scene_data['directionalLightIntensity'];
+    // $ambient_light_intensity = $scene_data['lightIntensity']; // Renamed for clarity in PHP variables
+    $light_intensity = $scene_data['lightIntensity'];
+    $light_pos_x = $scene_data['lightPosX'];
+    $light_pos_y = $scene_data['lightPosY'];
+    $light_pos_z = $scene_data['lightPosZ'];
+    $use_env_light = $scene_data['useEnvLight'] ?: '';
 
 
-  $is_ortho_camera = $scene_data['isOrthoCamera'] ? $scene_data['isOrthoCamera'] : '';
+    // Mouse Rotation Strength (global)
+    $mouse_rot_x = $scene_data['mouseRotationX'];
+    $mouse_rot_y = $scene_data['mouseRotationY'];
+    $mouse_rot_z = $scene_data['mouseRotationZ'];
 
-  $shortcode = '[codes_scene id="' . $post->ID . '"]';
+    // Scroll Camera Movement (global)
+    $scroll_mov_x = $scene_data['scrollMoveX'];
+    $scroll_mov_y = $scene_data['scrollMoveY'];
+    $scroll_mov_z = $scene_data['scrollMoveZ'];
 
-  $directional_light_intensity = $scene_data['directionalLightIntensity'];
-  $light_pos_x = $scene_data['lightPosX'];
-  $light_pos_y = $scene_data['lightPosY'];
-  $light_pos_z = $scene_data['lightPosZ'];
-  $use_env_light = $scene_data['useEnvLight'];
-  $loop_group_scale = $scene_data['loopGroupScale'];
+    // Animation Toggles (global)
+    $mouse_enabled = $scene_data['mouseAnimationLink'] ?: '';
+    $scroll_enabled = $scene_data['scrollAnimationLink'] ?: '';
+
+    $current_model_data = array(); 
+    $current_model_data = end($all_models);
+
+
+    // Now, extract the specific values for the current model (the last one, or defaults)
+    $pos_x = isset($current_model_data['positionX']) ? $current_model_data['positionX'] : 0.0;
+    $pos_y = isset($current_model_data['positionY']) ? $current_model_data['positionY'] : 0.0;
+    $pos_z = isset($current_model_data['positionZ']) ? $current_model_data['positionZ'] : 0.0;
+    $rot_x = isset($current_model_data['rotationX']) ? $current_model_data['rotationX'] : 0.0;
+    $rot_y = isset($current_model_data['rotationY']) ? $current_model_data['rotationY'] : 0.0;
+    $rot_z = isset($current_model_data['rotationZ']) ? $current_model_data['rotationZ'] : 0.0;
+    $scale = isset($current_model_data['scale']) ? $current_model_data['scale'] : 1.0;
+
+    // You would do this for all other model-specific fields like modelUrl, loopActive, etc.
+    $model_url = isset($current_model_data['modelUrl']) ? $current_model_data['modelUrl'] : '';
+    $loop_active = isset($current_model_data['loopActive']) ? $current_model_data['loopActive'] : '';
+    $loop_count_x = isset($current_model_data['loopCountX']) ? $current_model_data['loopCountX'] : 1;
+    $loop_count_y = isset($current_model_data['loopCountY']) ? $current_model_data['loopCountY'] : 1;
+    $loop_count_z = isset($current_model_data['loopCountZ']) ? $current_model_data['loopCountZ'] : 1;
+    $item_spacing_x = isset($current_model_data['loopItemSpacingX']) ? $current_model_data['loopItemSpacingX'] : 0.0;
+    $item_spacing_y = isset($current_model_data['loopItemSpacingY']) ? $current_model_data['loopItemSpacingY'] : 0.0;
+    $item_spacing_z = isset($current_model_data['loopItemSpacingZ']) ? $current_model_data['loopItemSpacingZ'] : 0.0;
+    $loop_group_scale = isset($current_model_data['loopGroupScale']) ? $current_model_data['loopGroupScale'] : 1.0;
+    $model_name = isset($current_model_data['modelName']) ? $current_model_data['modelName'] : '';
+
+    // --- Model-Specific Data (NOT extracted individually here) ---
+    // The 'allModels' array contains all the model-specific data,
+    // including their individual positions, rotations, scales, and loop options.
+    // This entire array will be passed to JavaScript.
+    // No need to extract individual model properties like modelUrl, positionX,
+    // loopActive, loopCountX, itemSpacing, loopGroupScale here.
+    // These will be accessed within the JavaScript's loop over sceneData.allModels.
+
+    // --- Other Global Data ---
+    $post_id_from_scene_data = $scene_data['postID']; // You might already have $post->ID, but good for consistency
+
+    // --- Shortcode (if you're using it to display the scene) ---
+    $shortcode = '[codes_scene id="' . $post->ID . '"]'; // Still uses the current post ID
+
 
 
   wp_nonce_field('save_scene_metadata', 'scene_meta_nonce');
@@ -542,10 +681,7 @@ function threejs_editor_page($post) {
               <button type="button" onmousedown="setTransformMode('rotate')">Rotate (R)</button>
               <button id='codesScaleButton' title="not available in loop mode, use scale text input on left" type="button" onmousedown="setTransformMode('scale')">Scale (S)</button>
           </div>
-<<<<<<< HEAD
           <button id="toggleControls" type="button">Toggle Controls</button>
-=======
->>>>>>> main
           <div class='leftControls'>
 
 
@@ -583,17 +719,12 @@ function threejs_editor_page($post) {
             </div>
 
             <p>
-<<<<<<< HEAD
               <strong>Scale (model): </strong><input type="number" name="scale" id="codes_scale" value="<?php echo esc_attr($scale); ?>" step="0.01" />
-=======
-              <strong>Scale: </strong><input type="number" name="scale" id="codes_scale" value="<?php echo esc_attr($scale); ?>" step="0.01" />
->>>>>>> main
             </p>
 
             <hr>
 
             <p>
-<<<<<<< HEAD
                 <label for="ambient-light-slider">Ambient Intensity:</label><br>
                 <input type="range" name="ambient_light_intensity" id="ambient_light_intensity" max="3" step="0.05" value="<?php echo esc_attr($light_intensity); ?>" />
                 <span id="light_intensity_value"><?php echo esc_attr($light_intensity); ?></span>
@@ -625,12 +756,6 @@ function threejs_editor_page($post) {
                 Use Environment Light (HDR)
             </label>
 
-=======
-                <label for="ambient-light-slider">Light Intensity:</label><br>
-                <input type="range" name="ambient_light_intensity" id="ambient-light-slider" min="0" max="3" step="0.05" value="<?php echo esc_attr($light_intensity); ?>" />
-                <span id="light_intensity_value"><?php echo esc_attr($light_intensity); ?></span>
-            </p>
->>>>>>> main
             <hr>
 
             <!-- Toggle for isOrthoCamera -->
@@ -719,20 +844,10 @@ function threejs_editor_page($post) {
                     </div>
                 </div>
             </fieldset>
-<<<<<<< HEAD
             <!-- Number Input for Spacing -->
-            <label>Item Spacing: <input type="number" name="itemSpacing" id="itemSpacing" step="0.1" value="<?php echo esc_attr($item_spacing); ?>"></label>
+            <label>Item Spacing: <input type="number" name="itemSpacing" id="itemSpacing" step="0.1" value="0.5"></label>
+            <!-- <label>Item Spacing: <input type="number" name="itemSpacing" id="itemSpacing" step="0.1" value="<?php echo esc_attr($item_spacing); ?>"></label> -->
             <label>Loop Group Scale: <input type="number" name="loopGroupScale" id="loopGroupScale" step="0.01" value="<?php echo esc_attr($loop_group_scale); ?>"></label>
-=======
-
-
-
-          <!-- Number Input for Spacing -->
-          <label>Item Spacing: <input type="number" name="itemSpacing" id="itemSpacing" step="0.1" value="<?php echo esc_attr($item_spacing); ?>"></label>
-
-
-
->>>>>>> main
 
 
 

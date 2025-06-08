@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-// import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
@@ -389,7 +389,7 @@ function toggleCamera()
     } else {
         camera = perspectiveCamera;
     }
-    controls.camera = camera;
+    // controls.camera = camera;
     groupControls.camera = camera;
 
     camera.position.set(cameraPos[0], cameraPos[1], cameraPos[2]);
@@ -416,7 +416,7 @@ function toggleCamera()
     {
       camera = perspectiveCamera;
     }
-
+// scene.add( camera );
 
     const rgbeLoader = new RGBELoader();
 
@@ -507,7 +507,8 @@ function toggleCamera()
     let objGroup = new THREE.Group();
     // Load Environment Map (HDR)
 
-
+    let orbit;
+    orbit = new OrbitControls(camera, renderer.domElement);
     function init()
     {
       fullLoopGroup.add(objGroup);
@@ -529,6 +530,7 @@ function toggleCamera()
       if(sceneData.allModels.length != 0)
       {
         loadAllModels();
+        // loadModel(sceneData.allModels[0].modelUrl, sceneData.allModels[0], true);
         //loop all models and run loadModel
         // loadModel(sceneData.modelUrl, sceneData, true);
       }
@@ -539,6 +541,36 @@ function toggleCamera()
         popupOpen = true;
       }
 
+        
+         // 5. Basic Test Cube (Sanity Check: Can we see anything at all?)
+        // const geometry = new THREE.BoxGeometry(1, 1, 1);
+        // const material = new THREE.MeshStandardMaterial({ color: 0x00ff00 }); // Green, needs lights
+        // const testCube = new THREE.Mesh(geometry, material);
+        // testCube.position.set(0, 0, 0); // Place it at the center
+        // scene.add(testCube);
+        // console.log("DEBUG: Basic green cube added to scene at (0,0,0). You should see this.");
+
+
+        // 6. Add Helpers for Visualization (NEW ADDITION)
+        // Axes Helper: Red = X, Green = Y, Blue = Z
+        const axesHelper = new THREE.AxesHelper(5); // Size 5 units
+        scene.add(axesHelper);
+        console.log("DEBUG: AxesHelper added (5 units).");
+
+        // Grid Helper: Grid on XZ plane
+        const gridHelper = new THREE.GridHelper(10, 10); // 10x10 units, 10 divisions
+        scene.add(gridHelper);
+        console.log("DEBUG: GridHelper added (10x10 units).");
+
+        // Directional Light Helper (already there, just ensuring its log is here for context)
+        const lightHelper = new THREE.DirectionalLightHelper(dlight, 2); // Helper size 2
+        scene.add(lightHelper);
+        console.log("DEBUG: Directional Light Helper added.");
+
+
+        // 7. Initialize TransformControls (Only once globally)
+        // controls = new THREE.TransformControls(camera, renderer.domElement);
+        // scene.add(controls);
 
       scene.add(groupControls);
       if(sceneData.loopActive)
@@ -567,10 +599,10 @@ function toggleCamera()
 
     function loadAllModels()
     {
-      sceneData.allModels.forEach(model)
+      sceneData.allModels.forEach(function(model)
       {
-        loadModel(model.modelUrl, objData, true);
-      }
+        loadModel(model.modelUrl, model, true);
+      });
     }
 
     // loadModel('http://localhost/wPpractice/wp-content/uploads/2025/01/first-room.glb', sceneData);
@@ -591,62 +623,33 @@ function toggleCamera()
           // model = gltf.scene;
           // scene.add(model);
           selectedObj = gltf.scene;
+          allModels.push(selectedObj);
           scene.add(selectedObj);
 
-          transformObjectToSceneData(selectedObj);
+          transformObjectToSceneData(selectedObj, objData);
 
-          // model.position.set(
-          //     parseFloat(sceneData.positionX),
-          //     parseFloat(sceneData.positionY),
-          //     parseFloat(sceneData.positionZ)
-          // );
-          //
-          // model.rotation.set(
-          //     parseFloat(THREE.MathUtils.degToRad(sceneData.rotationX)),
-          //     parseFloat(THREE.MathUtils.degToRad(sceneData.rotationY)),
-          //     parseFloat(THREE.MathUtils.degToRad(sceneData.rotationZ))
-          // );
-
-          model.scale.set(sceneData.scale, sceneData.scale, sceneData.scale);
+          selectedObj.scale.set(objData.scale, objData.scale, objData.scale);
 
           // Allow rotation/repositioning
-          controls = new TransformControls(camera, renderer.domElement);
-          controls.attach(model);
-          controls.setSpace('local');  // Ensure local space is used
+          // controls = new TransformControls(camera, renderer.domElement);
+          // controls.attach(selectedObj);
+          // controls.setSpace('local');  // Ensure local space is used
 
-          scene.add(controls);
-          // Listen for changes in the TransformControls
-          controls.addEventListener('change', updateTransforms);
-          controls.addEventListener('mouseDown', transformDragStart);
-          controls.addEventListener('mouseUp', transformDragEnd);
-          // if()
-          window.addEventListener('mousemove', onMouseMove);
+          // scene.add(controls);
+          // // Listen for changes in the TransformControls
+          // controls.addEventListener('change', updateTransforms);
+          // controls.addEventListener('mouseDown', transformDragStart);
+          // controls.addEventListener('mouseUp', transformDragEnd);
+          // // if()
+          // window.addEventListener('mousemove', onMouseMove);
 
-          if(sceneData.loopActive)
-          {
-            model.visible = false;
-            controls.visible = false;
-            // scene.remove(model);
-            // scene.remove(controls);
-          }
-
-          // Save model position/rotation
-          // document.getElementById('save-model-data').addEventListener('click', () => {
-          //     const data = {
-          //         position: model.position,
-          //         rotation: model.rotation
-          //     };
-          //     fetch(ajaxurl, {
-          //         method: 'POST',
-          //         headers: { 'Content-Type': 'application/json' },
-          //         body: JSON.stringify({
-          //             action: 'save_model_data',
-          //             model_data: data
-          //         })
-          //     }).then(response => response.json()).then(data => {
-          //         alert('Model data saved!');
-          //     });
-          // });
+          // if(objData.loopActive)
+          // {
+          //   selectedObj.visible = false;
+          //   controls.visible = false;
+          //   // scene.remove(model);
+          //   // scene.remove(controls);
+          // }
         });
     }
 
@@ -866,21 +869,22 @@ function transformDragEnd(){
         sceneDataLoop();
       }
 
-      function transformObjectToSceneData(object)
+      function transformObjectToSceneData(object, objData)
       {
         object.position.set(
-            parseFloat(sceneData.positionX),
-            parseFloat(sceneData.positionY),
-            parseFloat(sceneData.positionZ)
+            parseFloat(objData.positionX),
+            parseFloat(objData.positionY),
+            parseFloat(objData.positionZ)
         );
 
         object.rotation.set(
-            parseFloat(THREE.MathUtils.degToRad(sceneData.rotationX)),
-            parseFloat(THREE.MathUtils.degToRad(sceneData.rotationY)),
-            parseFloat(THREE.MathUtils.degToRad(sceneData.rotationZ))
+            parseFloat(THREE.MathUtils.degToRad(objData.rotationX)),
+            parseFloat(THREE.MathUtils.degToRad(objData.rotationY)),
+            parseFloat(THREE.MathUtils.degToRad(objData.rotationZ))
         );
 
         currentRotation.copy(object.rotation); // The most direct way
+        console.log(object.position);
       }
 
       // Get the canvas container element
@@ -1069,6 +1073,7 @@ function transformDragEnd(){
     function animate() {
         requestAnimationFrame(animate);
         renderer.render(scene, camera);
+         orbit.update(); // Call controls.update() in the animation loop
     }
     animate();
     // updateLabel();//show initial values
