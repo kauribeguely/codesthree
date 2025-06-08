@@ -95,7 +95,8 @@ export function initializeThreeJsScene(sceneData, containerId, pluginUrl)
 
     const dlight = new THREE.DirectionalLight(0xffffff, sceneData.directionalLightIntensity);
     let ddirectionalLightIntes = 1;
-    dlight.position.set(5, 5, 5);
+    // dlight.position.set(5, 5, 5);
+    dlight.position.set(sceneData.lightPosX, sceneData.lightPosY, sceneData.lightPosZ);
     scene.add(dlight);
 
 
