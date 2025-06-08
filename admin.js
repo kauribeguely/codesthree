@@ -841,42 +841,59 @@ function toggleCamera()
       posYInput.value = pos.y.toFixed(2);
       posZInput.value = pos.z.toFixed(2);
 
-      sceneData.positionX = pos.x;
-      sceneData.positionY = pos.y;
-      sceneData.positionZ = pos.z;
-
-
+      
+      
+      // sceneData.positionX = pos.x;
+      // sceneData.positionY = pos.y;
+      // sceneData.positionZ = pos.z;
+      
+      const modelConfigInstance = selectedObj.userData.modelConfigRef;
+      
+      //why only in here?
       if (isTransforming) {
         // Update rotation fields (converted from radians to degrees)
         rotXInput.value = THREE.MathUtils.radToDeg(rot.x).toFixed(2);
         rotYInput.value = THREE.MathUtils.radToDeg(rot.y).toFixed(2);
         rotZInput.value = THREE.MathUtils.radToDeg(rot.z).toFixed(2);
+        
 
-
-        sceneData.rotationX = THREE.MathUtils.radToDeg(rot.x).toFixed(2);
-        sceneData.rotationY = THREE.MathUtils.radToDeg(rot.y).toFixed(2);
-        sceneData.rotationZ = THREE.MathUtils.radToDeg(rot.z).toFixed(2);
-
-
-
+        // sceneData.rotationX = THREE.MathUtils.radToDeg(rot.x).toFixed(2);
+        // sceneData.rotationY = THREE.MathUtils.radToDeg(rot.y).toFixed(2);
+        // sceneData.rotationZ = THREE.MathUtils.radToDeg(rot.z).toFixed(2);
+        
+        
+        
         // initialRotationX = parseFloat(THREE.MathUtils.radToDeg(rot.x).toFixed(2));
         // initialRotationY = parseFloat(THREE.MathUtils.radToDeg(rot.y).toFixed(2));
         // initialRotationZ = parseFloat(THREE.MathUtils.radToDeg(rot.z).toFixed(2));
-        initialRotationX = parseFloat(sceneData.rotationX);
-        initialRotationY = parseFloat(sceneData.rotationY);
-        initialRotationZ = parseFloat(sceneData.rotationZ);
-
+        
+        // initialRotationX = parseFloat(sceneData.rotationX);
+        // initialRotationY = parseFloat(sceneData.rotationY);
+        // initialRotationZ = parseFloat(sceneData.rotationZ);
+        
         // refreshLoop();
-
+        
       }
-
+      
       rotXInput.value = THREE.MathUtils.radToDeg(rot.x).toFixed(2);
       rotYInput.value = THREE.MathUtils.radToDeg(rot.y).toFixed(2);
       rotZInput.value = THREE.MathUtils.radToDeg(rot.z).toFixed(2);
-
+      
       scaleInput.value = round(scale.x, 2);
-      sceneData.scale = round(scale.x, 2);
+      // sceneData.scale = round(scale.x, 2);
+      
+      modelConfigInstance.position.copy(selectedObj.position);
+      modelConfigInstance.rotation.copy(selectedObj.rotation);
+      modelConfigInstance.scale.copy(selectedObj.scale);
+      const existingModelIndex = allModels.findIndex(m => m.modelId === modelConfigInstance.modelId);
 
+      if (existingModelIndex !== -1) {
+          // Replace the old plain object with the updated one from our ModelConfig instance.
+          allModels[existingModelIndex] = modelConfigInstance.toPlainObject();
+          console.log(`Updated model config for ID: ${modelConfigInstance.modelId} in sceneData.models.`);
+      }
+
+      updateSaveField();
       // console.log(scale, scale.x);
 
       // THREE.MathUtils.degToRad(sceneData.rotationX)
