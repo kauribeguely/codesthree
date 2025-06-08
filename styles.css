@@ -171,3 +171,96 @@ hr
     rotate: 600deg;
   }
 }
+
+/* #codes_controls {
+    position: absolute;
+    top: 0; */
+
+
+  .leftControls {
+      left: 0;
+      width: 241px;
+  }
+
+  .rightControls {
+      right: 0;
+      width: 223px;
+  }
+
+  .topTransforms {
+    top: 0;
+    /* width: 223px; */
+    left: 50%;
+    transform: translate(-50%);
+    position: absolute;
+
+
+      button
+      {
+
+      }
+  }
+
+  .rightControls, .leftControls {
+      position: absolute;
+      display: flex;
+      flex-wrap: wrap;
+      flex-direction: column;
+      top: 0;
+      background: #ffffffd4;
+      /* padding: 15px; */
+      /* height: 100%; */
+      padding: 15px;
+      gap: 18px;
+      /* width: 217px; */
+  }
+
+  .transform-group {
+    display: flex;
+    /* flex-direction: column; */
+    gap: 8px; /* Adds spacing between input groups */
+}
+
+.transform-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.transform-field label {
+    font-weight: bold;
+    margin-bottom: 3px; /* Adds spacing between label and input */
+    text-align: center;
+}
+
+.transform-field input {
+    width: 100%;
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+#newScenePopup {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: none;
+    background: white;
+    flex-direction: column;
+    left: 50%;
+    transform: translate(-50%);
+    z-index: 1;
+    border: 1px solid #e2e2e2;
+    justify-content: center;
+    align-items: center;
+}
+
+hr
+{
+    width: 100%;
+    border-top: 1px solid #b2b2b2;
+    margin: 0;
+}
+
+
+/* } */

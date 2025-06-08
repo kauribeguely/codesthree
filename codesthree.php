@@ -542,7 +542,10 @@ function threejs_editor_page($post) {
               <button type="button" onmousedown="setTransformMode('rotate')">Rotate (R)</button>
               <button id='codesScaleButton' title="not available in loop mode, use scale text input on left" type="button" onmousedown="setTransformMode('scale')">Scale (S)</button>
           </div>
+<<<<<<< HEAD
           <button id="toggleControls" type="button">Toggle Controls</button>
+=======
+>>>>>>> main
           <div class='leftControls'>
 
 
@@ -580,12 +583,17 @@ function threejs_editor_page($post) {
             </div>
 
             <p>
+<<<<<<< HEAD
               <strong>Scale (model): </strong><input type="number" name="scale" id="codes_scale" value="<?php echo esc_attr($scale); ?>" step="0.01" />
+=======
+              <strong>Scale: </strong><input type="number" name="scale" id="codes_scale" value="<?php echo esc_attr($scale); ?>" step="0.01" />
+>>>>>>> main
             </p>
 
             <hr>
 
             <p>
+<<<<<<< HEAD
                 <label for="ambient-light-slider">Ambient Intensity:</label><br>
                 <input type="range" name="ambient_light_intensity" id="ambient_light_intensity" max="3" step="0.05" value="<?php echo esc_attr($light_intensity); ?>" />
                 <span id="light_intensity_value"><?php echo esc_attr($light_intensity); ?></span>
@@ -617,6 +625,12 @@ function threejs_editor_page($post) {
                 Use Environment Light (HDR)
             </label>
 
+=======
+                <label for="ambient-light-slider">Light Intensity:</label><br>
+                <input type="range" name="ambient_light_intensity" id="ambient-light-slider" min="0" max="3" step="0.05" value="<?php echo esc_attr($light_intensity); ?>" />
+                <span id="light_intensity_value"><?php echo esc_attr($light_intensity); ?></span>
+            </p>
+>>>>>>> main
             <hr>
 
             <!-- Toggle for isOrthoCamera -->
@@ -705,9 +719,20 @@ function threejs_editor_page($post) {
                     </div>
                 </div>
             </fieldset>
+<<<<<<< HEAD
             <!-- Number Input for Spacing -->
             <label>Item Spacing: <input type="number" name="itemSpacing" id="itemSpacing" step="0.1" value="<?php echo esc_attr($item_spacing); ?>"></label>
             <label>Loop Group Scale: <input type="number" name="loopGroupScale" id="loopGroupScale" step="0.01" value="<?php echo esc_attr($loop_group_scale); ?>"></label>
+=======
+
+
+
+          <!-- Number Input for Spacing -->
+          <label>Item Spacing: <input type="number" name="itemSpacing" id="itemSpacing" step="0.1" value="<?php echo esc_attr($item_spacing); ?>"></label>
+
+
+
+>>>>>>> main
 
 
 
