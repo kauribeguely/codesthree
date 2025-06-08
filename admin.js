@@ -1197,14 +1197,17 @@ function transformDragEnd(){
                 clickedObject = clickedObject.parent;
             }
 
-            if (selectableObject && selectableObject !== selectedObj) {
-                // A new object is selected
-                console.log("Selected a new object:", selectableObject.name || selectableObject.uuid);
-                selectModelForEditing(selectableObject); // Call your existing selection function
-            } else if (selectableObject === selectedObj) {
-                console.log("Clicked the currently selected object. No change.");
-                // Optionally, you could toggle controls mode (translate/rotate/scale) here
-            }
+              selectModelForEditing(selectableObject); // Call your existing selection function
+
+
+            // if (selectableObject && selectableObject !== selectedObj) {
+            //     // A new object is selected
+            //     console.log("Selected a new object:", selectableObject.name || selectableObject.uuid);
+            //     selectModelForEditing(selectableObject); // Call your existing selection function
+            // } else if (selectableObject === selectedObj) {
+            //     console.log("Clicked the currently selected object. No change.");
+            //     // Optionally, you could toggle controls mode (translate/rotate/scale) here
+            // }
 
         } else {
             // No object was clicked, so deselect the current one (optional)
