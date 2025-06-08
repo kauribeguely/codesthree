@@ -633,9 +633,16 @@ function toggleCamera()
           allModels.push(selectedObj);
           scene.add(selectedObj);
 
-          transformObjectToSceneData(selectedObj, objData);
+          if(objData)
+          {
+            transformObjectToSceneData(selectedObj, objData);
+            selectedObj.scale.set(objData.scale, objData.scale, objData.scale);
+          }
+          else
+          {
+            
+          }
 
-          selectedObj.scale.set(objData.scale, objData.scale, objData.scale);
 
           // Allow rotation/repositioning
           // controls = new TransformControls(camera, renderer.domElement);
@@ -770,6 +777,7 @@ function transformDragEnd(){
     // Handle WordPress Media Library for Model URL
     const mediaButton = document.getElementById('threejs_model_url_button');
     const popupMediaButton = document.getElementById('popup_media_button');
+    const addModelButton = document.getElementById('add_model_button');
     const popup = document.getElementById('newScenePopup');
     const modelUrlField = document.getElementById('threejs_model_url');
     const preview = document.getElementById('threejs_model_url_preview');
@@ -783,6 +791,11 @@ function transformDragEnd(){
     });
 
     mediaButton.addEventListener('click', function (e) {
+        e.preventDefault();
+        mediaUploader.open();
+    });
+
+    addModelButton.addEventListener('click', function (e) {
         e.preventDefault();
         mediaUploader.open();
     });
@@ -807,7 +820,7 @@ function transformDragEnd(){
         }
         else
         {
-          loadModel(attachment.url, sceneData);
+          loadModel(attachment.url, false, true);
         }
 
         if(popupOpen)

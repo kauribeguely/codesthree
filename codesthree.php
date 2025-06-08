@@ -685,7 +685,8 @@ function threejs_editor_page($post) {
           <div class='leftControls'>
 
 
-
+          <button type="button" class="button" id="add_model_button">Add Model</button>
+          
             <strong>Position</strong>
             <div class="transform-group">
               <div class="transform-field">
