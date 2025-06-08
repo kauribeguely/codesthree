@@ -7,6 +7,10 @@ import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 window.onload = () =>
 {
 
+  //allSceneData = This is set via main php file, contains globalSettings and models
+  let sceneData = allSceneData.globalSettings;
+  let allModels = allSceneData.models;
+  // let globalSettings = allSceneData.globalSettings;
   console.log('Admin JS Codes 3D started');
 
   let mouseDown = false;
@@ -499,7 +503,7 @@ function toggleCamera()
       
 
     let selectedObj; //override model
-    let allModels = [];
+    // let allModels = [];
     let model, loopGroup;
 
 
@@ -536,7 +540,7 @@ function toggleCamera()
 
       // if(sceneData.modelUrl != "")
       //check if any models exist
-      if(sceneData.allModels.length != 0)
+      if(allModels.length != 0)
       {
         loadAllModels();
         // loadModel(sceneData.allModels[0].modelUrl, sceneData.allModels[0], true);
@@ -608,7 +612,7 @@ function toggleCamera()
 
     function loadAllModels()
     {
-      sceneData.allModels.forEach(function(model)
+      allModels.forEach(function(model)
       {
         loadModel(model.modelUrl, model, true);
       });
@@ -1248,6 +1252,27 @@ function transformDragEnd(){
       {
         selectedObj = obj;
         controls.attach(selectedObj);
+      }
+
+
+      function updateHiddenConfigField() 
+      {
+        const hiddenInputField = document.getElementById('threejs_scene_config_json');
+
+      if (hiddenInputField) {
+              try {
+                  // Stringify the entire sceneData object
+                  hiddenInputField.value = JSON.stringify(sceneData);
+                  // console.log("Hidden config field updated successfully.");
+                  // console.log("Current hidden field value (first 200 chars):", hiddenInputField.value.substring(0, 200));
+              } catch (e) {
+                  console.error("Error stringifying sceneData:", e);
+                  // Optionally, clear the field or revert to a safe state if stringification fails
+                  hiddenInputField.value = '';
+              }
+          } else {
+              console.warn("Hidden input field with ID 'threejs_scene_config_json' not found!");
+          }
       }
 
       init();

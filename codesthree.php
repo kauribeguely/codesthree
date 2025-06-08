@@ -52,117 +52,186 @@ if ( ! defined( 'ABSPATH' ) ) {
 // }
 
 function get_scene_data($post_id) {
-    // --- STATIC ALL MODELS ARRAY FOR TESTING ---
-    $all_models_array = array(
-        array(
-            'modelId'           => 'test_model_1',
-            'modelUrl'          => 'http://localhost/wpLocalEdge/wp-content/uploads/2025/06/a.glb', // REMEMBER TO CHANGE THIS TO A VALID URL
-            'positionX'         => -0.5,
-            'positionY'         => 0.0,
-            'positionZ'         => 0.0,
-            'rotationX'         => 0.0,
-            'rotationY'         => 45.0, // Rotated to see it better
-            'rotationZ'         => 0.0,
-            'scale'             => 0.8,
-            'modelName'         => 'Test Model A (Single)',
-            'loopActive'        => '', // No loop
-            'loopCountX'        => 1,
-            'loopCountY'        => 1,
-            'loopCountZ'        => 1,
-            'loopItemSpacingX'  => 0.0,
-            'loopItemSpacingY'  => 0.0,
-            'loopItemSpacingZ'  => 0.0,
-            'loopGroupScale'    => 1.0,
-        ),
-        array(
-            'modelId'           => 'test_model_2',
-            'modelUrl'          => 'http://localhost/wpLocalEdge/wp-content/uploads/2025/06/a.glb', // REMEMBER TO CHANGE THIS TO A VALID URL
-            'positionX'         => 0.0,
-            'positionY'         => 1.0, // Placed higher
-            'positionZ'         => 0.0,
-            'rotationX'         => 0.0,
-            'rotationY'         => 0.0,
-            'rotationZ'         => 0.0,
-            'scale'             => 0.5,
-            'modelName'         => 'Test Model B (Row of 3)',
-            'loopActive'        => 'on', // Loop active
-            'loopCountX'        => 3,    // 3 items in X
-            'loopCountY'        => 1,
-            'loopCountZ'        => 1,
-            'loopItemSpacingX'  => 1.5,  // Spaced out
-            'loopItemSpacingY'  => 0.0,
-            'loopItemSpacingZ'  => 0.0,
-            'loopGroupScale'    => 1.0,
-        ),
-        array(
-            'modelId'           => 'test_model_3',
-            'modelUrl'          => 'http://localhost/wpLocalEdge/wp-content/uploads/2025/06/a.glb', // REMEMBER TO CHANGE THIS TO A VALID URL
-            'positionX'         => -2.0,
-            'positionY'         => -1.0, // Placed lower and left
-            'positionZ'         => 0.0,
-            'rotationX'         => 0.0,
-            'rotationY'         => 0.0,
-            'rotationZ'         => 0.0,
-            'scale'             => 0.4,
-            'modelName'         => 'Test Model C (2x2 Grid)',
-            'loopActive'        => 'on', // Loop active
-            'loopCountX'        => 2,    // 2 items in X
-            'loopCountY'        => 2,    // 2 items in Y
-            'loopCountZ'        => 1,
-            'loopItemSpacingX'  => 1.2,
-            'loopItemSpacingY'  => 1.2,
-            'loopItemSpacingZ'  => 0.0,
-            'loopGroupScale'    => 1.0,
-        ),
-        // Add more test models here as needed!
-    );
-    // --- END STATIC ALL MODELS ARRAY FOR TESTING ---
+    // Define the meta key where the full JSON configuration is stored
+    $db_meta_key = '_threejs_scene_config_data';
 
+    // Attempt to retrieve the saved configuration array
+    // get_post_meta automatically deserializes the stored array/object if it was saved that way.
+    $saved_config = get_post_meta($post_id, $db_meta_key, true);
 
-    // --- Global Scene Settings (still fetched from post meta) ---
-    $is_ortho_camera = get_post_meta($post_id, 'is_ortho_camera', true) ?: '';
-    $directional_light_intensity = get_post_meta($post_id, 'directional_light_intensity', true) ?: 0.0;
-    $ambient_light_intensity = get_post_meta($post_id, 'ambient_light_intensity', true) ?: 0.0;
-    $light_pos_x = get_post_meta($post_id, 'light_pos_x', true) ?: 0.0;
-    $light_pos_y = get_post_meta($post_id, 'light_pos_y', true) ?: 0.0;
-    $light_pos_z = get_post_meta($post_id, 'light_pos_z', true) ?: 0.0;
-    $use_env_light = get_post_meta($post_id, 'use_env_light', true) ?: '';
+    // Provide default values if no configuration has been saved yet or if it's invalid.
+    if (empty($saved_config) || !is_array($saved_config)) {
+        // Define a comprehensive default structure matching your JS sceneData expectation
+        $default_config = [
+            'globalSettings' => [
+                'ambientLightIntensity'     => 0.5,
+                'directionalLightIntensity' => 1.0,
+                'lightPosX'                 => 5,
+                'lightPosY'                 => 10,
+                'lightPosZ'                 => 7.5,
+                'useEnvLight'               => 'off', // Assuming this is a toggle ('on'/'off')
+                'isOrthoCamera'             => 'off', // Assuming this is a toggle ('on'/'off')
+                'mouseAnimationLink'        => 'off',
+                'mouseRotationX'            => 6.0,
+                'mouseRotationY'            => 6.0,
+                'mouseRotationZ'            => 0.0,
+                'scrollAnimationLink'       => 'off',
+                'scrollMoveX'               => 0.0,
+                'scrollMoveY'               => 5.0,
+                'scrollMoveZ'               => 0.0,
+                // Add any other global default settings here
+            ],
+            'models' => [
+                // Start with an empty array if no models are saved
+                // Or you could add a default cube/model config here if your scene always starts with one
+            ]
+        ];
+        return $default_config;
+    }
 
-    // Global Interaction Settings
-    $mouse_animation_link = get_post_meta($post_id, 'mouse_animation_link', true) ?: '';
-    $mouse_rotation_x = get_post_meta($post_id, 'mouse_rotation_x', true) ?: 0.0;
-    $mouse_rotation_y = get_post_meta($post_id, 'mouse_rotation_y', true) ?: 0.0;
-    $mouse_rotation_z = get_post_meta($post_id, 'mouse_rotation_z', true) ?: 0.0;
-    $scroll_animation_link = get_post_meta($post_id, 'scroll_animation_link', true) ?: '';
-    $scroll_move_x = get_post_meta($post_id, 'scroll_move_x', true) ?: 0.0;
-    $scroll_move_y = get_post_meta($post_id, 'scroll_move_y', true) ?: 0.0;
-    $scroll_move_z = get_post_meta($post_id, 'scroll_move_z', true) ?: 0.0;
+    // If data was found, ensure it has the expected top-level keys
+    // This helps handle cases where old data structures might exist or are incomplete.
+    $final_config = [
+        'globalSettings' => $saved_config['globalSettings'] ?? [], // Provide empty array if missing
+        'models'         => $saved_config['models'] ?? [],       // Provide empty array if missing
+    ];
 
-    // --- Return Combined Scene Data ---
-    return array(
-        'isOrthoCamera'             => $is_ortho_camera,
-        'directionalLightIntensity' => (float)$directional_light_intensity,
-        'lightIntensity'            => (float)$ambient_light_intensity,
-        'lightPosX'                 => (float)$light_pos_x,
-        'lightPosY'                 => (float)$light_pos_y,
-        'lightPosZ'                 => (float)$light_pos_z,
-        'useEnvLight'               => $use_env_light,
-
-        'mouseAnimationLink'        => $mouse_animation_link,
-        'mouseRotationX'            => (float)$mouse_rotation_x,
-        'mouseRotationY'            => (float)$mouse_rotation_y,
-        'mouseRotationZ'            => (float)$mouse_rotation_z,
-        'scrollAnimationLink'       => $scroll_animation_link,
-        'scrollMoveX'               => (float)$scroll_move_x,
-        'scrollMoveY'               => (float)$scroll_move_y,
-        'scrollMoveZ'               => (float)$scroll_move_z,
-
-        // The static array of all models
-        'allModels'                 => $all_models_array,
-
-        'postID'                    => $post_id,
-    );
+    // Merge with defaults for any missing nested keys in globalSettings or model properties if necessary
+    // For example, if a new global setting was added after some posts were saved
+    $final_config['globalSettings'] = array_merge([
+        'ambientLightIntensity'     => 0.5,
+        'directionalLightIntensity' => 1.0,
+        'lightPosX'                 => 5,
+        'lightPosY'                 => 10,
+        'lightPosZ'                 => 7.5,
+        'useEnvLight'               => 'off',
+        'isOrthoCamera'             => 'off',
+        'mouseAnimationLink'        => 'off',
+        'mouseRotationX'            => 0.0,
+        'mouseRotationY'            => 0.0,
+        'mouseRotationZ'            => 0.0,
+        'scrollAnimationLink'       => 'off',
+        'scrollMoveX'               => 0.0,
+        'scrollMoveY'               => 0.0,
+        'scrollMoveZ'               => 0.0,
+    ], $final_config['globalSettings']);
+   return $final_config;
 }
+
+
+
+// function get_scene_data($post_id) {
+//     // --- STATIC ALL MODELS ARRAY FOR TESTING ---
+//     $all_models_array = array(
+//         array(
+//             'modelId'           => 'test_model_1',
+//             'modelUrl'          => 'http://localhost/wpLocalEdge/wp-content/uploads/2025/06/a.glb', // REMEMBER TO CHANGE THIS TO A VALID URL
+//             'positionX'         => -0.5,
+//             'positionY'         => 0.0,
+//             'positionZ'         => 0.0,
+//             'rotationX'         => 0.0,
+//             'rotationY'         => 45.0, // Rotated to see it better
+//             'rotationZ'         => 0.0,
+//             'scale'             => 0.8,
+//             'modelName'         => 'Test Model A (Single)',
+//             'loopActive'        => '', // No loop
+//             'loopCountX'        => 1,
+//             'loopCountY'        => 1,
+//             'loopCountZ'        => 1,
+//             'loopItemSpacingX'  => 0.0,
+//             'loopItemSpacingY'  => 0.0,
+//             'loopItemSpacingZ'  => 0.0,
+//             'loopGroupScale'    => 1.0,
+//         ),
+//         array(
+//             'modelId'           => 'test_model_2',
+//             'modelUrl'          => 'http://localhost/wpLocalEdge/wp-content/uploads/2025/06/a.glb', // REMEMBER TO CHANGE THIS TO A VALID URL
+//             'positionX'         => 0.0,
+//             'positionY'         => 1.0, // Placed higher
+//             'positionZ'         => 0.0,
+//             'rotationX'         => 0.0,
+//             'rotationY'         => 0.0,
+//             'rotationZ'         => 0.0,
+//             'scale'             => 0.5,
+//             'modelName'         => 'Test Model B (Row of 3)',
+//             'loopActive'        => 'on', // Loop active
+//             'loopCountX'        => 3,    // 3 items in X
+//             'loopCountY'        => 1,
+//             'loopCountZ'        => 1,
+//             'loopItemSpacingX'  => 1.5,  // Spaced out
+//             'loopItemSpacingY'  => 0.0,
+//             'loopItemSpacingZ'  => 0.0,
+//             'loopGroupScale'    => 1.0,
+//         ),
+//         array(
+//             'modelId'           => 'test_model_3',
+//             'modelUrl'          => 'http://localhost/wpLocalEdge/wp-content/uploads/2025/06/a.glb', // REMEMBER TO CHANGE THIS TO A VALID URL
+//             'positionX'         => -2.0,
+//             'positionY'         => -1.0, // Placed lower and left
+//             'positionZ'         => 0.0,
+//             'rotationX'         => 0.0,
+//             'rotationY'         => 0.0,
+//             'rotationZ'         => 0.0,
+//             'scale'             => 0.4,
+//             'modelName'         => 'Test Model C (2x2 Grid)',
+//             'loopActive'        => 'on', // Loop active
+//             'loopCountX'        => 2,    // 2 items in X
+//             'loopCountY'        => 2,    // 2 items in Y
+//             'loopCountZ'        => 1,
+//             'loopItemSpacingX'  => 1.2,
+//             'loopItemSpacingY'  => 1.2,
+//             'loopItemSpacingZ'  => 0.0,
+//             'loopGroupScale'    => 1.0,
+//         ),
+//         // Add more test models here as needed!
+//     );
+//     // --- END STATIC ALL MODELS ARRAY FOR TESTING ---
+
+
+//     // --- Global Scene Settings (still fetched from post meta) ---
+//     $is_ortho_camera = get_post_meta($post_id, 'is_ortho_camera', true) ?: '';
+//     $directional_light_intensity = get_post_meta($post_id, 'directional_light_intensity', true) ?: 0.0;
+//     $ambient_light_intensity = get_post_meta($post_id, 'ambient_light_intensity', true) ?: 0.0;
+//     $light_pos_x = get_post_meta($post_id, 'light_pos_x', true) ?: 0.0;
+//     $light_pos_y = get_post_meta($post_id, 'light_pos_y', true) ?: 0.0;
+//     $light_pos_z = get_post_meta($post_id, 'light_pos_z', true) ?: 0.0;
+//     $use_env_light = get_post_meta($post_id, 'use_env_light', true) ?: '';
+
+//     // Global Interaction Settings
+//     $mouse_animation_link = get_post_meta($post_id, 'mouse_animation_link', true) ?: '';
+//     $mouse_rotation_x = get_post_meta($post_id, 'mouse_rotation_x', true) ?: 0.0;
+//     $mouse_rotation_y = get_post_meta($post_id, 'mouse_rotation_y', true) ?: 0.0;
+//     $mouse_rotation_z = get_post_meta($post_id, 'mouse_rotation_z', true) ?: 0.0;
+//     $scroll_animation_link = get_post_meta($post_id, 'scroll_animation_link', true) ?: '';
+//     $scroll_move_x = get_post_meta($post_id, 'scroll_move_x', true) ?: 0.0;
+//     $scroll_move_y = get_post_meta($post_id, 'scroll_move_y', true) ?: 0.0;
+//     $scroll_move_z = get_post_meta($post_id, 'scroll_move_z', true) ?: 0.0;
+
+//     // --- Return Combined Scene Data ---
+//     return array(
+//         'isOrthoCamera'             => $is_ortho_camera,
+//         'directionalLightIntensity' => (float)$directional_light_intensity,
+//         'lightIntensity'            => (float)$ambient_light_intensity,
+//         'lightPosX'                 => (float)$light_pos_x,
+//         'lightPosY'                 => (float)$light_pos_y,
+//         'lightPosZ'                 => (float)$light_pos_z,
+//         'useEnvLight'               => $use_env_light,
+
+//         'mouseAnimationLink'        => $mouse_animation_link,
+//         'mouseRotationX'            => (float)$mouse_rotation_x,
+//         'mouseRotationY'            => (float)$mouse_rotation_y,
+//         'mouseRotationZ'            => (float)$mouse_rotation_z,
+//         'scrollAnimationLink'       => $scroll_animation_link,
+//         'scrollMoveX'               => (float)$scroll_move_x,
+//         'scrollMoveY'               => (float)$scroll_move_y,
+//         'scrollMoveZ'               => (float)$scroll_move_z,
+
+//         // The static array of all models
+//         'allModels'                 => $all_models_array,
+
+//         'postID'                    => $post_id,
+//     );
+// }
 
 
 
@@ -214,7 +283,7 @@ function create_scene_shortcode($atts)
 
     <script type="module">
       import { initializeThreeJsScene } from "<?php echo plugins_url('scene.js', __FILE__); ?>";
-      const sceneData = <?php echo json_encode($scene_data); ?>;
+      const allSceneData = <?php echo json_encode($scene_data); ?>;
       const pluginUrl = "<?php echo plugins_url()?>";
       const containerID = "threejs-scene-container-<?php echo esc_js($post_id); ?>";
       // Get all elements with the same class
@@ -408,75 +477,157 @@ function codesthree_register_scenes_post_type() {
 
 
 function save_scene_metadata($post_id) {
-    // Verify this is a "scene" post type
+    // 1. --- Standard WordPress Security Checks ---
+
+    // Verify this is a "codes_scene" post type
     if (get_post_type($post_id) !== 'codes_scene') {
         return;
     }
 
-    // // Verify nonce and user permissions
+    // Verify nonce for security (comes from your meta box form)
     if (
         !isset($_POST['scene_meta_nonce']) ||
         !wp_verify_nonce($_POST['scene_meta_nonce'], 'save_scene_metadata')
     ) {
+        // Log nonce failure for debugging
+        error_log('Scene metadata save failed: Nonce verification failed for post_id ' . $post_id);
         return;
     }
 
+    // Verify user permissions
     if (!current_user_can('edit_post', $post_id)) {
+        // Log permission failure
+        error_log('Scene metadata save failed: User does not have edit_post capability for post_id ' . $post_id);
         return;
     }
 
-    // Save position and rotation metadata
-    // MUST MATCH THE name ATTRIBUTE
-    $fields = [
-        'threejs_pos_x',
-        'threejs_pos_y',
-        'threejs_pos_z',
-        'threejs_rot_x',
-        'threejs_rot_y',
-        'threejs_rot_z',
-        'scale',
-        'threejs_model_url',
-        'ambient_light_intensity',
-        // Mouse Animation Strength
-        'mouseRotationX',
-        'mouseRotationY',
-        'mouseRotationZ',
+    // 2. --- Define Expected Field Names and Meta Key ---
 
-        // Scroll Animation Strength
-        'scrollMoveX',
-        'scrollMoveY',
-        'scrollMoveZ',
+    // This is the 'name' attribute of the hidden input field on your frontend form
+    $frontend_json_field_name = 'threejs_scene_config_json';
 
-        // Animation Toggles
-        'mouseAnimationLink',
-        'scrollAnimationLink',
+    // This is the meta key under which the full JSON data will be stored in the database
+    $db_meta_key = '_threejs_scene_config_data'; // Using a leading underscore makes it a hidden meta key
 
-        'loopActive',
-        'loopCountX',
-        'loopCountY',
-        'loopCountZ',
-        'itemSpacing',
-        'isOrthoCamera',
+    // 3. --- Process the Incoming JSON Data ---
 
-        'directionalLightIntensity',
-        'lightPosX',
-        'lightPosY',
-        'lightPosZ',
-        'useEnvLight',
-        'loopGroupScale'
+    if (isset($_POST[$frontend_json_field_name])) {
+        // Retrieve the raw JSON string from the POST data
+        // wp_unslash() removes any slashes added by WordPress's magic quotes (if active)
+        $json_string = wp_unslash($_POST[$frontend_json_field_name]);
 
-    ];
+        // Decode the JSON string into a PHP array.
+        // The 'true' argument ensures it's decoded into an associative array, not objects.
+        $decoded_data = json_decode($json_string, true);
 
-    foreach ($fields as $field) {
+        // 4. --- Validate Decoded Data ---
 
-      if (isset($_POST[$field])) {
-          update_post_meta($post_id, $field, $_POST[$field]); // Save the value from the form
-      } else {
-          update_post_meta($post_id, $field, ''); // Save empty if not checked or not set, stops non saving when not checked
-      }
+        // Check if JSON decoding was successful and if the result is an array
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded_data)) {
+            // Optional: You can add more specific sanitization here if needed.
+            // For example, if you want to ensure all numbers are floats, you'd loop
+            // through $decoded_data['models'] and $decoded_data['globalSettings']
+            // and apply floatval() or intval().
+            // For now, WordPress's update_post_meta will handle the serialization/deserialization
+            // of the PHP array when saving to the database.
+
+            // Save the entire structured PHP array as a single post meta entry.
+            update_post_meta($post_id, $db_meta_key, $decoded_data);
+
+            // Log for debugging (shows first 500 chars of JSON for brevity)
+            error_log("Three.js Scene Config: Successfully saved for post ID {$post_id}. Data: " . substr($json_string, 0, 500) . "...");
+
+        } else {
+            // JSON decoding failed or data is not an array.
+            error_log(
+                "Three.js Scene Config: Failed to decode JSON for post ID {$post_id}. " .
+                "Error: " . json_last_error_msg() .
+                " Raw JSON: " . substr($json_string, 0, 500) . "..."
+            );
+            // Optionally, delete any existing valid meta to clear the config if invalid data is submitted.
+            delete_post_meta($post_id, $db_meta_key);
+        }
+    } else {
+        // 5. --- Handle Case: No JSON Data Submitted ---
+        // This happens if the hidden input field is missing from the POST request,
+        // which might mean data was cleared or there's an error on the frontend.
+        // In this case, we usually clear any existing configuration in the database.
+        delete_post_meta($post_id, $db_meta_key);
+        error_log("Three.js Scene Config: No '{$frontend_json_field_name}' data found in POST for post ID {$post_id}. Clearing existing config.");
     }
 }
 add_action('save_post', 'save_scene_metadata');
+
+// function save_scene_metadata($post_id) {
+//     // Verify this is a "scene" post type
+//     if (get_post_type($post_id) !== 'codes_scene') {
+//         return;
+//     }
+
+//     // // Verify nonce and user permissions
+//     if (
+//         !isset($_POST['scene_meta_nonce']) ||
+//         !wp_verify_nonce($_POST['scene_meta_nonce'], 'save_scene_metadata')
+//     ) {
+//         return;
+//     }
+
+//     if (!current_user_can('edit_post', $post_id)) {
+//         return;
+//     }
+
+//     // Save position and rotation metadata
+//     // MUST MATCH THE name ATTRIBUTE
+//     $fields = [
+//         'threejs_pos_x',
+//         'threejs_pos_y',
+//         'threejs_pos_z',
+//         'threejs_rot_x',
+//         'threejs_rot_y',
+//         'threejs_rot_z',
+//         'scale',
+//         'threejs_model_url',
+//         'ambient_light_intensity',
+//         // Mouse Animation Strength
+//         'mouseRotationX',
+//         'mouseRotationY',
+//         'mouseRotationZ',
+
+//         // Scroll Animation Strength
+//         'scrollMoveX',
+//         'scrollMoveY',
+//         'scrollMoveZ',
+
+//         // Animation Toggles
+//         'mouseAnimationLink',
+//         'scrollAnimationLink',
+
+//         'loopActive',
+//         'loopCountX',
+//         'loopCountY',
+//         'loopCountZ',
+//         'itemSpacing',
+//         'isOrthoCamera',
+
+//         'directionalLightIntensity',
+//         'lightPosX',
+//         'lightPosY',
+//         'lightPosZ',
+//         'useEnvLight',
+//         'loopGroupScale'
+
+//     ];
+
+//     foreach ($fields as $field) {
+
+//       if (isset($_POST[$field])) {
+//           update_post_meta($post_id, $field, $_POST[$field]); // Save the value from the form
+//       } else {
+//           update_post_meta($post_id, $field, ''); // Save empty if not checked or not set, stops non saving when not checked
+//       }
+//     }
+// }
+// add_action('save_post', 'save_scene_metadata');
 // add_action('save_post', 'save_scene_metadata2');
 
 
@@ -576,37 +727,37 @@ add_filter('default_option_screen_layout_codes_scene', 'set_default_one_column_l
 function threejs_editor_page($post) {
 
   // Assuming $post->ID is available here
-    $scene_data = get_scene_data($post->ID); // This function now returns the structure with 'allModels' array inside it.
-
-
-    $all_models = $scene_data['allModels']; // Get the array of all models
+    // $globalSettings = get_scene_data($post->ID); // This function now returns the structure with 'allModels' array inside it.
+    $full_meta = get_scene_data($post->ID);
+    $globalSettings = $full_meta['globalSettings']; // This function now returns the structure with 'allModels' array inside it.
+    $all_models = $full_meta['models']; // Get the array of all models
     // --- Global Scene Settings ---
-    // These are still direct properties of $scene_data
-    $is_ortho_camera = $scene_data['isOrthoCamera'] ?: '';
+    // These are still direct properties of $globalSettings
+    $is_ortho_camera = $globalSettings['isOrthoCamera'] ?: '';
 
     // Light settings (global)
-    $directional_light_intensity = $scene_data['directionalLightIntensity'];
-    // $ambient_light_intensity = $scene_data['lightIntensity']; // Renamed for clarity in PHP variables
-    $light_intensity = $scene_data['lightIntensity'];
-    $light_pos_x = $scene_data['lightPosX'];
-    $light_pos_y = $scene_data['lightPosY'];
-    $light_pos_z = $scene_data['lightPosZ'];
-    $use_env_light = $scene_data['useEnvLight'] ?: '';
+    $directional_light_intensity = $globalSettings['directionalLightIntensity'];
+    // $ambient_light_intensity = $globalSettings['lightIntensity']; // Renamed for clarity in PHP variables
+    $light_intensity = $globalSettings['ambientLightIntensity'];
+    $light_pos_x = $globalSettings['lightPosX'];
+    $light_pos_y = $globalSettings['lightPosY'];
+    $light_pos_z = $globalSettings['lightPosZ'];
+    $use_env_light = $globalSettings['useEnvLight'] ?: '';
 
 
     // Mouse Rotation Strength (global)
-    $mouse_rot_x = $scene_data['mouseRotationX'];
-    $mouse_rot_y = $scene_data['mouseRotationY'];
-    $mouse_rot_z = $scene_data['mouseRotationZ'];
+    $mouse_rot_x = $globalSettings['mouseRotationX'];
+    $mouse_rot_y = $globalSettings['mouseRotationY'];
+    $mouse_rot_z = $globalSettings['mouseRotationZ'];
 
     // Scroll Camera Movement (global)
-    $scroll_mov_x = $scene_data['scrollMoveX'];
-    $scroll_mov_y = $scene_data['scrollMoveY'];
-    $scroll_mov_z = $scene_data['scrollMoveZ'];
+    $scroll_mov_x = $globalSettings['scrollMoveX'];
+    $scroll_mov_y = $globalSettings['scrollMoveY'];
+    $scroll_mov_z = $globalSettings['scrollMoveZ'];
 
     // Animation Toggles (global)
-    $mouse_enabled = $scene_data['mouseAnimationLink'] ?: '';
-    $scroll_enabled = $scene_data['scrollAnimationLink'] ?: '';
+    $mouse_enabled = $globalSettings['mouseAnimationLink'] ?: '';
+    $scroll_enabled = $globalSettings['scrollAnimationLink'] ?: '';
 
     $current_model_data = array(); 
     $current_model_data = end($all_models);
@@ -642,7 +793,7 @@ function threejs_editor_page($post) {
     // These will be accessed within the JavaScript's loop over sceneData.allModels.
 
     // --- Other Global Data ---
-    $post_id_from_scene_data = $scene_data['postID']; // You might already have $post->ID, but good for consistency
+    // $post_id_from_scene_data = $global_settings['postID']; // You might already have $post->ID, but good for consistency
 
     // --- Shortcode (if you're using it to display the scene) ---
     $shortcode = '[codes_scene id="' . $post->ID . '"]'; // Still uses the current post ID
@@ -664,8 +815,11 @@ function threejs_editor_page($post) {
         </script>
         <script src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
         <link rel='stylesheet' href='<?php echo plugins_url('styles.css', __FILE__); ?>'>
-
-
+        
+        <input type="hidden"
+            name="threejs_scene_config_json"
+            id="threejs_scene_config_json"
+            value=""> <?php wp_nonce_field('save_scene_metadata', 'scene_meta_nonce'); ?>
 
         <!-- <h1>3D Model Editor</h1> -->
 
@@ -898,8 +1052,8 @@ function threejs_editor_page($post) {
 
       <script>
         // Pass PHP data to JavaScript
-        const sceneData = <?php echo json_encode($scene_data); ?>;
-        console.log('Three.js Transform Data:', sceneData);
+        const allSceneData = <?php echo json_encode($full_meta); ?>;
+        console.log('Three.js Transform Data:', allSceneData);
       </script>
       <script type="module" src="<?php echo plugins_url('admin.js', __FILE__); ?>"></script>
 
