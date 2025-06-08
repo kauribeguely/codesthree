@@ -10,6 +10,8 @@ window.onload = () =>
   console.log('Admin JS Codes 3D started');
 
   let mouseDown = false;
+  let mouse = new THREE.Vector2();
+  const raycaster = new THREE.Raycaster();
   let isTransforming = false;
 
   // Get the toggle elements (checkboxes)
@@ -490,6 +492,10 @@ function toggleCamera()
     //INIT()
     let controls, groupControls;
 
+    controls = new TransformControls(camera, renderer.domElement);
+    scene.add(controls);
+      
+
     let selectedObj; //override model
     let allModels = [];
     let model, loopGroup;
@@ -505,10 +511,11 @@ function toggleCamera()
     let spacing = sceneData.itemSpacing;
     let fullLoopGroup = new THREE.Group();
     let objGroup = new THREE.Group();
+    let orbitActive = false;
     // Load Environment Map (HDR)
 
     let orbit;
-    orbit = new OrbitControls(camera, renderer.domElement);
+    // orbit = new OrbitControls(camera, renderer.domElement);
     function init()
     {
       fullLoopGroup.add(objGroup);
@@ -632,8 +639,8 @@ function toggleCamera()
 
           // Allow rotation/repositioning
           // controls = new TransformControls(camera, renderer.domElement);
-          // controls.attach(selectedObj);
-          // controls.setSpace('local');  // Ensure local space is used
+          controls.attach(selectedObj);
+          controls.setSpace('local');  // Ensure local space is used
 
           // scene.add(controls);
           // // Listen for changes in the TransformControls
@@ -673,9 +680,9 @@ function toggleCamera()
     }
 
     const updateTransforms = () => {
-      let pos = model.position;
-      let rot = model.rotation;
-      let scale = model.scale;
+      let pos = selectedObj.position;
+      let rot = selectedObj.rotation;
+      let scale = selectedObj.scale;
 
       if(sceneData.loopActive)
       {
@@ -739,6 +746,10 @@ function toggleCamera()
 
       // THREE.MathUtils.degToRad(sceneData.rotationX)
   };
+
+  controls.addEventListener('change', updateTransforms);
+  controls.addEventListener('mouseDown', transformDragStart);
+  controls.addEventListener('mouseUp', transformDragEnd);
 
   // Store the initial rotation when interacting starts
 function transformDragStart() {
@@ -839,6 +850,7 @@ function transformDragEnd(){
               fullLoopGroup.rotation.z = currentRotation.z;
           }
       };
+      window.addEventListener('mousemove', onMouseMove);
 
       // Initialize currentRotation (important!)
       // currentRotation.copy(model.rotation); // Or set to initial values
@@ -1072,8 +1084,9 @@ function transformDragEnd(){
     // Render loop
     function animate() {
         requestAnimationFrame(animate);
+
         renderer.render(scene, camera);
-         orbit.update(); // Call controls.update() in the animation loop
+        // if(orbitActive) orbit.update(); // Call controls.update() in the animation loop
     }
     animate();
     // updateLabel();//show initial values
@@ -1091,10 +1104,14 @@ function transformDragEnd(){
                 break;
             case 's': // Scale mode
                 setTransformMode('scale');
-
+                break;
                 // dont allow scaling of group, must be set via single or input
                 // groupControls.setMode('scale');
+            case 'o':
+                orbitActive = !orbitActive;
                 break;
+
+                
             case 'l': // Scale mode
                 loopActive = !loopActive;
                 loopActiveInput.checked = loopActive;
@@ -1131,9 +1148,80 @@ function transformDragEnd(){
         mouseDown = true;
       }
 
-      window.onmouseup = function()
+      window.onmouseup = function(e)
       {
+        selectObjWithClick(e);
         mouseDown = false;
+      }
+
+      function selectObjWithClick(event)
+      {
+        // 1. Calculate mouse position in normalized device coordinates (-1 to +1)
+        //    relative to the viewport size.
+        //    event.clientX/Y are screen coordinates.
+        //    renderer.domElement.getBoundingClientRect() gives canvas position/size.
+        const rect = renderer.domElement.getBoundingClientRect();
+        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+        // 2. Update the raycaster with the camera and mouse position
+        raycaster.setFromCamera(mouse, camera);
+
+        // 3. Find intersecting objects.
+        //    Only intersect with objects you want to be selectable.
+        //    `modelsInScene` should contain your top-level loaded models/groups.
+        const intersects = raycaster.intersectObjects(allModels, true); // `true` for recursive (checks children)
+
+        // Check if TransformControls is active/dragging. If so, don't re-select.
+        // This is important to prevent accidental re-selection when trying to drag an object.
+        if (controls.dragging) {
+            // console.log("Controls are dragging, ignoring mouse up for selection.");
+            return;
+        }
+
+        if (intersects.length > 0) {
+            // An object was clicked! Get the first (closest) intersected object.
+            let clickedObject = intersects[0].object;
+            console.log("Clicked object (raw):", clickedObject);
+
+            // Find the top-level object in `modelsInScene` that this clicked object belongs to.
+            // This is crucial because `TransformControls` needs to attach to the top-level group/model.
+            let selectableObject = null;
+            while (clickedObject) {
+                if (allModels.includes(clickedObject)) {
+                    selectableObject = clickedObject;
+                    break;
+                }
+                clickedObject = clickedObject.parent;
+            }
+
+            if (selectableObject && selectableObject !== selectedObj) {
+                // A new object is selected
+                console.log("Selected a new object:", selectableObject.name || selectableObject.uuid);
+                selectModelForEditing(selectableObject); // Call your existing selection function
+            } else if (selectableObject === selectedObj) {
+                console.log("Clicked the currently selected object. No change.");
+                // Optionally, you could toggle controls mode (translate/rotate/scale) here
+            }
+
+        } else {
+            // No object was clicked, so deselect the current one (optional)
+            if (selectedObj) {
+                console.log("Clicked empty space. Deselecting object.");
+                controls.detach();
+                controls.visible = false;
+                controls.enabled = false;
+                selectedObj = null;
+                // Optionally, clear your UI fields here too
+                // transformObjectToSceneData(null); // Or a function to clear fields
+            }
+        }
+      }
+
+      function selectModelForEditing(obj)
+      {
+        selectedObj = obj;
+        controls.attach(selectedObj);
       }
 
       init();
