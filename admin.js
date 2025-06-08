@@ -3,6 +3,70 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+
+
+class ModelConfig {
+    constructor(data = {}) {
+        this.modelId = data.modelId || crypto.randomUUID(); // Assign a new ID if not provided
+        this.modelUrl = data.modelUrl || '';
+        this.modelName = data.modelName || 'New Model';
+
+        // Store position, rotation, scale as THREE.Vector3/Euler for easier use with Three.js
+        this.position = new THREE.Vector3(data.positionX || 0, data.positionY || 0, data.positionZ || 0);
+        this.rotation = new THREE.Euler(
+            THREE.MathUtils.degToRad(data.rotationX || 0),
+            THREE.MathUtils.degToRad(data.rotationY || 0),
+            THREE.MathUtils.degToRad(data.rotationZ || 0)
+        );
+        this.scale = new THREE.Vector3(data.scale || 1, data.scale || 1, data.scale || 1); // Assuming uniform scale
+
+        this.loopActive = data.loopActive || 'off';
+        this.loopCountX = data.loopCountX || 1;
+        // ... other loop properties
+
+        this.threeJsObject = null; // Reference to the actual THREE.Object3D instance
+    }
+
+    // Method to convert this class instance back to a plain object for JSON stringification
+    toPlainObject() {
+        return {
+            modelId: this.modelId,
+            modelUrl: this.modelUrl,
+            modelName: this.modelName,
+            positionX: this.position.x,
+            positionY: this.position.y,
+            positionZ: this.position.z,
+            rotationX: THREE.MathUtils.radToDeg(this.rotation.x),
+            rotationY: THREE.MathUtils.radToDeg(this.rotation.y),
+            rotationZ: THREE.MathUtils.radToDeg(this.rotation.z),
+            scale: this.scale.x, // Assuming uniform scale
+            loopActive: this.loopActive,
+            loopCountX: this.loopCountX,
+            // ... include all other properties
+        };
+    }
+
+    // Static method to create a ModelConfig instance from a plain object (e.g., from loaded JSON)
+    static fromPlainObject(obj) {
+        return new ModelConfig({
+            modelId: obj.modelId,
+            modelUrl: obj.modelUrl,
+            modelName: obj.modelName,
+            positionX: obj.positionX,
+            positionY: obj.positionY,
+            positionZ: obj.positionZ,
+            rotationX: obj.rotationX, // Already degrees in plain object
+            rotationY: obj.rotationY,
+            rotationZ: obj.rotationZ,
+            scale: obj.scale,
+            loopActive: obj.loopActive,
+            loopCountX: obj.loopCountX,
+            // ... include all other properties
+        });
+    }
+}
+
+
 // document.addEventListener('DOMContentLoaded', () => {
 window.onload = () =>
 {
@@ -10,6 +74,7 @@ window.onload = () =>
   //allSceneData = This is set via main php file, contains globalSettings and models
   let sceneData = allSceneData.globalSettings;
   let allModels = allSceneData.models;
+  let allThreeJsObj = [];
   // let globalSettings = allSceneData.globalSettings;
   console.log('Admin JS Codes 3D started');
 
@@ -121,6 +186,7 @@ window.onload = () =>
   function updateDLightPos()
   {
     dlight.position.set(sceneData.lightPosX, sceneData.lightPosY, sceneData.lightPosZ);
+    updateSaveField();
   }
 
   useEnvLightInput.oninput = () => {
@@ -447,7 +513,7 @@ function toggleCamera()
     scene.add(dlight);
 
     const alight = new THREE.AmbientLight(0xffffff, 1);
-    let alightIntensity = sceneData.lightIntensity;
+    let alightIntensity = sceneData.ambientLightIntensity;
     // alight.position.set(5, 5, 5);
     scene.add(alight);
 
@@ -477,8 +543,8 @@ function toggleCamera()
       light.intensity = parseFloat(intensity);
     }
 
-    console.log('Light: ' + sceneData.lightIntensity);
-    setLightIntensity(alight, sceneData.lightIntensity);
+    console.log('Light: ' + sceneData.ambientLightIntensity);
+    setLightIntensity(alight, sceneData.ambientLightIntensity);
 
     //
     // // Event listener to change the intensity of the directional light
@@ -596,6 +662,8 @@ function toggleCamera()
       {
         groupControls.visible = false;
       }
+
+      updateSaveField();
     }
 
     function loadEnvTexture(url)
@@ -626,34 +694,85 @@ function toggleCamera()
     {
       loader.load(url, (gltf) =>
       {
-        //TODO need id to know which one to remove, only if !isNew
-        if(!isNew)
-        {
-          scene.remove(selectedObj);
-          scene.remove(controls);
-        }
+        const newThreeJsObject = gltf.scene;
+            let modelConfigInstance; // This will be our ModelConfig class instance
 
-          // model = gltf.scene;
-          // scene.add(model);
-          selectedObj = gltf.scene;
-          allModels.push(selectedObj);
-          scene.add(selectedObj);
+            // --- Determine if this is a new model or an existing one being loaded/reloaded ---
+            if (objData) {
+                // Scenario 2: Loading/Reloading an Existing Model
+                // We're creating a ModelConfig instance from the plain data we loaded.
+                modelConfigInstance = ModelConfig.fromPlainObject(objData);
+                modelConfigInstance.modelUrl = url; // Ensure the URL is up-to-date in the instance
 
-          if(objData)
-          {
-            transformObjectToSceneData(selectedObj, objData);
-            selectedObj.scale.set(objData.scale, objData.scale, objData.scale);
-          }
-          else
-          {
-            
-          }
+                // Before adding the new object, remove the old THREE.Object3D instance if it exists.
+                // This is crucial if we're reloading a model that's already in the scene (e.g., changing its URL).
+                const oldThreeJsObject = allThreeJsObj.find(obj => obj.userData.modelId === modelConfigInstance.modelId);
+                if (oldThreeJsObject) {
+                    scene.remove(oldThreeJsObject);
+                    // Remove from our active tracking array
+                    allThreeJsObj = allThreeJsObj.filter(obj => obj.userData.modelId !== modelConfigInstance.modelId);
+                    console.log(`Removed old Three.js object for modelId: ${modelConfigInstance.modelId}`);
+                }
 
+                // Apply saved transforms to the new Three.js object
+                newThreeJsObject.position.copy(modelConfigInstance.position);
+                newThreeJsObject.rotation.copy(modelConfigInstance.rotation);
+                newThreeJsObject.scale.copy(modelConfigInstance.scale);
 
-          // Allow rotation/repositioning
-          // controls = new TransformControls(camera, renderer.domElement);
-          controls.attach(selectedObj);
-          controls.setSpace('local');  // Ensure local space is used
+                // Find the corresponding plain object in sceneData.models and update it
+                // This ensures sceneData.models is kept in sync with the current instance state
+                // (e.g., if modelUrl changed).
+                const existingModelIndex = allModels.findIndex(m => m.modelId === modelConfigInstance.modelId);
+                if (existingModelIndex !== -1) {
+                    allModels[existingModelIndex] = modelConfigInstance.toPlainObject();
+                } else {
+                    // This scenario suggests a logic error if objData was provided but not found.
+                    // For robustness, add it as new.
+                    console.warn(`ModelConfig with ID ${modelConfigInstance.modelId} not found in sceneData.models during update; adding as new.`);
+                    allModels.push(modelConfigInstance.toPlainObject());
+                }
+
+            } else {
+                // Scenario 1: Loading a New Model (no existing config provided)
+                // Create a completely new ModelConfig instance.
+                modelConfigInstance = new ModelConfig({ modelUrl: url });
+
+                // Apply default (or initial UI) transforms to the new Three.js object.
+                // The ModelConfig constructor already sets defaults for position, rotation, scale.
+                newThreeJsObject.position.copy(modelConfigInstance.position);
+                newThreeJsObject.rotation.copy(modelConfigInstance.rotation);
+                newThreeJsObject.scale.copy(modelConfigInstance.scale);
+
+                // Add the plain object representation of this new model to sceneData.models for saving.
+                allModels.push(modelConfigInstance.toPlainObject());
+                console.log("Added new model config to allModels:", modelConfigInstance.toPlainObject());
+            }
+
+            // --- Link the ModelConfig instance to the THREE.Object3D via userData ---
+            newThreeJsObject.userData.modelId = modelConfigInstance.modelId;
+            newThreeJsObject.userData.modelConfigRef = modelConfigInstance; // Crucial for easy access
+
+            // Link the THREE.Object3D back to the ModelConfig instance (optional but useful)
+            modelConfigInstance.threeJsObject = newThreeJsObject;
+
+            // Add the new Three.js object to our active tracking array and the scene.
+            selectedObj = newThreeJsObject;
+            allThreeJsObj.push(newThreeJsObject);
+            scene.add(newThreeJsObject);
+
+            // Update the globally selected object (if applicable for UI/TransformControls).
+            // This is often done externally after this function resolves.
+            // For now, let's just make it the new selected object if controls exist.
+            if (controls) {
+                controls.detach(); // Detach from any previously selected object
+                controls.attach(newThreeJsObject);
+                controls.setSpace('local');
+                // Ensure controls are in the scene (might be redundant if always there)
+                scene.add(controls);
+            }
+
+            // --- Crucially, update the hidden JSON field for saving ---
+            updateSaveField();
 
           // scene.add(controls);
           // // Listen for changes in the TransformControls
@@ -1255,25 +1374,26 @@ function transformDragEnd(){
       }
 
 
-      function updateHiddenConfigField() 
+      function updateSaveField()
       {
         const hiddenInputField = document.getElementById('threejs_scene_config_json');
 
-      if (hiddenInputField) {
-              try {
-                  // Stringify the entire sceneData object
-                  hiddenInputField.value = JSON.stringify(sceneData);
-                  // console.log("Hidden config field updated successfully.");
-                  // console.log("Current hidden field value (first 200 chars):", hiddenInputField.value.substring(0, 200));
-              } catch (e) {
-                  console.error("Error stringifying sceneData:", e);
-                  // Optionally, clear the field or revert to a safe state if stringification fails
-                  hiddenInputField.value = '';
-              }
-          } else {
-              console.warn("Hidden input field with ID 'threejs_scene_config_json' not found!");
-          }
-      }
+        if (hiddenInputField) 
+          {
+                try {
+                    // Stringify the entire sceneData object
+                    hiddenInputField.value = JSON.stringify(allSceneData);
+                    // console.log("Hidden config field updated successfully.");
+                    // console.log("Current hidden field value (first 200 chars):", hiddenInputField.value.substring(0, 200));
+                } catch (e) {
+                    console.error("Error stringifying sceneData:", e);
+                    // Optionally, clear the field or revert to a safe state if stringification fails
+                    hiddenInputField.value = '';
+                }
+            } else {
+                console.warn("Hidden input field with ID 'threejs_scene_config_json' not found!");
+            }
+        }
 
       init();
 
