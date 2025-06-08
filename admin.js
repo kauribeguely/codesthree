@@ -1183,6 +1183,8 @@ function transformDragEnd(){
             // An object was clicked! Get the first (closest) intersected object.
             let clickedObject = intersects[0].object;
             console.log("Clicked object (raw):", clickedObject);
+            controls.enabled = true;
+            controls.visible = true;
 
             // Find the top-level object in `modelsInScene` that this clicked object belongs to.
             // This is crucial because `TransformControls` needs to attach to the top-level group/model.
@@ -1211,7 +1213,7 @@ function transformDragEnd(){
                 controls.detach();
                 controls.visible = false;
                 controls.enabled = false;
-                selectedObj = null;
+                // selectedObj = null;
                 // Optionally, clear your UI fields here too
                 // transformObjectToSceneData(null); // Or a function to clear fields
             }
