@@ -747,6 +747,9 @@ function toggleCamera()
 
       }
 
+      rotXInput.value = THREE.MathUtils.radToDeg(rot.x).toFixed(2);
+      rotYInput.value = THREE.MathUtils.radToDeg(rot.y).toFixed(2);
+      rotZInput.value = THREE.MathUtils.radToDeg(rot.z).toFixed(2);
 
       scaleInput.value = round(scale.x, 2);
       sceneData.scale = round(scale.x, 2);
@@ -1200,7 +1203,7 @@ function transformDragEnd(){
         if (intersects.length > 0) {
             // An object was clicked! Get the first (closest) intersected object.
             let clickedObject = intersects[0].object;
-            console.log("Clicked object (raw):", clickedObject);
+            // console.log("Clicked object (raw):", clickedObject);
             controls.enabled = true;
             controls.visible = true;
 
