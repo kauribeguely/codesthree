@@ -489,6 +489,9 @@ function toggleCamera()
 
     //INIT()
     let controls, groupControls;
+
+    let selectedObj; //override model
+    let allModels = [];
     let model, loopGroup;
 
 
@@ -520,9 +523,14 @@ function toggleCamera()
       groupControls.attach(fullLoopGroup);
       groupControls.setSpace('local');  // Ensure local space is used
 
-      if(sceneData.modelUrl != "")
+
+      // if(sceneData.modelUrl != "")
+      //check if any models exist
+      if(sceneData.allModels.length != 0)
       {
-        loadModel(sceneData.modelUrl, sceneData);
+        loadAllModels();
+        //loop all models and run loadModel
+        // loadModel(sceneData.modelUrl, sceneData, true);
       }
       else
       {
@@ -557,19 +565,35 @@ function toggleCamera()
       });
     }
 
+    function loadAllModels()
+    {
+      sceneData.allModels.forEach(model)
+      {
+        loadModel(model.modelUrl, objData, true);
+      }
+    }
+
     // loadModel('http://localhost/wPpractice/wp-content/uploads/2025/01/first-room.glb', sceneData);
 
-    function loadModel(url, sceneData)
+    //isNew checks if current url/model to be updated
+    // function loadModel(url, sceneData, isNew)
+    function loadModel(url, objData, isNew)
     {
       loader.load(url, (gltf) =>
       {
-          scene.remove(model);
+        //TODO need id to know which one to remove, only if !isNew
+        if(!isNew)
+        {
+          scene.remove(selectedObj);
           scene.remove(controls);
+        }
 
-          model = gltf.scene;
-          scene.add(model);
+          // model = gltf.scene;
+          // scene.add(model);
+          selectedObj = gltf.scene;
+          scene.add(selectedObj);
 
-          transformObjectToSceneData(model);
+          transformObjectToSceneData(selectedObj);
 
           // model.position.set(
           //     parseFloat(sceneData.positionX),
@@ -738,6 +762,7 @@ function transformDragEnd(){
 
 
     let popupOpen = false;
+    //TODO: check whether it's replace selected url or add new model
     popupMediaButton.addEventListener('click', function (e) {
       e.preventDefault();
       mediaUploader.open();

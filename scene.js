@@ -101,6 +101,7 @@ export function initializeThreeJsScene(sceneData, containerId, pluginUrl)
 
 
     let model, loopGroup, loopable;
+    let allModels = [];
     let spacing = sceneData.itemSpacing;
     let fullLoopGroup = new THREE.Group();
     let objGroup = new THREE.Group();
