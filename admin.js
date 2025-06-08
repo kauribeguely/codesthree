@@ -179,8 +179,10 @@ window.onload = () =>
       //     parseFloat(THREE.MathUtils.degToRad(sceneData.rotationY)),
       //     parseFloat(THREE.MathUtils.degToRad(sceneData.rotationZ))
       // );
-      transformObjectToSceneData(model);
-      transformObjectToSceneData(fullLoopGroup);
+
+      // reset movement to none
+      // transformObjectToSceneData(model);
+      // transformObjectToSceneData(fullLoopGroup);
 
     }
   };
@@ -832,9 +834,12 @@ function transformDragEnd(){
     });
 
 
-      let initialRotationX = parseFloat(sceneData.rotationX);
-      let initialRotationY = parseFloat(sceneData.rotationY);
-      let initialRotationZ = parseFloat(sceneData.rotationZ);
+      let initialRotationX = 0;
+      let initialRotationY = 0;
+      let initialRotationZ = 0;
+      // let initialRotationX = parseFloat(sceneData.rotationX);
+      // let initialRotationY = parseFloat(sceneData.rotationY);
+      // let initialRotationZ = parseFloat(sceneData.rotationZ);
 
       const onMouseMove = (event) => {
           const mouseX = (event.clientX / window.innerWidth) * 2 - 1;
@@ -854,9 +859,9 @@ function transformDragEnd(){
               currentRotation.y = THREE.MathUtils.lerp(currentRotation.y, targetRotation.y, easing);
               currentRotation.z = THREE.MathUtils.lerp(currentRotation.z, targetRotation.z, easing);
 
-              model.rotation.x = currentRotation.x;
-              model.rotation.y = currentRotation.y;
-              model.rotation.z = currentRotation.z;
+              scene.rotation.x = currentRotation.x;
+              scene.rotation.y = currentRotation.y;
+              scene.rotation.z = currentRotation.z;
 
               fullLoopGroup.rotation.x = currentRotation.x;
               fullLoopGroup.rotation.y = currentRotation.y;
