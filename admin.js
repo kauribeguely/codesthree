@@ -857,9 +857,12 @@ function toggleCamera()
       //why only in here?
       if (isTransforming) {
         // Update rotation fields (converted from radians to degrees)
-        rotXInput.value = round(THREE.MathUtils.radToDeg(rot.x)).toFixed(2);
-        rotYInput.value = round(THREE.MathUtils.radToDeg(rot.y)).toFixed(2);
-        rotZInput.value = round(THREE.MathUtils.radToDeg(rot.z)).toFixed(2);
+        rotXInput.value = THREE.MathUtils.radToDeg(rot.x).toFixed(2);
+        rotYInput.value = THREE.MathUtils.radToDeg(rot.y).toFixed(2);
+        rotZInput.value = THREE.MathUtils.radToDeg(rot.z).toFixed(2);
+        // rotXInput.value = round(THREE.MathUtils.radToDeg(rot.x)).toFixed(2);
+        // rotYInput.value = round(THREE.MathUtils.radToDeg(rot.y)).toFixed(2);
+        // rotZInput.value = round(THREE.MathUtils.radToDeg(rot.z)).toFixed(2);
         
 
         // sceneData.rotationX = THREE.MathUtils.radToDeg(rot.x).toFixed(2);
@@ -880,16 +883,16 @@ function toggleCamera()
         
       }
       
-      rotXInput.value = round(THREE.MathUtils.radToDeg(rot.x)).toFixed(2);
-        rotYInput.value = round(THREE.MathUtils.radToDeg(rot.y)).toFixed(2);
-        rotZInput.value = round(THREE.MathUtils.radToDeg(rot.z)).toFixed(2);
+      rotXInput.value = THREE.MathUtils.radToDeg(rot.x).toFixed(2);
+      rotYInput.value = THREE.MathUtils.radToDeg(rot.y).toFixed(2);
+      rotZInput.value = THREE.MathUtils.radToDeg(rot.z).toFixed(2);
       
       scaleInput.value = round(scale.x, 2);
       // sceneData.scale = round(scale.x, 2);
       
-      modelConfigInstance.position.copy(selectedObj.position.toFixed(2));
-      modelConfigInstance.rotation.copy(selectedObj.rotation.toFixed(2));
-      modelConfigInstance.scale.copy(selectedObj.scale.toFixed(2));
+      modelConfigInstance.position.copy(selectedObj.position);
+      modelConfigInstance.rotation.copy(selectedObj.rotation);
+      modelConfigInstance.scale.copy(selectedObj.scale);
       const existingModelIndex = allModels.findIndex(m => m.modelId === modelConfigInstance.modelId);
 
       if (existingModelIndex !== -1) {
