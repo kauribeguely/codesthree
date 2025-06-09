@@ -11,7 +11,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 
-export function initializeThreeJsScene(sceneData, containerId, pluginUrl)
+export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
 {
   let numLoaded = 0;
     const container = document.getElementById(containerId);
@@ -21,21 +21,23 @@ export function initializeThreeJsScene(sceneData, containerId, pluginUrl)
         return;
     }
 
+
+    let sceneData = allSceneData.globalSettings;
+    let allModels = allSceneData.models;
     // console.log(pluginData.pluginUrl);
     // console.log(pluginUrl);
     const mouseRotationX = sceneData.mouseRotationX; // Maximum rotation range in degrees
     const mouseRotationY = sceneData.mouseRotationY; // Maximum rotation range in degrees
     const mouseRotationZ = sceneData.mouseRotationZ; // Maximum rotation range in degrees
-    let mouseAnimationLink = sceneData.mouseAnimationLink === 'on';
+    let mouseAnimationLink = sceneData.mouseAnimationLink;
     // Mousemove listener
     const targetRotation = new THREE.Vector3(); // Store the target rotation
     const currentRotation = new THREE.Vector3(); // Store the current rotation
 
-
-    let scrollAnimationLink = sceneData.scrollAnimationLink === 'on';
-    let isOrthoCamera = sceneData.isOrthoCamera === 'on';
-    let loopActive = sceneData.loopActive === 'on';
-    let useEnvLight = sceneData.useEnvLight  === 'on';
+    let scrollAnimationLink = sceneData.scrollAnimationLink;
+    let isOrthoCamera = sceneData.isOrthoCamera;
+    let loopActive = sceneData.loopActive;
+    let useEnvLight = sceneData.useEnvLight;
 
 
 
@@ -45,6 +47,8 @@ export function initializeThreeJsScene(sceneData, containerId, pluginUrl)
 
     let isoZoom = 250;
     const orthoCamera = new THREE.OrthographicCamera( container.clientWidth / - isoZoom, container.clientWidth / isoZoom, container.clientHeight / isoZoom, container.clientHeight / - isoZoom, 1, 1000 );
+
+
 
     if(isOrthoCamera)
     {
@@ -101,7 +105,7 @@ export function initializeThreeJsScene(sceneData, containerId, pluginUrl)
 
 
     let model, loopGroup, loopable;
-    let allModels = [];
+    // let allModels = [];
     let spacing = sceneData.itemSpacing;
     let fullLoopGroup = new THREE.Group();
     let objGroup = new THREE.Group();
@@ -117,40 +121,58 @@ export function initializeThreeJsScene(sceneData, containerId, pluginUrl)
     const sphereGroup = new THREE.Group();
     updateEnvTexture();
 
-    if(loopActive)
+    if(allModels.length != 0)
     {
-      sceneDataLoop();
+      loadAllModels();
     }
-    else
+
+    function loadAllModels()
     {
-      loadModel(sceneData.modelUrl, sceneData);
+      allModels.forEach(function(model)
+      {
+        loadModel(model.modelUrl, model, true);
+      });
     }
+
+    // if(loopActive)
+    // {
+    //   sceneDataLoop();
+    // }
+    // else
+    // {
+    //   loadModel(sceneData.modelUrl, sceneData);
+    // }
     // loadModel('http://localhost/wPpractice/wp-content/uploads/2025/01/first-room.glb', sceneData);
 
-    function loadModel(url, sceneData)
+    // function loadModel(url, sceneData)
+    let lastAddedObject;
+    function loadModel(url, objData)
     {
       loader.load(url, (gltf) =>
       {
-          model = gltf.scene;
-          scene.add(model);
+          const newThreeJsObject = gltf.scene;
+          lastAddedObject = newThreeJsObject;
+          // model = gltf.scene;
+
+          scene.add(newThreeJsObject);
 
 
-          model.position.set(
-              parseFloat(sceneData.positionX),
-              parseFloat(sceneData.positionY),
-              parseFloat(sceneData.positionZ)
+          lastAddedObject.position.set(
+              parseFloat(objData.positionX),
+              parseFloat(objData.positionY),
+              parseFloat(objData.positionZ)
           );
 
-          model.rotation.set(
-              parseFloat(THREE.MathUtils.degToRad(sceneData.rotationX)),
-              parseFloat(THREE.MathUtils.degToRad(sceneData.rotationY)),
-              parseFloat(THREE.MathUtils.degToRad(sceneData.rotationZ))
+          lastAddedObject.rotation.set(
+              parseFloat(THREE.MathUtils.degToRad(objData.rotationX)),
+              parseFloat(THREE.MathUtils.degToRad(objData.rotationY)),
+              parseFloat(THREE.MathUtils.degToRad(objData.rotationZ))
           );
-          currentRotation.copy(model.rotation); // The most direct way
+          currentRotation.copy(lastAddedObject.rotation); // The most direct way
 
-          model.scale.set(sceneData.scale, sceneData.scale, sceneData.scale);
+          lastAddedObject.scale.set(objData.scale, objData.scale, objData.scale);
 
-          if(mouseAnimationLink) window.addEventListener('mousemove', onMouseMove);
+          // if(mouseAnimationLink) window.addEventListener('mousemove', onMouseMove);
 
           renderer.render(scene, camera);
           if(scrollAnimationLink) applyScrollTransforms();
@@ -182,11 +204,13 @@ export function initializeThreeJsScene(sceneData, containerId, pluginUrl)
    };
      animate();
 
-
+   let initialRotationX = 0;
+  let initialRotationY = 0;
+  let initialRotationZ = 0;
    const rotationRange = 10; // Maximum rotation range in degrees
-    const initialRotationX = parseFloat(sceneData.rotationX);
-    const initialRotationY = parseFloat(sceneData.rotationY);
-    const initialRotationZ = parseFloat(sceneData.rotationZ);
+    // const initialRotationX = parseFloat(sceneData.rotationX);
+    // const initialRotationY = parseFloat(sceneData.rotationY);
+    // const initialRotationZ = parseFloat(sceneData.rotationZ);
     // Mousemove listener
     const onMouseMove = (event) => {
       const mouseX = (event.clientX / window.innerWidth) * 2 - 1; // Normalized between -1 and 1
@@ -214,13 +238,16 @@ export function initializeThreeJsScene(sceneData, containerId, pluginUrl)
       }
       else
       {
-        model.rotation.x = currentRotation.x;
-        model.rotation.y = currentRotation.y;
-        model.rotation.z = currentRotation.z;
+        scene.rotation.x = currentRotation.x;
+        scene.rotation.y = currentRotation.y;
+        scene.rotation.z = currentRotation.z;
       }
+      console.log(scene.rotation.y);
 
       // console.log(initialRotationX + mouseY * rotationRange);
     };
+    if(mouseAnimationLink) window.addEventListener('mousemove', onMouseMove);
+
 
 
 
@@ -311,7 +338,6 @@ export function initializeThreeJsScene(sceneData, containerId, pluginUrl)
         loopable = gltf.scene;
         loopable.scale.set(objScale, objScale, objScale);
         zLoop(loopable, rowCount, columnCount, zCount, group, distances);
-        if(mouseAnimationLink) window.addEventListener('mousemove', onMouseMove);
         hideLoadScreen();
 
       });

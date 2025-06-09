@@ -298,9 +298,9 @@ function create_scene_shortcode($atts)
               container.setAttribute('data-scene-initialized', 'true');
 
               // Initialize the Three.js scene
-              console.log(sceneData);
+            //   console.log(sceneData);
               if (typeof initializeThreeJsScene === "function") {
-                  initializeThreeJsScene(sceneData, containerID, pluginUrl);
+                  initializeThreeJsScene(allSceneData, containerID, pluginUrl);
               }
           } else {
               console.log(`Scene for ${containerID} has already been initialized.`);

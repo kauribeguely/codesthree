@@ -707,7 +707,7 @@ function toggleCamera()
     {
       loader.load(url, (gltf) =>
       {
-        const newThreeJsObject = gltf.scene;
+            const newThreeJsObject = gltf.scene;
             let modelConfigInstance; // This will be our ModelConfig class instance
 
             // --- Determine if this is a new model or an existing one being loaded/reloaded ---
@@ -1106,7 +1106,7 @@ function transformDragEnd(){
         // );
         updateLinkedObjData();
         currentRotation.copy(object.rotation); // The most direct way
-        console.log(object.position);
+        // console.log(object.position);
       }
 
          //requires selectedObj to be updated first
@@ -1437,8 +1437,8 @@ function transformDragEnd(){
             if (selectedObj) {
                 // console.log("Clicked empty space. Deselecting object.");
                 // controls.detach();
-                controls.visible = false;
-                controls.enabled = false;
+                // controls.visible = false;
+                // controls.enabled = false;
                 // selectedObj = null;
                 // Optionally, clear your UI fields here too
                 // transformObjectToSceneData(null); // Or a function to clear fields
