@@ -800,7 +800,7 @@ function threejs_editor_page($post) {
 
 
 
-  wp_nonce_field('save_scene_metadata', 'scene_meta_nonce');
+//   wp_nonce_field('save_scene_metadata', 'scene_meta_nonce');
   // Output the form
     ?>
     <!-- start HTMLs -->

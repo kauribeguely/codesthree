@@ -95,9 +95,9 @@ window.onload = () =>
   const scrollYInput = document.getElementById('scrollMoveY');
   const scrollZInput = document.getElementById('scrollMoveZ');
   // Get the camera's initial position and the scroll movement values from sceneData
-  let scrollMoveX = sceneData.scrollMoveX || 0;
-  let scrollMoveY = sceneData.scrollMoveY || 0;
-  let scrollMoveZ = sceneData.scrollMoveZ || 0;
+  let scrollMoveX = sceneData.scrollMoveX || 2;
+  let scrollMoveY = sceneData.scrollMoveY || 2;
+  let scrollMoveZ = sceneData.scrollMoveZ || 2;
 
   // Get the mouse rotation inputs
   const mouseRotXInput = document.getElementById('mouseRotationX');
@@ -125,9 +125,7 @@ window.onload = () =>
   toggleButton.addEventListener('click', () => {
       isControlsVisible = !isControlsVisible;
 
-      function toggleVisibility(selector) {
-          document.querySelector(selector).style.display = isControlsVisible ? 'flex' : 'none';
-      }
+      
 
       toggleVisibility('.rightControls');
       toggleVisibility('.leftControls');
@@ -135,6 +133,10 @@ window.onload = () =>
 
       controls.visible = isControlsVisible;
       groupControls.visible = isControlsVisible;
+      axesHelper.visible = isControlsVisible;
+      gridHelper.visible = isControlsVisible;
+      lightHelper.visible = isControlsVisible;
+
 
       if(isControlsVisible)
       {
@@ -149,7 +151,12 @@ window.onload = () =>
           groupControls.visible = false;
         }
       }
+      
   });
+
+  function toggleVisibility(selector) {
+          document.querySelector(selector).style.display = isControlsVisible ? 'flex' : 'none';
+      }
 
   const loopGroupScaleInput = document.getElementById('loopGroupScale');
   loopGroupScaleInput.oninput = () =>
@@ -273,26 +280,32 @@ window.onload = () =>
 
   posXInput.oninput = () => {
     // model.position.x = parseFloat(posXInput.value) || 0;
-    sceneData.positionX = parseFloat(posXInput.value);
-
-    transformObjectToSceneData(fullLoopGroup);
-    transformObjectToSceneData(model);
+    // sceneData.positionX = parseFloat(posXInput.value);
+    // console.log(allModels);
+    // transformObjectToSceneData(fullLoopGroup);
+    selectedObj.userData.modelConfigRef.position.x = parseFloat(posXInput.value);
+    transformObjectToSceneData(selectedObj);
   };
 
   posYInput.oninput = () => {
       // model.position.y = parseFloat(posYInput.value) || 0;
-      sceneData.positionY = parseFloat(posYInput.value);
+      // sceneData.positionY = parseFloat(posYInput.value);
 
-      transformObjectToSceneData(fullLoopGroup);
-      transformObjectToSceneData(model);
+      // // transformObjectToSceneData(fullLoopGroup);
+      // transformObjectToSceneData(selectedObj);
+    selectedObj.userData.modelConfigRef.position.y = parseFloat(posYInput.value);
+    transformObjectToSceneData(selectedObj);
+  
   };
 
   posZInput.oninput = () => {
       // model.position.z = parseFloat(posZInput.value) || 0;
-      sceneData.positionZ = parseFloat(posZInput.value);
+      // sceneData.positionZ = parseFloat(posZInput.value);
 
-      transformObjectToSceneData(fullLoopGroup);
-      transformObjectToSceneData(model);
+      // // transformObjectToSceneData(fullLoopGroup);
+      // transformObjectToSceneData(selectedObj);
+    selectedObj.userData.modelConfigRef.position.z = parseFloat(posZInput.value);
+    transformObjectToSceneData(selectedObj);
   };
 
 
@@ -580,6 +593,19 @@ function toggleCamera()
     let fullLoopGroup = new THREE.Group();
     let objGroup = new THREE.Group();
     let orbitActive = false;
+      // 6. Add Helpers for Visualization (NEW ADDITION)
+    // Axes Helper: Red = X, Green = Y, Blue = Z
+    const axesHelper = new THREE.AxesHelper(5); // Size 5 units
+    scene.add(axesHelper);
+
+    // Grid Helper: Grid on XZ plane
+    const gridHelper = new THREE.GridHelper(10, 10); // 10x10 units, 10 divisions
+    scene.add(gridHelper);
+
+    // Directional Light Helper (already there, just ensuring its log is here for context)
+    const lightHelper = new THREE.DirectionalLightHelper(dlight, 2); // Helper size 2
+    scene.add(lightHelper);
+
     // Load Environment Map (HDR)
 
     let orbit;
@@ -626,22 +652,7 @@ function toggleCamera()
         // console.log("DEBUG: Basic green cube added to scene at (0,0,0). You should see this.");
 
 
-        // 6. Add Helpers for Visualization (NEW ADDITION)
-        // Axes Helper: Red = X, Green = Y, Blue = Z
-        const axesHelper = new THREE.AxesHelper(5); // Size 5 units
-        scene.add(axesHelper);
-        console.log("DEBUG: AxesHelper added (5 units).");
-
-        // Grid Helper: Grid on XZ plane
-        const gridHelper = new THREE.GridHelper(10, 10); // 10x10 units, 10 divisions
-        scene.add(gridHelper);
-        console.log("DEBUG: GridHelper added (10x10 units).");
-
-        // Directional Light Helper (already there, just ensuring its log is here for context)
-        const lightHelper = new THREE.DirectionalLightHelper(dlight, 2); // Helper size 2
-        scene.add(lightHelper);
-        console.log("DEBUG: Directional Light Helper added.");
-
+  
 
         // 7. Initialize TransformControls (Only once globally)
         // controls = new THREE.TransformControls(camera, renderer.domElement);
@@ -807,7 +818,10 @@ function toggleCamera()
         return Math.round(value * multiplier) / multiplier;
     }
 
-    const updateTransforms = () => {
+ 
+
+    function updateTransforms()
+    {
       let pos = selectedObj.position;
       let rot = selectedObj.rotation;
       let scale = selectedObj.scale;
@@ -1044,27 +1058,63 @@ function transformDragEnd(){
         sceneDataLoop();
       }
 
-      function transformObjectToSceneData(object, objData)
+      // function updateSelectedObjectAndSceneData()
+      // {
+      //   //get the correct
+      //   const selectedObjData = selectedObj.userData.modelConfigRef;
+      //   const existingModelIndex = allModels.findIndex(m => m.modelId === modelConfigInstance.modelId);
+      //   if (existingModelIndex !== -1) {
+      //       allModels[existingModelIndex] = modelConfigInstance.toPlainObject();
+      //   }
+      // }
+
+      // function transformObjectToSceneData(object, objData)
+      function transformObjectToSceneData(object)
       {
+        const objData = selectedObj.userData.modelConfigRef;
         object.position.set(
-            parseFloat(objData.positionX),
-            parseFloat(objData.positionY),
-            parseFloat(objData.positionZ)
+            parseFloat(objData.position.x),
+            parseFloat(objData.position.y),
+            parseFloat(objData.position.z)
         );
 
         object.rotation.set(
-            parseFloat(THREE.MathUtils.degToRad(objData.rotationX)),
-            parseFloat(THREE.MathUtils.degToRad(objData.rotationY)),
-            parseFloat(THREE.MathUtils.degToRad(objData.rotationZ))
+            parseFloat(objData.rotation.x),
+            parseFloat(objData.rotation.y),
+            parseFloat(objData.rotation.z)
         );
 
+        // object.position.set(
+        //     parseFloat(objData.positionX),
+        //     parseFloat(objData.positionY),
+        //     parseFloat(objData.positionZ)
+        // );
+
+        // object.rotation.set(
+        //     parseFloat(THREE.MathUtils.degToRad(objData.rotationX)),
+        //     parseFloat(THREE.MathUtils.degToRad(objData.rotationY)),
+        //     parseFloat(THREE.MathUtils.degToRad(objData.rotationZ))
+        // );
+        updateLinkedObjData();
         currentRotation.copy(object.rotation); // The most direct way
         console.log(object.position);
       }
 
-      // Get the canvas container element
-      // const canvasContainer = document.getElementById('threejs-scene-container'); // Update the ID accordingly
+         //requires selectedObj to be updated first
+      function updateLinkedObjData()
+      {
+        const modelConfigInstance = selectedObj.userData.modelConfigRef;
+        // modelConfigInstance.position.copy(selectedObj.position);
+        // modelConfigInstance.rotation.copy(selectedObj.rotation);
+        // modelConfigInstance.scale.copy(selectedObj.scale);
+        const existingModelIndex = allModels.findIndex(m => m.modelId === modelConfigInstance.modelId);
 
+        if (existingModelIndex !== -1) {
+            // Replace the old plain object with the updated one from our ModelConfig instance.
+            allModels[existingModelIndex] = modelConfigInstance.toPlainObject();
+            // console.log(`Updated model config for ID: ${modelConfigInstance.modelId} in sceneData.models.`);
+        }
+      }
 
 
       // Get the canvas container's distance to the top of the screen
@@ -1376,7 +1426,7 @@ function transformDragEnd(){
         } else {
             // No object was clicked, so deselect the current one (optional)
             if (selectedObj) {
-                console.log("Clicked empty space. Deselecting object.");
+                // console.log("Clicked empty space. Deselecting object.");
                 // controls.detach();
                 controls.visible = false;
                 controls.enabled = false;
