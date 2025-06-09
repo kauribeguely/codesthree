@@ -764,13 +764,13 @@ function threejs_editor_page($post) {
 
 
     // Now, extract the specific values for the current model (the last one, or defaults)
-    $pos_x = isset($current_model_data['positionX']) ? $current_model_data['positionX'] : 0.0;
-    $pos_y = isset($current_model_data['positionY']) ? $current_model_data['positionY'] : 0.0;
-    $pos_z = isset($current_model_data['positionZ']) ? $current_model_data['positionZ'] : 0.0;
-    $rot_x = isset($current_model_data['rotationX']) ? $current_model_data['rotationX'] : 0.0;
-    $rot_y = isset($current_model_data['rotationY']) ? $current_model_data['rotationY'] : 0.0;
-    $rot_z = isset($current_model_data['rotationZ']) ? $current_model_data['rotationZ'] : 0.0;
-    $scale = isset($current_model_data['scale']) ? $current_model_data['scale'] : 1.0;
+    $pos_x = isset($current_model_data['positionX']) ? round($current_model_data['positionX'], 2) : 0.0;
+    $pos_y = isset($current_model_data['positionY']) ? round($current_model_data['positionY'], 2) : 0.0;
+    $pos_z = isset($current_model_data['positionZ']) ? round($current_model_data['positionZ'], 2) : 0.0;
+    $rot_x = isset($current_model_data['rotationX']) ? round($current_model_data['rotationX'], 2) : 0.0;
+    $rot_y = isset($current_model_data['rotationY']) ? round($current_model_data['rotationY'], 2) : 0.0;
+    $rot_z = isset($current_model_data['rotationZ']) ? round($current_model_data['rotationZ'], 2) : 0.0;
+    $scale = isset($current_model_data['scale']) ? round($current_model_data['scale'], 2) : 1.0;
 
     // You would do this for all other model-specific fields like modelUrl, loopActive, etc.
     $model_url = isset($current_model_data['modelUrl']) ? $current_model_data['modelUrl'] : '';

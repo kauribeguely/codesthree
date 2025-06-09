@@ -768,7 +768,7 @@ function toggleCamera()
                 controls.attach(newThreeJsObject);
                 controls.setSpace('local');
                 // Ensure controls are in the scene (might be redundant if always there)
-                scene.add(controls);
+                // scene.add(controls);
             }
 
             // --- Crucially, update the hidden JSON field for saving ---
@@ -808,6 +808,8 @@ function toggleCamera()
 
     function round(value, precision) {
         var multiplier = Math.pow(10, precision || 0);
+        const ret = Math.round(value * multiplier) / multiplier;
+        console.log(ret);
         return Math.round(value * multiplier) / multiplier;
     }
 
@@ -823,7 +825,7 @@ function toggleCamera()
         rot = new THREE.Euler().setFromQuaternion(fullLoopGroup.quaternion); // Handle group rotation correctly
         // scale = objGroup.scale;
         sceneData.loopGroupScale = fullLoopGroup.scale;
-        loopGroupScaleInput.value = round(fullLoopGroup.scale.x, 2);;
+        loopGroupScaleInput.value = round(fullLoopGroup.scale.x, 2);
         // if(controls.mode === "scale" || groupControls.mode === "scale")
         // {
         //   refreshLoop();
@@ -840,6 +842,9 @@ function toggleCamera()
       posXInput.value = pos.x.toFixed(2);
       posYInput.value = pos.y.toFixed(2);
       posZInput.value = pos.z.toFixed(2);
+      // posXInput.value = round(pos.x, 0.1).toFixed(2);
+      // posYInput.value = round(pos.y, 0.1).toFixed(2);
+      // posZInput.value = round(pos.z, 0.1).toFixed(2);
 
       
       
@@ -852,9 +857,9 @@ function toggleCamera()
       //why only in here?
       if (isTransforming) {
         // Update rotation fields (converted from radians to degrees)
-        rotXInput.value = THREE.MathUtils.radToDeg(rot.x).toFixed(2);
-        rotYInput.value = THREE.MathUtils.radToDeg(rot.y).toFixed(2);
-        rotZInput.value = THREE.MathUtils.radToDeg(rot.z).toFixed(2);
+        rotXInput.value = round(THREE.MathUtils.radToDeg(rot.x)).toFixed(2);
+        rotYInput.value = round(THREE.MathUtils.radToDeg(rot.y)).toFixed(2);
+        rotZInput.value = round(THREE.MathUtils.radToDeg(rot.z)).toFixed(2);
         
 
         // sceneData.rotationX = THREE.MathUtils.radToDeg(rot.x).toFixed(2);
@@ -875,22 +880,22 @@ function toggleCamera()
         
       }
       
-      rotXInput.value = THREE.MathUtils.radToDeg(rot.x).toFixed(2);
-      rotYInput.value = THREE.MathUtils.radToDeg(rot.y).toFixed(2);
-      rotZInput.value = THREE.MathUtils.radToDeg(rot.z).toFixed(2);
+      rotXInput.value = round(THREE.MathUtils.radToDeg(rot.x)).toFixed(2);
+        rotYInput.value = round(THREE.MathUtils.radToDeg(rot.y)).toFixed(2);
+        rotZInput.value = round(THREE.MathUtils.radToDeg(rot.z)).toFixed(2);
       
       scaleInput.value = round(scale.x, 2);
       // sceneData.scale = round(scale.x, 2);
       
-      modelConfigInstance.position.copy(selectedObj.position);
-      modelConfigInstance.rotation.copy(selectedObj.rotation);
-      modelConfigInstance.scale.copy(selectedObj.scale);
+      modelConfigInstance.position.copy(selectedObj.position.toFixed(2));
+      modelConfigInstance.rotation.copy(selectedObj.rotation.toFixed(2));
+      modelConfigInstance.scale.copy(selectedObj.scale.toFixed(2));
       const existingModelIndex = allModels.findIndex(m => m.modelId === modelConfigInstance.modelId);
 
       if (existingModelIndex !== -1) {
           // Replace the old plain object with the updated one from our ModelConfig instance.
           allModels[existingModelIndex] = modelConfigInstance.toPlainObject();
-          console.log(`Updated model config for ID: ${modelConfigInstance.modelId} in sceneData.models.`);
+          // console.log(`Updated model config for ID: ${modelConfigInstance.modelId} in sceneData.models.`);
       }
 
       updateSaveField();
@@ -1304,14 +1309,15 @@ function transformDragEnd(){
         renderer.setSize(container.clientWidth, container.clientHeight);
       }
 
-      window.onmousedown = function()
+      window.onmousedown = function(e)
       {
+        selectObjWithClick(e);
+
         mouseDown = true;
       }
 
       window.onmouseup = function(e)
       {
-        selectObjWithClick(e);
         mouseDown = false;
       }
 
@@ -1331,7 +1337,7 @@ function transformDragEnd(){
         // 3. Find intersecting objects.
         //    Only intersect with objects you want to be selectable.
         //    `modelsInScene` should contain your top-level loaded models/groups.
-        const intersects = raycaster.intersectObjects(allModels, true); // `true` for recursive (checks children)
+        const intersects = raycaster.intersectObjects(allThreeJsObj, true); // `true` for recursive (checks children)
 
         // Check if TransformControls is active/dragging. If so, don't re-select.
         // This is important to prevent accidental re-selection when trying to drag an object.
@@ -1351,7 +1357,7 @@ function transformDragEnd(){
             // This is crucial because `TransformControls` needs to attach to the top-level group/model.
             let selectableObject = null;
             while (clickedObject) {
-                if (allModels.includes(clickedObject)) {
+                if (allThreeJsObj.includes(clickedObject)) {
                     selectableObject = clickedObject;
                     break;
                 }
@@ -1374,7 +1380,7 @@ function transformDragEnd(){
             // No object was clicked, so deselect the current one (optional)
             if (selectedObj) {
                 console.log("Clicked empty space. Deselecting object.");
-                controls.detach();
+                // controls.detach();
                 controls.visible = false;
                 controls.enabled = false;
                 // selectedObj = null;
