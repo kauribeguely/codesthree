@@ -283,7 +283,7 @@ window.onload = () =>
     // sceneData.positionX = parseFloat(posXInput.value);
     // console.log(allModels);
     // transformObjectToSceneData(fullLoopGroup);
-    selectedObj.userData.modelConfigRef.position.x = parseFloat(posXInput.value);
+    selectedObjData.position.x = parseFloat(posXInput.value);
     transformObjectToSceneData(selectedObj);
   };
 
@@ -293,7 +293,7 @@ window.onload = () =>
 
       // // transformObjectToSceneData(fullLoopGroup);
       // transformObjectToSceneData(selectedObj);
-    selectedObj.userData.modelConfigRef.position.y = parseFloat(posYInput.value);
+    selectedObjData.position.y = parseFloat(posYInput.value);
     transformObjectToSceneData(selectedObj);
   
   };
@@ -304,7 +304,7 @@ window.onload = () =>
 
       // // transformObjectToSceneData(fullLoopGroup);
       // transformObjectToSceneData(selectedObj);
-    selectedObj.userData.modelConfigRef.position.z = parseFloat(posZInput.value);
+    selectedObjData.position.z = parseFloat(posZInput.value);
     transformObjectToSceneData(selectedObj);
   };
 
@@ -317,33 +317,36 @@ window.onload = () =>
 
 
   rotXInput.oninput = () => {
-      model.rotation.x = THREE.MathUtils.degToRad(parseFloat(rotXInput.value) || 0);
-      model.rotation.x = THREE.MathUtils.degToRad(parseFloat(rotXInput.value) || 0);
+      // model.rotation.x = THREE.MathUtils.degToRad(parseFloat(rotXInput.value) || 0);
+ 
+      // sceneData.rotationX = parseFloat(rotXInput.value);
+      // initialRotationX = sceneData.rotationX;
 
-      sceneData.rotationX = parseFloat(rotXInput.value);
-      initialRotationX = sceneData.rotationX;
-      transformObjectToSceneData(fullLoopGroup);
-      transformObjectToSceneData(model);
+      selectedObjData.rotation.x = THREE.MathUtils.degToRad(parseFloat(rotXInput.value) || 0);
+      // transformObjectToSceneData(fullLoopGroup);
+      transformObjectToSceneData(selectedObj);
   };
 
   rotYInput.oninput = () => {
-      model.rotation.y = THREE.MathUtils.degToRad(parseFloat(rotYInput.value) || 0);
-      model.rotation.y = THREE.MathUtils.degToRad(parseFloat(rotYInput.value) || 0);
+      // model.rotation.y = THREE.MathUtils.degToRad(parseFloat(rotYInput.value) || 0);
 
-      sceneData.rotationY = parseFloat(rotYInput.value);
-      initialRotationY = sceneData.rotationY;
-      transformObjectToSceneData(fullLoopGroup);
-      transformObjectToSceneData(model);
+      // sceneData.rotationY = parseFloat(rotYInput.value);
+      // initialRotationY = sceneData.rotationY;
+      // transformObjectToSceneData(fullLoopGroup);
+      selectedObjData.rotation.y = THREE.MathUtils.degToRad(parseFloat(rotYInput.value) || 0);
+
+      transformObjectToSceneData(selectedObj);
   };
 
   rotZInput.oninput = () => {
-      model.rotation.z = THREE.MathUtils.degToRad(parseFloat(rotZInput.value) || 0);
-      model.rotation.z = THREE.MathUtils.degToRad(parseFloat(rotZInput.value) || 0);
+      // model.rotation.z = THREE.MathUtils.degToRad(parseFloat(rotZInput.value) || 0);
 
-      sceneData.rotationZ = parseFloat(rotZInput.value);
-      initialRotationZ = sceneData.rotationZ;
-      transformObjectToSceneData(fullLoopGroup);
-      transformObjectToSceneData(model);
+      // sceneData.rotationZ = parseFloat(rotZInput.value);
+      // initialRotationZ = sceneData.rotationZ;
+      // transformObjectToSceneData(fullLoopGroup);
+      selectedObjData.rotation.z = THREE.MathUtils.degToRad(parseFloat(rotZInput.value) || 0);
+
+      transformObjectToSceneData(selectedObj);
   };
 
 
@@ -351,8 +354,11 @@ window.onload = () =>
   const scaleInput = document.getElementById('codes_scale');
   scaleInput.oninput = () =>
   {
-    model.scale.set(scaleInput.value, scaleInput.value, scaleInput.value);
-    sceneData.scale = scaleInput.value;
+    selectedObjData.scale.setScalar(parseFloat(scaleInput.value));
+    transformObjectToSceneData(selectedObj);
+    
+    // model.scale.set(scaleInput.value, scaleInput.value, scaleInput.value);
+    // sceneData.scale = scaleInput.value;
     if(sceneData.loopActive)
     {
       refreshLoop();
@@ -577,7 +583,7 @@ function toggleCamera()
     scene.add(controls);
       
 
-    let selectedObj; //override model
+    let selectedObj, selectedObjData; //override model
     // let allModels = [];
     let model, loopGroup;
 
@@ -764,6 +770,7 @@ function toggleCamera()
 
             // Add the new Three.js object to our active tracking array and the scene.
             selectedObj = newThreeJsObject;
+            selectedObjData = modelConfigInstance;
             allThreeJsObj.push(newThreeJsObject);
             scene.add(newThreeJsObject);
 
@@ -1071,7 +1078,7 @@ function transformDragEnd(){
       // function transformObjectToSceneData(object, objData)
       function transformObjectToSceneData(object)
       {
-        const objData = selectedObj.userData.modelConfigRef;
+        const objData = selectedObjData;
         object.position.set(
             parseFloat(objData.position.x),
             parseFloat(objData.position.y),
@@ -1083,6 +1090,8 @@ function transformDragEnd(){
             parseFloat(objData.rotation.y),
             parseFloat(objData.rotation.z)
         );
+
+        object.scale.copy(objData.scale);
 
         // object.position.set(
         //     parseFloat(objData.positionX),
@@ -1440,6 +1449,7 @@ function transformDragEnd(){
       function selectModelForEditing(obj)
       {
         selectedObj = obj;
+        selectedObjData = selectedObj.userData.modelConfigRef;
         controls.attach(selectedObj);
       }
 
