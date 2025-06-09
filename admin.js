@@ -74,6 +74,7 @@ window.onload = () =>
   //allSceneData = This is set via main php file, contains globalSettings and models
   let sceneData = allSceneData.globalSettings;
   let allModels = allSceneData.models;
+  
   let allThreeJsObj = [];
   // let globalSettings = allSceneData.globalSettings;
   console.log('Admin JS Codes 3D started');
@@ -493,6 +494,8 @@ function toggleCamera()
 
     let isoZoom = 250;
     const scene = new THREE.Scene();
+    let rotateGroup = new THREE.Group();
+    scene.add(rotateGroup);
     let camera;
     const perspectiveCamera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
     const orthoCamera = new THREE.OrthographicCamera( container.clientWidth / - isoZoom, container.clientWidth / isoZoom, container.clientHeight / isoZoom, container.clientHeight / - isoZoom, 1, 1000 );
@@ -772,7 +775,8 @@ function toggleCamera()
             selectedObj = newThreeJsObject;
             selectedObjData = modelConfigInstance;
             allThreeJsObj.push(newThreeJsObject);
-            scene.add(newThreeJsObject);
+            // scene.add(newThreeJsObject);
+            rotateGroup.add(newThreeJsObject);
 
             // Update the globally selected object (if applicable for UI/TransformControls).
             // This is often done externally after this function resolves.
@@ -1025,9 +1029,13 @@ function transformDragEnd(){
               currentRotation.y = THREE.MathUtils.lerp(currentRotation.y, targetRotation.y, easing);
               currentRotation.z = THREE.MathUtils.lerp(currentRotation.z, targetRotation.z, easing);
 
-              scene.rotation.x = currentRotation.x;
-              scene.rotation.y = currentRotation.y;
-              scene.rotation.z = currentRotation.z;
+              rotateGroup.rotation.x = currentRotation.x;
+              rotateGroup.rotation.y = currentRotation.y;
+              rotateGroup.rotation.z = currentRotation.z;
+
+              // scene.rotation.x = currentRotation.x;
+              // scene.rotation.y = currentRotation.y;
+              // scene.rotation.z = currentRotation.z;
 
               fullLoopGroup.rotation.x = currentRotation.x;
               fullLoopGroup.rotation.y = currentRotation.y;
@@ -1306,7 +1314,6 @@ function transformDragEnd(){
     // Render loop
     function animate() {
         requestAnimationFrame(animate);
-
         renderer.render(scene, camera);
         // if(orbitActive) orbit.update(); // Call controls.update() in the animation loop
     }

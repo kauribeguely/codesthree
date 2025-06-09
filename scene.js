@@ -42,6 +42,8 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
 
 
     const scene = new THREE.Scene();
+    let rotateGroup = new THREE.Group();
+    scene.add(rotateGroup);
     let camera;
     const perspectiveCamera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
 
@@ -153,8 +155,8 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
           const newThreeJsObject = gltf.scene;
           lastAddedObject = newThreeJsObject;
           // model = gltf.scene;
-
-          scene.add(newThreeJsObject);
+          
+          rotateGroup.add(newThreeJsObject);
 
 
           lastAddedObject.position.set(
@@ -200,7 +202,11 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
     {
        requestAnimationFrame(animate);
        renderer.render(scene, camera);
-       sphereGroup.rotation.y += 0.02; // Rotate the entire group
+       
+      // rotateGroup.rotation.y += 0.01;
+      // console.log(rotateGroup.rotation.y);
+
+      //  sphereGroup.rotation.y += 0.02; // Rotate the entire group
    };
      animate();
 
@@ -230,19 +236,21 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
       currentRotation.y = THREE.MathUtils.lerp(currentRotation.y, targetRotation.y, easing);
       currentRotation.z = THREE.MathUtils.lerp(currentRotation.z, targetRotation.z, easing);
 
-      if(loopActive)
-      {
-        fullLoopGroup.rotation.x = currentRotation.x;
-        fullLoopGroup.rotation.y = currentRotation.y;
-        fullLoopGroup.rotation.z = currentRotation.z;
-      }
-      else
-      {
-        scene.rotation.x = currentRotation.x;
-        scene.rotation.y = currentRotation.y;
-        scene.rotation.z = currentRotation.z;
-      }
-      console.log(scene.rotation.y);
+      // if(loopActive)
+      // {
+      //   fullLoopGroup.rotation.x = currentRotation.x;
+      //   fullLoopGroup.rotation.y = currentRotation.y;
+      //   fullLoopGroup.rotation.z = currentRotation.z;
+      // }
+      // else
+      // {
+        // const rotCalc = THREE.MathUtils.degToRad(initialRotationX + -mouseY * mouseRotationX);
+        // rotateGroup.rotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * mouseRotationX);
+        rotateGroup.rotation.x = currentRotation.x;
+        rotateGroup.rotation.y = currentRotation.y;
+        rotateGroup.rotation.z = currentRotation.z;
+      // }
+      // console.log(rotCalc, mouseY, rotateGroup.rotation.x, mouseRotationX, initialRotationX, mouseAnimationLink);
 
       // console.log(initialRotationX + mouseY * rotationRange);
     };
