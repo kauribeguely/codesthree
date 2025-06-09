@@ -109,8 +109,9 @@ window.onload = () =>
   let mouseRotationY = sceneData.mouseRotationY || 0; // Maximum rotation range in degrees
   let mouseRotationZ = sceneData.mouseRotationZ || 0; // Maximum rotation range in degrees
 
-  let mouseAnimationLink = sceneData.mouseAnimationLink === 'on';
-  let scrollAnimationLink = sceneData.scrollAnimationLink === 'on';
+  let mouseAnimationLink = sceneData.mouseAnimationLink;
+  mouseAnimationLinkInput.checked = mouseAnimationLink;
+  let scrollAnimationLink = sceneData.scrollAnimationLink;
 
   const lightIntensityInput = document.getElementById('lightIntensity');
   const lightPosXInput = document.getElementById('lightPosX');
@@ -187,14 +188,13 @@ window.onload = () =>
   function updateDLightPos()
   {
     dlight.position.set(sceneData.lightPosX, sceneData.lightPosY, sceneData.lightPosZ);
-    updateSaveField();
   }
 
   useEnvLightInput.oninput = () => {
-      sceneData.useEnvLight = useEnvLightInput.checked;
+      
       useEnvLight = useEnvLightInput.checked;
       updateEnvTexture();
-      updateSaveField();
+      
   };
 
   function updateEnvTexture()
@@ -212,39 +212,27 @@ window.onload = () =>
   // oninput for scroll move values
   scrollXInput.oninput = () => {
     scrollMoveX = parseFloat(scrollXInput.value) || 0;
-    sceneData.scrollMoveX = parseFloat(scrollXInput.value);
-    updateSaveField();
   };
 
   scrollYInput.oninput = () => {
     scrollMoveY = parseFloat(scrollYInput.value) || 0;
-    sceneData.scrollMoveY = parseFloat(scrollYInput.value);
-    updateSaveField();
   };
 
   scrollZInput.oninput = () => {
     scrollMoveZ = parseFloat(scrollZInput.value) || 0;
-    sceneData.scrollMoveZ = parseFloat(scrollZInput.value);
-    updateSaveField();
   };
 
   // oninput for mouse rotation values
   mouseRotXInput.oninput = () => {
     mouseRotationX = parseFloat(mouseRotXInput.value) || 0;
-
-
   };
 
   mouseRotYInput.oninput = () => {
     mouseRotationY = parseFloat(mouseRotYInput.value) || 0;
-
-
   };
 
   mouseRotZInput.oninput = () => {
     mouseRotationZ = parseFloat(mouseRotZInput.value) || 0;
-
-
   };
 
   // oninput for toggle (checkbox)
@@ -368,7 +356,7 @@ window.onload = () =>
   let loopCountY = sceneData.loopCountY || 3;
   let loopCountZ = sceneData.loopCountZ || 3;
   let itemSpacing = sceneData.itemSpacing || 1.0;
-  let isOrthoCamera = sceneData.isOrthoCamera === 'on';
+  let isOrthoCamera = sceneData.isOrthoCamera;
 
   const loopActiveInput = document.getElementById('loopActive');
   const loopCountXInput = document.getElementById('loopCountX');
@@ -1405,6 +1393,35 @@ function transformDragEnd(){
         controls.attach(selectedObj);
       }
 
+
+    const wpPostForm = document.getElementById('post'); // The main post/page edit form
+    const wpSaveDraftButton = document.getElementById('save-post'); // The "Save Draft" button
+    const wpPublishButton = document.getElementById('publish'); // The "Publish" or "Update" button
+
+    if (wpPostForm) {
+        wpPostForm.addEventListener('submit', updateDataFromUi);
+    }
+
+    if (wpSaveDraftButton) {
+        wpSaveDraftButton.addEventListener('click', updateDataFromUi);
+    }
+    if (wpPublishButton) {
+        wpPublishButton.addEventListener('click', updateDataFromUi);
+    }
+
+      function updateDataFromUi()
+      {
+        console.log('saving');
+        sceneData.scrollMoveX = parseFloat(scrollXInput.value);
+        sceneData.scrollMoveY = parseFloat(scrollYInput.value);
+        sceneData.scrollMoveZ = parseFloat(scrollZInput.value);
+        sceneData.mouseRotationX = parseFloat(mouseRotXInput.value);
+        sceneData.mouseRotationY = parseFloat(mouseRotYInput.value);
+        sceneData.mouseRotationZ = parseFloat(mouseRotZInput.value);
+        sceneData.mouseAnimationLink = mouseAnimationLinkInput.checked;
+        sceneData.useEnvLight = useEnvLightInput.checked;
+        updateSaveField();
+      }
 
       function updateSaveField()
       {
