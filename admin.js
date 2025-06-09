@@ -161,7 +161,8 @@ window.onload = () =>
   // let lightPosX = sceneData.lightPosX || 0;
   // let lightPosY = sceneData.lightPosY || 10;
   // let lightPosZ = sceneData.lightPosZ || 0;
-  let useEnvLight = sceneData.useEnvLight  === 'on';
+  let useEnvLight = sceneData.useEnvLight;
+  useEnvLightInput.checked = useEnvLight;
   // let loopGroupScale = sceneData.loopGroupScale || 1.0;
 
   // directionalLightIntensityInput.oninput = () => {
@@ -191,8 +192,9 @@ window.onload = () =>
 
   useEnvLightInput.oninput = () => {
       sceneData.useEnvLight = useEnvLightInput.checked;
-      useEnvLight = useEnvLightInput.checked;;
+      useEnvLight = useEnvLightInput.checked;
       updateEnvTexture();
+      updateSaveField();
   };
 
   function updateEnvTexture()
@@ -210,14 +212,20 @@ window.onload = () =>
   // oninput for scroll move values
   scrollXInput.oninput = () => {
     scrollMoveX = parseFloat(scrollXInput.value) || 0;
+    sceneData.scrollMoveX = parseFloat(scrollXInput.value);
+    updateSaveField();
   };
 
   scrollYInput.oninput = () => {
     scrollMoveY = parseFloat(scrollYInput.value) || 0;
+    sceneData.scrollMoveY = parseFloat(scrollYInput.value);
+    updateSaveField();
   };
 
   scrollZInput.oninput = () => {
     scrollMoveZ = parseFloat(scrollZInput.value) || 0;
+    sceneData.scrollMoveZ = parseFloat(scrollZInput.value);
+    updateSaveField();
   };
 
   // oninput for mouse rotation values
@@ -808,8 +816,6 @@ function toggleCamera()
 
     function round(value, precision) {
         var multiplier = Math.pow(10, precision || 0);
-        const ret = Math.round(value * multiplier) / multiplier;
-        console.log(ret);
         return Math.round(value * multiplier) / multiplier;
     }
 
