@@ -951,6 +951,7 @@ function transformDragEnd(){
     const mediaButton = document.getElementById('threejs_model_url_button');
     const popupMediaButton = document.getElementById('popup_media_button');
     const addModelButton = document.getElementById('add_model_button');
+    const deleteModelButton = document.getElementById('delete_model_button');
     const popup = document.getElementById('newScenePopup');
     const modelUrlField = document.getElementById('threejs_model_url');
     const preview = document.getElementById('threejs_model_url_preview');
@@ -958,6 +959,9 @@ function transformDragEnd(){
 
     let popupOpen = false;
     //TODO: check whether it's replace selected url or add new model
+    deleteModelButton.addEventListener('click', deleteObject);
+
+
     popupMediaButton.addEventListener('click', function (e) {
       e.preventDefault();
       mediaUploader.open();
@@ -1475,6 +1479,69 @@ function transformDragEnd(){
     }
     if (wpPublishButton) {
         wpPublishButton.addEventListener('click', updateDataFromUi);
+    }
+
+    function deleteObject()
+    {
+      const threeJsObjectIndex = allThreeJsObj.indexOf(selectedObj);
+
+      if (threeJsObjectIndex === -1) {
+          console.warn("Selected Three.js object not found in allThreeJsObj array.");
+          return;
+      }
+
+      // 2. Get the modelId from the corresponding modelConfigInstance in allModels
+      const modelConfigToDelete = allModels[threeJsObjectIndex];
+
+      if (!modelConfigToDelete || !modelConfigToDelete.modelId) {
+          console.error("Corresponding model configuration or modelId not found for the selected Three.js object.");
+          return;
+      }
+
+      const modelIdToDelete = modelConfigToDelete.modelId;
+
+      // 3. Find the index in allModels using the modelId
+      const modelConfigIndex = allModels.findIndex(m => m.modelId === modelIdToDelete);
+
+      if (modelConfigIndex === -1) {
+          console.warn("Corresponding model configuration not found in allModels array.");
+          return;
+      }
+
+      // 4. Remove from the Three.js scene
+      if (rotateGroup && selectedObj instanceof THREE.Object3D) { // Ensure 'scene' is a Three.js scene and 'selectedObj' is a Three.js object
+          rotateGroup.remove(selectedObj);
+          console.log(`Removed object from scene: ${selectedObj.name || selectedObj.uuid}`);
+      } else {
+          console.warn("Three.js scene not provided or selectedObj is not a valid Three.js object. Object might not be removed from the scene.");
+      }
+
+      // 5. Remove from allThreeJsObj
+      allThreeJsObj.splice(threeJsObjectIndex, 1);
+      console.log(`Removed Three.js object from allThreeJsObj at index ${threeJsObjectIndex}`);
+
+      // 6. Remove from allModels
+      allModels.splice(modelConfigIndex, 1);
+      console.log(`Removed model config from allModels at index ${modelConfigIndex} (modelId: ${modelIdToDelete})`);
+
+      // Optional: Dispose of Three.js geometry, material, and textures
+      // This is crucial to prevent memory leaks, especially if you load many models.
+      if (selectedObj.geometry) {
+          selectedObj.geometry.dispose();
+          console.log(`Disposed geometry for object: ${selectedObj.name || selectedObj.uuid}`);
+      }
+      if (selectedObj.material) {
+          // If material is an array of materials
+          if (Array.isArray(selectedObj.material)) {
+              selectedObj.material.forEach(material => material.dispose());
+          } else {
+              selectedObj.material.dispose();
+          }
+          console.log(`Disposed material(s) for object: ${selectedObj.name || selectedObj.uuid}`);
+      }
+
+      const lastObjectInList = allThreeJsObj[allThreeJsObj.length - 1];
+      selectModelForEditing(lastObjectInList);
     }
 
       function updateDataFromUi()

@@ -840,7 +840,8 @@ function threejs_editor_page($post) {
 
 
           <button type="button" class="button" id="add_model_button">Add Model</button>
-          
+          <button type="button" class="button" id="delete_model_button">Delete</button>
+
             <strong>Position</strong>
             <div class="transform-group">
               <div class="transform-field">
