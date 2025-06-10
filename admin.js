@@ -113,6 +113,7 @@ window.onload = () =>
   let mouseAnimationLink = sceneData.mouseAnimationLink;
   mouseAnimationLinkInput.checked = mouseAnimationLink;
   let scrollAnimationLink = sceneData.scrollAnimationLink;
+  scrollAnimationLinkInput.checked = scrollAnimationLink;
 
   const lightIntensityInput = document.getElementById('lightIntensity');
   const lightPosXInput = document.getElementById('lightPosX');
@@ -380,6 +381,7 @@ window.onload = () =>
   const loopCountZInput = document.getElementById('loopCountZ');
   const itemSpacingInput = document.getElementById('itemSpacing');
   const isOrthoCameraInput = document.getElementById('isOrthoCamera');
+  isOrthoCameraInput.checked = isOrthoCamera;
 
 
 loopActiveInput.oninput = () =>
@@ -524,10 +526,13 @@ function toggleCamera()
     const dlight = new THREE.DirectionalLight(0xffffff, 1);
     let dlightIntensity = sceneData.directionalLightIntensity;
     dlight.position.set(sceneData.lightPosX, sceneData.lightPosY, sceneData.lightPosZ);
+    dlight.intensity = dlightIntensity;
     scene.add(dlight);
 
     const alight = new THREE.AmbientLight(0xffffff, 1);
     let alightIntensity = sceneData.ambientLightIntensity;
+    alight.intensity = alightIntensity;
+
     // alight.position.set(5, 5, 5);
     scene.add(alight);
 
@@ -544,14 +549,12 @@ function toggleCamera()
         alight.intensity = parseFloat(ambientLightSlider.value);
         setLightIntensity(alight, ambientLightSlider.value);
         lightValue.textContent = ambientLightSlider.value;
-        updateDataFromUi();
     });
 
     directionalLightSlider.addEventListener('input', function() {
         dlight.intensity = parseFloat(directionalLightSlider.value);
         setLightIntensity(dlight, directionalLightSlider.value);
         dirLightValue.textContent = directionalLightSlider.value;
-        updateDataFromUi();
     });
 
     function setLightIntensity(light, intensity)
@@ -1486,7 +1489,9 @@ function transformDragEnd(){
         sceneData.ambientLightIntensity = parseFloat(ambientLightSlider.value);
         sceneData.directionalLightIntensity = parseFloat(directionalLightSlider.value);
         sceneData.mouseAnimationLink = mouseAnimationLinkInput.checked;
+        sceneData.scrollAnimationLink = scrollAnimationLinkInput.checked;
         sceneData.useEnvLight = useEnvLightInput.checked;
+        sceneData.isOrthoCamera = isOrthoCameraInput.checked;
         updateSaveField();
       }
 
