@@ -67,6 +67,8 @@ class ModelConfig {
 }
 
 
+let keyXRot = false, keyYRot = false, keyZRot = false;
+
 // document.addEventListener('DOMContentLoaded', () => {
 window.onload = () =>
 {
@@ -1025,7 +1027,7 @@ function transformDragEnd(){
           targetRotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * mouseRotationY);
           targetRotation.z = THREE.MathUtils.degToRad(initialRotationZ + -mouseX * mouseRotationZ);
 
-          if (mouseAnimationLink && !isTransforming) {
+          if (mouseAnimationLink && !(isTransforming || keyXRot || keyYRot || keyZRot)) {
               // Smoothly interpolate to the target rotation
               // const easing = 0.1; // Adjust this value for speed (lower = slower)
               const easing = 0.1 + (1 - 0.1) * 0.05; // Increase easing slightly on each move to simulate ease-out.  Adjust 0.05 for strength.
@@ -1330,7 +1332,16 @@ function transformDragEnd(){
     // Optional: Enable drag interaction with the transform controls
     window.addEventListener('keydown', (event) => {
         switch (event.key) {
-            case 't': // Translate mode
+          case 'q': 
+                keyXRot = true;
+                break;  
+          case 'w': 
+                keyYRot = true;
+                break;  
+          case 'e': 
+                keyZRot = true;
+                break;  
+          case 't': // Translate mode
                 setTransformMode('translate');
                 break;
             case 'r': // Rotate mode
@@ -1353,6 +1364,50 @@ function transformDragEnd(){
                 break;
         }
     });
+
+    window.addEventListener('keyup', (event) => {
+      switch (event.key) {
+        case 'q': 
+              keyXRot = false;
+              break;  
+        case 'w': 
+              keyYRot = false;
+              break;  
+        case 'e': 
+              keyZRot = false;
+              break;
+      }
+    });
+
+
+    document.addEventListener('wheel', function(e)
+    {
+      if(keyXRot || keyYRot || keyZRot) 
+      {
+        e.preventDefault();
+      }
+      if(e.wheelDelta > 0) //scroll up, away,
+      {
+        
+        // if(keyZTrans) selectedObj.position[2] -= 40;
+        if(keyXRot) selectedObjData.rotation.x -= THREE.MathUtils.degToRad(5);
+        if(keyYRot) selectedObjData.rotation.y -= THREE.MathUtils.degToRad(5);
+        if(keyZRot) selectedObjData.rotation.z -= THREE.MathUtils.degToRad(5);
+        // if(keyScale) selectedObj.size -= 1;
+        // scrollDirection = 'Scroll Up';
+        transformObjectToSceneData(selectedObj);
+      }
+      else
+      {
+        // if(keyZTrans) selectedObj.position[2] += 40;
+        if(keyXRot) selectedObjData.rotation.x += THREE.MathUtils.degToRad(5);
+        if(keyYRot) selectedObjData.rotation.y += THREE.MathUtils.degToRad(5);
+        if(keyZRot) selectedObjData.rotation.z += THREE.MathUtils.degToRad(5);
+        // if(keyScale) selectedObj.size += 1;
+        // scrollDirection = 'Scroll Down';
+        transformObjectToSceneData(selectedObj);
+      }
+    }, { passive: false });
 
     function setTransformMode(mode)
     {
