@@ -174,10 +174,6 @@ window.onload = () =>
   useEnvLightInput.checked = useEnvLight;
   // let loopGroupScale = sceneData.loopGroupScale || 1.0;
 
-  // directionalLightIntensityInput.oninput = () => {
-  //   sceneData.directionalLightIntensity = parseFloat(directionalLightIntensityInput.value) || 1.0;
-  // };
-
   lightPosXInput.oninput = () => {
       sceneData.lightPosX = parseFloat(lightPosXInput.value) || 0;
       updateDLightPos();
@@ -548,12 +544,14 @@ function toggleCamera()
         alight.intensity = parseFloat(ambientLightSlider.value);
         setLightIntensity(alight, ambientLightSlider.value);
         lightValue.textContent = ambientLightSlider.value;
+        updateDataFromUi();
     });
 
     directionalLightSlider.addEventListener('input', function() {
         dlight.intensity = parseFloat(directionalLightSlider.value);
         setLightIntensity(dlight, directionalLightSlider.value);
         dirLightValue.textContent = directionalLightSlider.value;
+        updateDataFromUi();
     });
 
     function setLightIntensity(light, intensity)
@@ -837,25 +835,25 @@ function toggleCamera()
       let rot = selectedObj.rotation;
       let scale = selectedObj.scale;
 
-      if(sceneData.loopActive)
-      {
-        pos = fullLoopGroup.position;
-        // rot = objGroup.rotation;
-        rot = new THREE.Euler().setFromQuaternion(fullLoopGroup.quaternion); // Handle group rotation correctly
-        // scale = objGroup.scale;
-        sceneData.loopGroupScale = fullLoopGroup.scale;
-        loopGroupScaleInput.value = round(fullLoopGroup.scale.x, 2);
-        // if(controls.mode === "scale" || groupControls.mode === "scale")
-        // {
-        //   refreshLoop();
-        // }
-      }
-      else
-      {
-        // pos = model.position;
-        // rot = model.rotation;
-        // scale = model.scale;
-      }
+      // if(sceneData.loopActive)
+      // {
+      //   pos = fullLoopGroup.position;
+      //   // rot = objGroup.rotation;
+      //   rot = new THREE.Euler().setFromQuaternion(fullLoopGroup.quaternion); // Handle group rotation correctly
+      //   // scale = objGroup.scale;
+      //   sceneData.loopGroupScale = fullLoopGroup.scale;
+      //   loopGroupScaleInput.value = round(fullLoopGroup.scale.x, 2);
+      //   // if(controls.mode === "scale" || groupControls.mode === "scale")
+      //   // {
+      //   //   refreshLoop();
+      //   // }
+      // }
+      // else
+      // {
+      //   // pos = model.position;
+      //   // rot = model.rotation;
+      //   // scale = model.scale;
+      // }
 
       // Update position fields
       posXInput.value = pos.x.toFixed(2);
@@ -1485,6 +1483,8 @@ function transformDragEnd(){
         sceneData.mouseRotationX = parseFloat(mouseRotXInput.value);
         sceneData.mouseRotationY = parseFloat(mouseRotYInput.value);
         sceneData.mouseRotationZ = parseFloat(mouseRotZInput.value);
+        sceneData.ambientLightIntensity = parseFloat(ambientLightSlider.value);
+        sceneData.directionalLightIntensity = parseFloat(directionalLightSlider.value);
         sceneData.mouseAnimationLink = mouseAnimationLinkInput.checked;
         sceneData.useEnvLight = useEnvLightInput.checked;
         updateSaveField();
