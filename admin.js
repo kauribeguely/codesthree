@@ -1360,6 +1360,13 @@ function transformDragEnd(){
     // Optional: Enable drag interaction with the transform controls
     window.addEventListener('keydown', (event) => {
         switch (event.key) {
+          case 'a': 
+                if(event.altKey)
+                {
+                  mouseAnimationLinkInput.checked = !mouseAnimationLinkInput.checked;
+                  mouseAnimationLink = mouseAnimationLinkInput.checked;
+                }
+                break;  
           case 'q': 
                 keyXRot = true;
                 break;  
@@ -1380,8 +1387,16 @@ function transformDragEnd(){
                 setTransformMode('rotate');
                 break;
             case 's': // Scale mode
-                keyScale = true;
-                setTransformMode('scale');
+                if(event.ctrlKey)
+                {
+                  event.preventDefault();
+                  wpPublishButton.click();
+                }
+                else
+                {
+                  keyScale = true;
+                  setTransformMode('scale');
+                }                
                 break;
                 // dont allow scaling of group, must be set via single or input
                 // groupControls.setMode('scale');
@@ -1494,7 +1509,6 @@ function transformDragEnd(){
       window.onmouseup = function(e)
       {
         isDragging = false;
-        console.log(selectedObj.position);
         mouseDown = false;
         // console.log()
       }
@@ -1565,7 +1579,6 @@ function transformDragEnd(){
             } else {
               console.warn("Ray did not intersect the plane");
             }
-            console.log("Plane normal", plane.normal, "Click position", selectableObject.position);
 
 
 
