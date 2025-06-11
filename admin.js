@@ -73,6 +73,11 @@ let keyXRot = false, keyYRot = false, keyZRot = false;
 window.onload = () =>
 {
 
+  let plane = new THREE.Plane();
+  let isDragging = false;
+  let offset = new THREE.Vector3(); // To store the offset between click point and object center
+  let initialIntersectionPoint = new THREE.Vector3();
+
   //allSceneData = This is set via main php file, contains globalSettings and models
   let sceneData = allSceneData.globalSettings;
   let allModels = allSceneData.models;
@@ -1022,12 +1027,16 @@ function transformDragEnd(){
           const mouseX = (event.clientX / window.innerWidth) * 2 - 1;
           const mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
 
+          const rect = renderer.domElement.getBoundingClientRect();
+          mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+          mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
           // Calculate target rotation
           targetRotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * mouseRotationX);
           targetRotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * mouseRotationY);
           targetRotation.z = THREE.MathUtils.degToRad(initialRotationZ + -mouseX * mouseRotationZ);
 
-          if (mouseAnimationLink && !(isTransforming || keyXRot || keyYRot || keyZRot)) {
+          if (mouseAnimationLink && !(isTransforming || keyXRot || keyYRot || keyZRot || isDragging)) {
               // Smoothly interpolate to the target rotation
               // const easing = 0.1; // Adjust this value for speed (lower = slower)
               const easing = 0.1 + (1 - 0.1) * 0.05; // Increase easing slightly on each move to simulate ease-out.  Adjust 0.05 for strength.
@@ -1047,6 +1056,25 @@ function transformDragEnd(){
               fullLoopGroup.rotation.x = currentRotation.x;
               fullLoopGroup.rotation.y = currentRotation.y;
               fullLoopGroup.rotation.z = currentRotation.z;
+          }
+
+          if(isDragging)
+          {
+            raycaster.setFromCamera(mouse, camera);
+
+            // Project the new mouse position onto the plane
+            const newIntersectPoint = new THREE.Vector3();
+            raycaster.ray.intersectPlane(plane, newIntersectPoint);
+
+            const targetX = newIntersectPoint.x + offset.x;
+            const targetY = newIntersectPoint.y + offset.y;
+
+            // Apply the new X and Y, but keep the current Z
+            selectedObj.position.set(targetX, targetY, selectedObj.position.z);
+            updateTransforms();
+            // selectedObj.position.copy(newIntersectPoint).add(offset);
+            
+            // console.log(newIntersectPoint, offset);
           }
       };
       window.addEventListener('mousemove', onMouseMove);
@@ -1390,22 +1418,30 @@ function transformDragEnd(){
       {
         
         // if(keyZTrans) selectedObj.position[2] -= 40;
-        if(keyXRot) selectedObjData.rotation.x -= THREE.MathUtils.degToRad(5);
-        if(keyYRot) selectedObjData.rotation.y -= THREE.MathUtils.degToRad(5);
-        if(keyZRot) selectedObjData.rotation.z -= THREE.MathUtils.degToRad(5);
+        // if(keyXRot) selectedObjData.rotation.x -= THREE.MathUtils.degToRad(5);
+        // if(keyYRot) selectedObjData.rotation.y -= THREE.MathUtils.degToRad(5);
+        // if(keyZRot) selectedObjData.rotation.z -= THREE.MathUtils.degToRad(5);
+        if(keyXRot) selectedObj.rotation.x -= THREE.MathUtils.degToRad(5);
+        if(keyYRot) selectedObj.rotation.y -= THREE.MathUtils.degToRad(5);
+        if(keyZRot) selectedObj.rotation.z -= THREE.MathUtils.degToRad(5);
         // if(keyScale) selectedObj.size -= 1;
         // scrollDirection = 'Scroll Up';
-        transformObjectToSceneData(selectedObj);
+        // transformObjectToSceneData(selectedObj);
+        updateTransforms();
       }
       else
       {
         // if(keyZTrans) selectedObj.position[2] += 40;
-        if(keyXRot) selectedObjData.rotation.x += THREE.MathUtils.degToRad(5);
-        if(keyYRot) selectedObjData.rotation.y += THREE.MathUtils.degToRad(5);
-        if(keyZRot) selectedObjData.rotation.z += THREE.MathUtils.degToRad(5);
+        // if(keyXRot) selectedObjData.rotation.x += THREE.MathUtils.degToRad(5);
+        // if(keyYRot) selectedObjData.rotation.y += THREE.MathUtils.degToRad(5);
+        // if(keyZRot) selectedObjData.rotation.z += THREE.MathUtils.degToRad(5);
+        if(keyXRot) selectedObj.rotation.x += THREE.MathUtils.degToRad(5);
+        if(keyYRot) selectedObj.rotation.y += THREE.MathUtils.degToRad(5);
+        if(keyZRot) selectedObj.rotation.z += THREE.MathUtils.degToRad(5);
         // if(keyScale) selectedObj.size += 1;
         // scrollDirection = 'Scroll Down';
-        transformObjectToSceneData(selectedObj);
+        // transformObjectToSceneData(selectedObj);
+        updateTransforms();
       }
     }, { passive: false });
 
@@ -1434,17 +1470,19 @@ function transformDragEnd(){
 
       window.onmousedown = function(e)
       {
-        selectObjWithClick(e);
-
+        sceneOnMouseDown(e);
         mouseDown = true;
       }
 
       window.onmouseup = function(e)
       {
+        isDragging = false;
+        console.log(selectedObj.position);
         mouseDown = false;
+        // console.log()
       }
 
-      function selectObjWithClick(event)
+      function sceneOnMouseDown(event)
       {
         // 1. Calculate mouse position in normalized device coordinates (-1 to +1)
         //    relative to the viewport size.
@@ -1476,6 +1514,11 @@ function transformDragEnd(){
             controls.enabled = true;
             controls.visible = true;
 
+            isDragging = true;
+
+            // console.log('planePreNormal: ' + plane.position + " rot:" + plane.rotation);
+            
+
             // Find the top-level object in `modelsInScene` that this clicked object belongs to.
             // This is crucial because `TransformControls` needs to attach to the top-level group/model.
             let selectableObject = null;
@@ -1486,6 +1529,28 @@ function transformDragEnd(){
                 }
                 clickedObject = clickedObject.parent;
             }
+
+
+                        plane.setFromNormalAndCoplanarPoint(
+                camera.getWorldDirection(plane.normal), // Plane perpendicular to camera's view
+                clickedObject.position // Or the intersection point itself, if you want a different drag feel
+            );
+            
+            
+            // const intersectPoint = new THREE.Vector3();
+            raycaster.ray.intersectPlane(plane, initialIntersectionPoint);
+
+
+
+            const hit = raycaster.ray.intersectPlane(plane, initialIntersectionPoint);
+            if (hit) {
+              offset.copy(selectableObject.position).sub(initialIntersectionPoint);
+            } else {
+              console.warn("Ray did not intersect the plane");
+            }
+            console.log("Plane normal", plane.normal, "Click position", selectableObject.position);
+
+
 
               selectModelForEditing(selectableObject); // Call your existing selection function
 
