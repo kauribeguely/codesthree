@@ -103,9 +103,9 @@ window.onload = () =>
   const scrollYInput = document.getElementById('scrollMoveY');
   const scrollZInput = document.getElementById('scrollMoveZ');
   // Get the camera's initial position and the scroll movement values from sceneData
-  let scrollMoveX = sceneData.scrollMoveX || 2;
-  let scrollMoveY = sceneData.scrollMoveY || 2;
-  let scrollMoveZ = sceneData.scrollMoveZ || 2;
+  let scrollMoveX = sceneData.scrollMoveX;
+  let scrollMoveY = sceneData.scrollMoveY;
+  let scrollMoveZ = sceneData.scrollMoveZ;
 
   // Get the mouse rotation inputs
   const mouseRotXInput = document.getElementById('mouseRotationX');
@@ -797,9 +797,12 @@ function toggleCamera()
                 // scene.add(controls);
             }
 
+            if(allModels.length == allThreeJsObj.length)
+            {
+              updateObjectList();
+            }
             // --- Crucially, update the hidden JSON field for saving ---
             updateSaveField();
-
           // scene.add(controls);
           // // Listen for changes in the TransformControls
           // controls.addEventListener('change', updateTransforms);
@@ -1562,7 +1565,7 @@ function transformDragEnd(){
             }
 
 
-                        plane.setFromNormalAndCoplanarPoint(
+                plane.setFromNormalAndCoplanarPoint(
                 camera.getWorldDirection(plane.normal), // Plane perpendicular to camera's view
                 clickedObject.position // Or the intersection point itself, if you want a different drag feel
             );
@@ -1613,7 +1616,122 @@ function transformDragEnd(){
         selectedObj = obj;
         selectedObjData = selectedObj.userData.modelConfigRef;
         controls.attach(selectedObj);
+        highlightSelectedListItem(obj.uuid);
       }
+
+      // Get references to your HTML elements
+const objectListContainer = document.getElementById('objectListContainer');
+const sceneObjectList = document.getElementById('sceneObjectList');
+
+// Function to update the list of objects
+//TODO: only run after allModels.length amount of .load has run
+function updateObjectList() {
+    // Clear existing list items
+    sceneObjectList.innerHTML = '';
+
+    allThreeJsObj.forEach(obj => {
+        // Create the list item for each object
+        const listItem = document.createElement('li');
+        listItem.classList.add('object-list-item'); // Add a class for styling
+
+        // Get a display name for the object (use its 'name' property, or fallback to 'uuid')
+        // const objDisplayName = obj.name || obj.uuid.substring(0, 8); // Shorten UUID for display
+        const modelUrl = obj.userData.modelConfigRef.modelUrl;
+        const lastPart = modelUrl.split('/').pop();
+        const objDisplayName = lastPart; // Shorten UUID for display
+
+        // --- Create the clickable text (for selection) ---
+        const objectNameSpan = document.createElement('span');
+        objectNameSpan.textContent = objDisplayName;
+        objectNameSpan.classList.add('object-name-span');
+        objectNameSpan.style.cursor = 'pointer'; // Indicate it's clickable
+
+        // Attach the Three.js object directly to the DOM element for easy access
+        objectNameSpan.dataset.objectId = obj.uuid; // Store UUID for lookup
+
+        // --- Create the Eye button (for visibility toggle) ---
+        const eyeButton = document.createElement('button');
+        eyeButton.classList.add('eye-button');
+        eyeButton.textContent = '👁️'; // Eye emoji or an icon
+        eyeButton.style.background = 'none';
+        eyeButton.style.border = 'none';
+        eyeButton.style.color = 'white';
+        eyeButton.style.cursor = 'pointer';
+        eyeButton.style.fontSize = '1.2em';
+
+        // Set initial eye button state based on object visibility
+        if (!obj.visible) {
+            eyeButton.textContent = '🙈'; // Hidden eye emoji
+            eyeButton.style.color = 'gray'; // Indicate it's hidden
+        }
+
+        eyeButton.dataset.objectId = obj.uuid; // Store UUID for lookup
+
+
+        // Append elements to the list item
+        listItem.appendChild(objectNameSpan);
+        listItem.appendChild(eyeButton);
+
+        // Add to the main list
+        sceneObjectList.appendChild(listItem);
+
+        // Add click listener to the object name span
+        objectNameSpan.addEventListener('click', () => {
+            selectObjectFromList(obj.uuid); // Call our selection function
+        });
+
+        // Add click listener to the eye button
+        eyeButton.addEventListener('click', (e) => {
+          e.preventDefault(); // Prevents the default action (e.g., form submission, page reload)
+  
+          toggleObjectVisibility(obj.uuid, e.target); // Pass the button element to update its text
+        });
+    });
+}
+
+  // Function to select an object when its name in the list is clicked
+  function selectObjectFromList(uuid) {
+      const objToSelect = allThreeJsObj.find(obj => obj.uuid === uuid);
+      if (objToSelect) {
+          selectModelForEditing(objToSelect); // Use your existing selectModelForEditing function
+          // Optional: Add visual feedback to the list item itself
+          highlightSelectedListItem(uuid);
+      }
+  }
+
+  // Function to toggle object visibility
+  function toggleObjectVisibility(uuid, eyeButtonElement) {
+      const objToToggle = allThreeJsObj.find(obj => obj.uuid === uuid);
+      if (objToToggle) {
+          objToToggle.visible = !objToToggle.visible; // Toggle visibility
+
+          // Update the eye button's text/style
+          if (objToToggle.visible) {
+              eyeButtonElement.textContent = '👁️';
+              eyeButtonElement.style.color = 'white';
+          } else {
+              eyeButtonElement.textContent = '🙈';
+              eyeButtonElement.style.color = 'gray';
+          }
+      }
+  }
+
+  // Optional: Function to visually highlight the selected item in the list
+  function highlightSelectedListItem(uuid) {
+      // Remove highlight from previously selected
+      document.querySelectorAll('.object-list-item').forEach(item => {
+          item.style.fontWeight = 'normal';
+          item.style.backgroundColor = 'transparent';
+      });
+
+      // Add highlight to the new selection
+      const selectedItem = sceneObjectList.querySelector(`[data-object-id="${uuid}"]`).parentNode;
+      if (selectedItem) {
+          selectedItem.style.fontWeight = 'bold';
+          selectedItem.style.backgroundColor = 'rgba(255,255,255,0.2)';
+      }
+  }
+
 
 
     const wpPostForm = document.getElementById('post'); // The main post/page edit form
