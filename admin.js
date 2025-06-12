@@ -170,9 +170,22 @@ window.onload = () =>
   const toggleGizmoButton = document.getElementById('toggleGizmo');
   toggleGizmoButton.addEventListener('click', () => {
     gizmoVisible = !gizmoVisible;
+    setGizmoVisible(gizmoVisible);
+  });
+
+  function setGizmoVisible(visible)
+  {
+    gizmoVisible = visible;
     controls.visible = gizmoVisible;
     controls.enabled = gizmoVisible;
-  });
+    if(!visible)
+    {
+      document.querySelectorAll('.transModeButton').forEach(button => 
+      {
+        button.classList.remove('transButtonActive');
+      });
+    }
+  }
 
   function toggleVisibility(selector) {
           document.querySelector(selector).style.display = isControlsVisible ? 'flex' : 'none';
@@ -1412,7 +1425,10 @@ function transformDragEnd(){
             case 'r': // Rotate mode
                 setTransformMode('rotate');
                 break;
-            case 's': // Scale mode
+            case 'y': // Scale mode
+                setTransformMode('scale');
+                break;
+            case 's': // save and scroll scale
                 if(event.ctrlKey)
                 {
                   event.preventDefault();
@@ -1421,7 +1437,6 @@ function transformDragEnd(){
                 else
                 {
                   keyScale = true;
-                  setTransformMode('scale');
                 }                
                 break;
                 // dont allow scaling of group, must be set via single or input
@@ -1508,6 +1523,7 @@ function transformDragEnd(){
       if(e) e.preventDefault();
       controls.setMode(mode);
       groupControls.setMode(mode);
+      setGizmoVisible(true);
       if(mode != 'scale')
       {
         groupControls.setMode(mode);
