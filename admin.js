@@ -83,7 +83,6 @@ window.onload = () =>
   let allModels = allSceneData.models;
   
   let allThreeJsObj = [];
-  // let globalSettings = allSceneData.globalSettings;
   console.log('Admin JS Codes 3D started');
 
   let mouseDown = false;
@@ -136,9 +135,7 @@ window.onload = () =>
   const toggleButton = document.getElementById('toggleControls');
   let isControlsVisible = true;
   toggleButton.addEventListener('click', () => {
-      isControlsVisible = !isControlsVisible;
-
-      
+      isControlsVisible = !isControlsVisible;      
 
       toggleVisibility('.rightControls');
       toggleVisibility('.leftControls');
@@ -198,10 +195,6 @@ window.onload = () =>
     fullLoopGroup.scale.set(loopGroupScaleInput.value, loopGroupScaleInput.value, loopGroupScaleInput.value);
   };
 
-  // let lightIntensity = sceneData.lightIntensity || 1.0;
-  // let lightPosX = sceneData.lightPosX || 0;
-  // let lightPosY = sceneData.lightPosY || 10;
-  // let lightPosZ = sceneData.lightPosZ || 0;
   let useEnvLight = sceneData.useEnvLight;
   useEnvLightInput.checked = useEnvLight;
   // let loopGroupScale = sceneData.loopGroupScale || 1.0;
@@ -315,73 +308,37 @@ window.onload = () =>
   const posZInput = document.getElementById('threejs_position_z');
 
   posXInput.oninput = () => {
-    // model.position.x = parseFloat(posXInput.value) || 0;
-    // sceneData.positionX = parseFloat(posXInput.value);
-    // console.log(allModels);
-    // transformObjectToSceneData(fullLoopGroup);
     selectedObjData.position.x = parseFloat(posXInput.value);
     transformObjectToSceneData(selectedObj);
   };
 
   posYInput.oninput = () => {
-      // model.position.y = parseFloat(posYInput.value) || 0;
-      // sceneData.positionY = parseFloat(posYInput.value);
-
-      // // transformObjectToSceneData(fullLoopGroup);
-      // transformObjectToSceneData(selectedObj);
     selectedObjData.position.y = parseFloat(posYInput.value);
     transformObjectToSceneData(selectedObj);
   
   };
 
   posZInput.oninput = () => {
-      // model.position.z = parseFloat(posZInput.value) || 0;
-      // sceneData.positionZ = parseFloat(posZInput.value);
-
-      // // transformObjectToSceneData(fullLoopGroup);
-      // transformObjectToSceneData(selectedObj);
     selectedObjData.position.z = parseFloat(posZInput.value);
     transformObjectToSceneData(selectedObj);
   };
-
-
 
   const rotXInput = document.getElementById('threejs_rotation_x');
   const rotYInput = document.getElementById('threejs_rotation_y');
   const rotZInput = document.getElementById('threejs_rotation_z');
 
-
-
   rotXInput.oninput = () => {
-      // model.rotation.x = THREE.MathUtils.degToRad(parseFloat(rotXInput.value) || 0);
- 
-      // sceneData.rotationX = parseFloat(rotXInput.value);
-      // initialRotationX = sceneData.rotationX;
-
       selectedObjData.rotation.x = THREE.MathUtils.degToRad(parseFloat(rotXInput.value) || 0);
-      // transformObjectToSceneData(fullLoopGroup);
       transformObjectToSceneData(selectedObj);
   };
 
   rotYInput.oninput = () => {
-      // model.rotation.y = THREE.MathUtils.degToRad(parseFloat(rotYInput.value) || 0);
-
-      // sceneData.rotationY = parseFloat(rotYInput.value);
-      // initialRotationY = sceneData.rotationY;
-      // transformObjectToSceneData(fullLoopGroup);
       selectedObjData.rotation.y = THREE.MathUtils.degToRad(parseFloat(rotYInput.value) || 0);
-
       transformObjectToSceneData(selectedObj);
   };
 
   rotZInput.oninput = () => {
-      // model.rotation.z = THREE.MathUtils.degToRad(parseFloat(rotZInput.value) || 0);
-
-      // sceneData.rotationZ = parseFloat(rotZInput.value);
-      // initialRotationZ = sceneData.rotationZ;
-      // transformObjectToSceneData(fullLoopGroup);
       selectedObjData.rotation.z = THREE.MathUtils.degToRad(parseFloat(rotZInput.value) || 0);
-
       transformObjectToSceneData(selectedObj);
   };
 
@@ -505,10 +462,6 @@ isOrthoCameraInput.oninput = () => {
 
 function toggleCamera()
 {
-  // perspectiveCamera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
-  // orthoCamera = new THREE.OrthographicCamera( container.clientWidth / - isoZoom, container.clientWidth / isoZoom, container.clientHeight / isoZoom, container.clientHeight / - isoZoom, 1, 1000 );
-
-
   scene.remove(camera);
     if (sceneData.isOrthoCamera) {
         camera = orthoCamera;
@@ -603,20 +556,6 @@ function toggleCamera()
     console.log('Light: ' + sceneData.ambientLightIntensity);
     setLightIntensity(alight, sceneData.ambientLightIntensity);
 
-    //
-    // // Event listener to change the intensity of the directional light
-    // directionalLightSlider.addEventListener('input', function() {
-    //     dlight.intensity = parseFloat(directionalLightSlider.value);
-    // });
-
-
-    // // Update Light Intensity Value
-    // const lightSlider = document.getElementById('threejs_light_intensity');
-    // const lightValue = document.getElementById('light_intensity_value');
-    //
-    // lightSlider.addEventListener('input', function () {
-    //     lightValue.textContent = lightSlider.value;
-    // });
 
     //INIT()
     let controls, groupControls;
@@ -693,22 +632,6 @@ function toggleCamera()
         popup.style.display = 'flex';
         popupOpen = true;
       }
-
-        
-         // 5. Basic Test Cube (Sanity Check: Can we see anything at all?)
-        // const geometry = new THREE.BoxGeometry(1, 1, 1);
-        // const material = new THREE.MeshStandardMaterial({ color: 0x00ff00 }); // Green, needs lights
-        // const testCube = new THREE.Mesh(geometry, material);
-        // testCube.position.set(0, 0, 0); // Place it at the center
-        // scene.add(testCube);
-        // console.log("DEBUG: Basic green cube added to scene at (0,0,0). You should see this.");
-
-
-  
-
-        // 7. Initialize TransformControls (Only once globally)
-        // controls = new THREE.TransformControls(camera, renderer.domElement);
-        // scene.add(controls);
 
       scene.add(groupControls);
       if(sceneData.loopActive)

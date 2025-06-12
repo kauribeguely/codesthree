@@ -1,7 +1,7 @@
 <?php
 /*
-Plugin Name: Codes Three 3D WordPress
-Description: Bring WordPress to the next dimension
+Plugin Name: Code Three 3D Interactive
+Description: Take WordPress to the next dimension. Easy 3D/3JS scenes. 
 Version: 1.0
 Author: Kauri Beguely
 */
@@ -10,46 +10,6 @@ Author: Kauri Beguely
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
-
-
-// function get_scene_data($post_id) {
-//     return array(
-//         'modelUrl' => get_post_meta($post_id, 'threejs_model_url', true) ?: "",
-//         'positionX' => get_post_meta($post_id, 'threejs_pos_x', true) ?: 0,
-//         'positionY' => get_post_meta($post_id, 'threejs_pos_y', true) ?: 0,
-//         'positionZ' => get_post_meta($post_id, 'threejs_pos_z', true) ?: 0,
-//         'rotationX' => get_post_meta($post_id, 'threejs_rot_x', true) ?: 0,
-//         'rotationY' => get_post_meta($post_id, 'threejs_rot_y', true) ?: 0,
-//         'rotationZ' => get_post_meta($post_id, 'threejs_rot_z', true) ?: 0,
-//         'scale' => get_post_meta($post_id, 'scale', true) ?: 1,
-//         'lightIntensity' => get_post_meta($post_id, 'ambient_light_intensity', true) ?: 0,
-//         'mouseRotationX' => get_post_meta($post_id, 'mouseRotationX', true) ?: 0,
-//         'mouseRotationY' => get_post_meta($post_id, 'mouseRotationY', true) ?: 0,
-//         'mouseRotationZ' => get_post_meta($post_id, 'mouseRotationZ', true) ?: 0,
-//         'scrollMoveX' => get_post_meta($post_id, 'scrollMoveX', true) ?: 0,
-//         'scrollMoveY' => get_post_meta($post_id, 'scrollMoveY', true) ?: 0,
-//         'scrollMoveZ' => get_post_meta($post_id, 'scrollMoveZ', true) ?: 0,
-//         'mouseAnimationLink' => get_post_meta($post_id, 'mouseAnimationLink', true) ?: '',
-//         'scrollAnimationLink' => get_post_meta($post_id, 'scrollAnimationLink', true) ?: '',
-//         'loopActive' => get_post_meta($post_id, 'loopActive', true) ?: '',
-//         'loopCountX' => get_post_meta($post_id, 'loopCountX', true) ?: 3,
-//         'loopCountY' => get_post_meta($post_id, 'loopCountY', true) ?: 3,
-//         'loopCountZ' => get_post_meta($post_id, 'loopCountZ', true) ?: 3,
-//         'itemSpacing' => get_post_meta($post_id, 'itemSpacing', true) ?: 1.0,
-//         'isOrthoCamera' => get_post_meta($post_id, 'isOrthoCamera', true) ?: '',
-//         'directionalLightIntensity' => get_post_meta($post_id, 'directionalLightIntensity', true),
-//         // 'directionalLightIntensity' => get_post_meta($post_id, 'directionalLightIntensity', true) ?: 0,
-//         'lightPosX' => get_post_meta($post_id, 'lightPosX', true) ?: 0,
-//         'lightPosY' => get_post_meta($post_id, 'lightPosY', true) ?: 0,
-//         'lightPosZ' => get_post_meta($post_id, 'lightPosZ', true) ?: 0,
-//         'useEnvLight' => get_post_meta($post_id, 'useEnvLight', true) ?: '',
-//         'loopGroupScale' => get_post_meta($post_id, 'loopGroupScale', true) ?: 1.0,
-
-
-
-//         'postID' => $post_id ?: 'no post id'
-//     );
-// }
 
 function get_scene_data($post_id) {
     // Define the meta key where the full JSON configuration is stored
@@ -117,123 +77,6 @@ function get_scene_data($post_id) {
     ], $final_config['globalSettings']);
    return $final_config;
 }
-
-
-
-// function get_scene_data($post_id) {
-//     // --- STATIC ALL MODELS ARRAY FOR TESTING ---
-//     $all_models_array = array(
-//         array(
-//             'modelId'           => 'test_model_1',
-//             'modelUrl'          => 'http://localhost/wpLocalEdge/wp-content/uploads/2025/06/a.glb', // REMEMBER TO CHANGE THIS TO A VALID URL
-//             'positionX'         => -0.5,
-//             'positionY'         => 0.0,
-//             'positionZ'         => 0.0,
-//             'rotationX'         => 0.0,
-//             'rotationY'         => 45.0, // Rotated to see it better
-//             'rotationZ'         => 0.0,
-//             'scale'             => 0.8,
-//             'modelName'         => 'Test Model A (Single)',
-//             'loopActive'        => '', // No loop
-//             'loopCountX'        => 1,
-//             'loopCountY'        => 1,
-//             'loopCountZ'        => 1,
-//             'loopItemSpacingX'  => 0.0,
-//             'loopItemSpacingY'  => 0.0,
-//             'loopItemSpacingZ'  => 0.0,
-//             'loopGroupScale'    => 1.0,
-//         ),
-//         array(
-//             'modelId'           => 'test_model_2',
-//             'modelUrl'          => 'http://localhost/wpLocalEdge/wp-content/uploads/2025/06/a.glb', // REMEMBER TO CHANGE THIS TO A VALID URL
-//             'positionX'         => 0.0,
-//             'positionY'         => 1.0, // Placed higher
-//             'positionZ'         => 0.0,
-//             'rotationX'         => 0.0,
-//             'rotationY'         => 0.0,
-//             'rotationZ'         => 0.0,
-//             'scale'             => 0.5,
-//             'modelName'         => 'Test Model B (Row of 3)',
-//             'loopActive'        => 'on', // Loop active
-//             'loopCountX'        => 3,    // 3 items in X
-//             'loopCountY'        => 1,
-//             'loopCountZ'        => 1,
-//             'loopItemSpacingX'  => 1.5,  // Spaced out
-//             'loopItemSpacingY'  => 0.0,
-//             'loopItemSpacingZ'  => 0.0,
-//             'loopGroupScale'    => 1.0,
-//         ),
-//         array(
-//             'modelId'           => 'test_model_3',
-//             'modelUrl'          => 'http://localhost/wpLocalEdge/wp-content/uploads/2025/06/a.glb', // REMEMBER TO CHANGE THIS TO A VALID URL
-//             'positionX'         => -2.0,
-//             'positionY'         => -1.0, // Placed lower and left
-//             'positionZ'         => 0.0,
-//             'rotationX'         => 0.0,
-//             'rotationY'         => 0.0,
-//             'rotationZ'         => 0.0,
-//             'scale'             => 0.4,
-//             'modelName'         => 'Test Model C (2x2 Grid)',
-//             'loopActive'        => 'on', // Loop active
-//             'loopCountX'        => 2,    // 2 items in X
-//             'loopCountY'        => 2,    // 2 items in Y
-//             'loopCountZ'        => 1,
-//             'loopItemSpacingX'  => 1.2,
-//             'loopItemSpacingY'  => 1.2,
-//             'loopItemSpacingZ'  => 0.0,
-//             'loopGroupScale'    => 1.0,
-//         ),
-//         // Add more test models here as needed!
-//     );
-//     // --- END STATIC ALL MODELS ARRAY FOR TESTING ---
-
-
-//     // --- Global Scene Settings (still fetched from post meta) ---
-//     $is_ortho_camera = get_post_meta($post_id, 'is_ortho_camera', true) ?: '';
-//     $directional_light_intensity = get_post_meta($post_id, 'directional_light_intensity', true) ?: 0.0;
-//     $ambient_light_intensity = get_post_meta($post_id, 'ambient_light_intensity', true) ?: 0.0;
-//     $light_pos_x = get_post_meta($post_id, 'light_pos_x', true) ?: 0.0;
-//     $light_pos_y = get_post_meta($post_id, 'light_pos_y', true) ?: 0.0;
-//     $light_pos_z = get_post_meta($post_id, 'light_pos_z', true) ?: 0.0;
-//     $use_env_light = get_post_meta($post_id, 'use_env_light', true) ?: '';
-
-//     // Global Interaction Settings
-//     $mouse_animation_link = get_post_meta($post_id, 'mouse_animation_link', true) ?: '';
-//     $mouse_rotation_x = get_post_meta($post_id, 'mouse_rotation_x', true) ?: 0.0;
-//     $mouse_rotation_y = get_post_meta($post_id, 'mouse_rotation_y', true) ?: 0.0;
-//     $mouse_rotation_z = get_post_meta($post_id, 'mouse_rotation_z', true) ?: 0.0;
-//     $scroll_animation_link = get_post_meta($post_id, 'scroll_animation_link', true) ?: '';
-//     $scroll_move_x = get_post_meta($post_id, 'scroll_move_x', true) ?: 0.0;
-//     $scroll_move_y = get_post_meta($post_id, 'scroll_move_y', true) ?: 0.0;
-//     $scroll_move_z = get_post_meta($post_id, 'scroll_move_z', true) ?: 0.0;
-
-//     // --- Return Combined Scene Data ---
-//     return array(
-//         'isOrthoCamera'             => $is_ortho_camera,
-//         'directionalLightIntensity' => (float)$directional_light_intensity,
-//         'lightIntensity'            => (float)$ambient_light_intensity,
-//         'lightPosX'                 => (float)$light_pos_x,
-//         'lightPosY'                 => (float)$light_pos_y,
-//         'lightPosZ'                 => (float)$light_pos_z,
-//         'useEnvLight'               => $use_env_light,
-
-//         'mouseAnimationLink'        => $mouse_animation_link,
-//         'mouseRotationX'            => (float)$mouse_rotation_x,
-//         'mouseRotationY'            => (float)$mouse_rotation_y,
-//         'mouseRotationZ'            => (float)$mouse_rotation_z,
-//         'scrollAnimationLink'       => $scroll_animation_link,
-//         'scrollMoveX'               => (float)$scroll_move_x,
-//         'scrollMoveY'               => (float)$scroll_move_y,
-//         'scrollMoveZ'               => (float)$scroll_move_z,
-
-//         // The static array of all models
-//         'allModels'                 => $all_models_array,
-
-//         'postID'                    => $post_id,
-//     );
-// }
-
-
 
 function inject_threejs_assets() {
         ?>
@@ -394,10 +237,10 @@ add_action('init', 'codesthree_register_scenes_post_type');
 function codesthree_register_scenes_post_type() {
     // Labels for the post type
     $labels = array(
-        'name'               => __('Codes Scenes', 'codesthree'),
-        'singular_name'      => __('Codes Scene', 'codesthree'),
+        'name'               => __('Code  Three Scenes', 'codesthree'),
+        'singular_name'      => __('Code Three Scene', 'codesthree'),
         'menu_name'          => __('Code 3 Scenes ', 'codesthree'),
-        'name_admin_bar'     => __('Codes Scene', 'codesthree'),
+        'name_admin_bar'     => __('Code 3 Scene', 'codesthree'),
         'add_new'            => __('Add New Scene', 'codesthree'),
         'add_new_item'       => __('Add New Scene', 'codesthree'),
         'edit_item'          => __('Edit Scene', 'codesthree'),
@@ -477,7 +320,6 @@ function codesthree_register_scenes_post_type() {
 
 
 function save_scene_metadata($post_id) {
-    // 1. --- Standard WordPress Security Checks ---
 
     // Verify this is a "codes_scene" post type
     if (get_post_type($post_id) !== 'codes_scene') {
@@ -500,41 +342,23 @@ function save_scene_metadata($post_id) {
         error_log('Scene metadata save failed: User does not have edit_post capability for post_id ' . $post_id);
         return;
     }
-
-    // 2. --- Define Expected Field Names and Meta Key ---
-
-    // This is the 'name' attribute of the hidden input field on your frontend form
     $frontend_json_field_name = 'threejs_scene_config_json';
 
-    // This is the meta key under which the full JSON data will be stored in the database
     $db_meta_key = '_threejs_scene_config_data'; // Using a leading underscore makes it a hidden meta key
 
-    // 3. --- Process the Incoming JSON Data ---
-
     if (isset($_POST[$frontend_json_field_name])) {
-        // Retrieve the raw JSON string from the POST data
-        // wp_unslash() removes any slashes added by WordPress's magic quotes (if active)
         $json_string = wp_unslash($_POST[$frontend_json_field_name]);
 
-        // Decode the JSON string into a PHP array.
-        // The 'true' argument ensures it's decoded into an associative array, not objects.
         $decoded_data = json_decode($json_string, true);
 
         // 4. --- Validate Decoded Data ---
 
         // Check if JSON decoding was successful and if the result is an array
         if (json_last_error() === JSON_ERROR_NONE && is_array($decoded_data)) {
-            // Optional: You can add more specific sanitization here if needed.
-            // For example, if you want to ensure all numbers are floats, you'd loop
-            // through $decoded_data['models'] and $decoded_data['globalSettings']
-            // and apply floatval() or intval().
-            // For now, WordPress's update_post_meta will handle the serialization/deserialization
-            // of the PHP array when saving to the database.
 
-            // Save the entire structured PHP array as a single post meta entry.
+
             update_post_meta($post_id, $db_meta_key, $decoded_data);
 
-            // Log for debugging (shows first 500 chars of JSON for brevity)
             error_log("Three.js Scene Config: Successfully saved for post ID {$post_id}. Data: " . substr($json_string, 0, 500) . "...");
 
         } else {
@@ -549,118 +373,11 @@ function save_scene_metadata($post_id) {
         }
     } else {
         // 5. --- Handle Case: No JSON Data Submitted ---
-        // This happens if the hidden input field is missing from the POST request,
-        // which might mean data was cleared or there's an error on the frontend.
-        // In this case, we usually clear any existing configuration in the database.
         delete_post_meta($post_id, $db_meta_key);
         error_log("Three.js Scene Config: No '{$frontend_json_field_name}' data found in POST for post ID {$post_id}. Clearing existing config.");
     }
 }
 add_action('save_post', 'save_scene_metadata');
-
-// function save_scene_metadata($post_id) {
-//     // Verify this is a "scene" post type
-//     if (get_post_type($post_id) !== 'codes_scene') {
-//         return;
-//     }
-
-//     // // Verify nonce and user permissions
-//     if (
-//         !isset($_POST['scene_meta_nonce']) ||
-//         !wp_verify_nonce($_POST['scene_meta_nonce'], 'save_scene_metadata')
-//     ) {
-//         return;
-//     }
-
-//     if (!current_user_can('edit_post', $post_id)) {
-//         return;
-//     }
-
-//     // Save position and rotation metadata
-//     // MUST MATCH THE name ATTRIBUTE
-//     $fields = [
-//         'threejs_pos_x',
-//         'threejs_pos_y',
-//         'threejs_pos_z',
-//         'threejs_rot_x',
-//         'threejs_rot_y',
-//         'threejs_rot_z',
-//         'scale',
-//         'threejs_model_url',
-//         'ambient_light_intensity',
-//         // Mouse Animation Strength
-//         'mouseRotationX',
-//         'mouseRotationY',
-//         'mouseRotationZ',
-
-//         // Scroll Animation Strength
-//         'scrollMoveX',
-//         'scrollMoveY',
-//         'scrollMoveZ',
-
-//         // Animation Toggles
-//         'mouseAnimationLink',
-//         'scrollAnimationLink',
-
-//         'loopActive',
-//         'loopCountX',
-//         'loopCountY',
-//         'loopCountZ',
-//         'itemSpacing',
-//         'isOrthoCamera',
-
-//         'directionalLightIntensity',
-//         'lightPosX',
-//         'lightPosY',
-//         'lightPosZ',
-//         'useEnvLight',
-//         'loopGroupScale'
-
-//     ];
-
-//     foreach ($fields as $field) {
-
-//       if (isset($_POST[$field])) {
-//           update_post_meta($post_id, $field, $_POST[$field]); // Save the value from the form
-//       } else {
-//           update_post_meta($post_id, $field, ''); // Save empty if not checked or not set, stops non saving when not checked
-//       }
-//     }
-// }
-// add_action('save_post', 'save_scene_metadata');
-// add_action('save_post', 'save_scene_metadata2');
-
-
-function save_scene_metadata2($post_id) {
-    // Check if it's a valid post save
-    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
-        return $post_id;
-    }
-
-    // Check if it's your custom post type
-    if ('scene' !== get_post_type($post_id)) {
-        return $post_id;
-    }
-
-    // Sanitize the value before saving
-    if (isset($_POST['threejs_rot_x'])) {
-        $rot_x = sanitize_text_field($_POST['threejs_rot_x']);
-        update_post_meta($post_id, 'threejs_rot_x', $rot_x);
-    }
-
-    return $post_id;
-}
-// add_action('save_post', 'save_threejs_meta_data');
-
-
-
-// function hide_content_editor_in_posts() {
-//     $post_type = 'scene'; // Replace with the post type you want to target
-//     remove_post_type_support($post_type, 'editor');
-// }
-// add_action('init', 'hide_content_editor_in_posts');
-
-
 
 // Add meta box for 3D Element Editor in Scene post type
 function threejs_add_editor_meta_box() {
@@ -683,11 +400,6 @@ add_action('init', 'remove_post_editing_box');
 
 
 function custom_codes_scene_template_redirect($template) {
-
-// 	error_log('dir' . plugin_dir_path(__DIR__));
-//     error_log('file ' . plugin_dir_path(__FILE__) . 'single_scene.php');
-// 	$current_post_type = get_post_type();
-// 	error_log("Not codes_scene. Current post type: " . $current_post_type);
 
 	if (is_singular('codes_scene')) {
 		return plugin_dir_path(__FILE__) . 'templates/single_scene.php';
@@ -783,24 +495,10 @@ function threejs_editor_page($post) {
     $item_spacing_z = isset($current_model_data['loopItemSpacingZ']) ? $current_model_data['loopItemSpacingZ'] : 0.0;
     $loop_group_scale = isset($current_model_data['loopGroupScale']) ? $current_model_data['loopGroupScale'] : 1.0;
     $model_name = isset($current_model_data['modelName']) ? $current_model_data['modelName'] : '';
-
-    // --- Model-Specific Data (NOT extracted individually here) ---
-    // The 'allModels' array contains all the model-specific data,
-    // including their individual positions, rotations, scales, and loop options.
-    // This entire array will be passed to JavaScript.
-    // No need to extract individual model properties like modelUrl, positionX,
-    // loopActive, loopCountX, itemSpacing, loopGroupScale here.
-    // These will be accessed within the JavaScript's loop over sceneData.allModels.
-
-    // --- Other Global Data ---
-    // $post_id_from_scene_data = $global_settings['postID']; // You might already have $post->ID, but good for consistency
-
+    
     // --- Shortcode (if you're using it to display the scene) ---
     $shortcode = '[codes_scene id="' . $post->ID . '"]'; // Still uses the current post ID
 
-
-
-//   wp_nonce_field('save_scene_metadata', 'scene_meta_nonce');
   // Output the form
     ?>
     <!-- start HTMLs -->
@@ -977,8 +675,6 @@ function threejs_editor_page($post) {
               <strong>Scale (model): </strong><input type="number" name="scale" id="codes_scale" value="<?php echo esc_attr($scale); ?>" step="0.01" />
             </p>
 
-
-
             <hr>
             <!-- Toggle for Activating Loop -->
             <label>
@@ -1026,34 +722,6 @@ function threejs_editor_page($post) {
                   Current Model: <a href="<?php echo esc_url($model_url); ?>" target="_blank"><?php echo esc_url($model_url); ?></a>
               <?php endif; ?>
           </p>
-
-        <!-- </div> -->
-
-
-        <!-- <button id="save-model-data">Save Changes</button> -->
-
-
-        <!-- <div id="label" style="margin-top: 10px; padding: 10px; border: 1px solid #ddd; background: #f9f9f9;">
-            <b>Position:</b> x: 0, y: 0, z: 0<br>
-            <b>Rotation:</b> x: 0°, y: 0°, z: 0°
-        </div> -->
-
-
-        <!-- <div style="margin-top: 10px;">
-          <label for="ambient-light-slider">Ambient Light Intensity:</label>
-          <input type="range" id="ambient-light-slider" min="0" max="2" step="0.01" value="1" style="width: 100%;">
-
-          <label for="directional-light-slider" style="margin-top: 10px;">Directional Light Intensity:</label>
-          <input type="range" id="directional-light-slider" min="0" max="2" step="0.1" value="1" style="width: 100%;">
-      </div> -->
-
-
-
-
-
-      <!-- <h1>NEW</h1> -->
-
-
 
       <script>
         // Pass PHP data to JavaScript
