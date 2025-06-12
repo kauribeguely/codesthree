@@ -937,8 +937,9 @@ function threejs_editor_page($post) {
                 </ul>
             </div>
 
-            <button type="button" class="button" id="add_model_button">Add Model</button>
+            <button type="button" class="button" id="add_model_button" >Add Model</button>
             <button type="button" class="button" id="delete_model_button">Delete</button>
+            <button type="button" class="button" id="btn_duplicate">Clone</button>
 
             <strong>Position</strong>
             <div class="transform-group">

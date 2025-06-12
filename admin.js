@@ -745,6 +745,19 @@ function toggleCamera()
       });
     }
 
+    function duplicateObject(sceneObj)
+    {
+      const oldObjData = sceneObj.userData.modelConfigRef.toPlainObject();
+      const objData = JSON.parse(JSON.stringify(oldObjData)); 
+      objData.modelId = crypto.randomUUID();
+      loadModel(objData.modelUrl, objData);
+    }
+
+    function cloneSelected()
+    {
+      duplicateObject(selectedObj);
+    }
+
     // loadModel('http://localhost/wPpractice/wp-content/uploads/2025/01/first-room.glb', sceneData);
 
     //isNew checks if current url/model to be updated
@@ -753,43 +766,43 @@ function toggleCamera()
     {
       loader.load(url, (gltf) =>
       {
-            const newThreeJsObject = gltf.scene;
-            let modelConfigInstance; // This will be our ModelConfig class instance
+          const newThreeJsObject = gltf.scene;
+          let modelConfigInstance; // This will be our ModelConfig class instance
 
-            // --- Determine if this is a new model or an existing one being loaded/reloaded ---
-            if (objData) {
-                // Scenario 2: Loading/Reloading an Existing Model
-                // We're creating a ModelConfig instance from the plain data we loaded.
-                modelConfigInstance = ModelConfig.fromPlainObject(objData);
-                modelConfigInstance.modelUrl = url; // Ensure the URL is up-to-date in the instance
+          // --- Determine if this is a new model or an existing one being loaded/reloaded ---
+          if (objData) {
+              // Scenario 2: Loading/Reloading an Existing Model
+              // We're creating a ModelConfig instance from the plain data we loaded.
+              modelConfigInstance = ModelConfig.fromPlainObject(objData);
+              modelConfigInstance.modelUrl = url; // Ensure the URL is up-to-date in the instance
 
-                // Before adding the new object, remove the old THREE.Object3D instance if it exists.
-                // This is crucial if we're reloading a model that's already in the scene (e.g., changing its URL).
-                const oldThreeJsObject = allThreeJsObj.find(obj => obj.userData.modelId === modelConfigInstance.modelId);
-                if (oldThreeJsObject) {
-                    scene.remove(oldThreeJsObject);
-                    // Remove from our active tracking array
-                    allThreeJsObj = allThreeJsObj.filter(obj => obj.userData.modelId !== modelConfigInstance.modelId);
-                    console.log(`Removed old Three.js object for modelId: ${modelConfigInstance.modelId}`);
-                }
+              // Before adding the new object, remove the old THREE.Object3D instance if it exists.
+              // This is crucial if we're reloading a model that's already in the scene (e.g., changing its URL).
+              const oldThreeJsObject = allThreeJsObj.find(obj => obj.userData.modelId === modelConfigInstance.modelId);
+              if (oldThreeJsObject) {
+                  scene.remove(oldThreeJsObject);
+                  // Remove from our active tracking array
+                  allThreeJsObj = allThreeJsObj.filter(obj => obj.userData.modelId !== modelConfigInstance.modelId);
+                  console.log(`Removed old Three.js object for modelId: ${modelConfigInstance.modelId}`);
+              }
 
-                // Apply saved transforms to the new Three.js object
-                newThreeJsObject.position.copy(modelConfigInstance.position);
-                newThreeJsObject.rotation.copy(modelConfigInstance.rotation);
-                newThreeJsObject.scale.copy(modelConfigInstance.scale);
+              // Apply saved transforms to the new Three.js object
+              newThreeJsObject.position.copy(modelConfigInstance.position);
+              newThreeJsObject.rotation.copy(modelConfigInstance.rotation);
+              newThreeJsObject.scale.copy(modelConfigInstance.scale);
 
-                // Find the corresponding plain object in sceneData.models and update it
-                // This ensures sceneData.models is kept in sync with the current instance state
-                // (e.g., if modelUrl changed).
-                const existingModelIndex = allModels.findIndex(m => m.modelId === modelConfigInstance.modelId);
-                if (existingModelIndex !== -1) {
-                    allModels[existingModelIndex] = modelConfigInstance.toPlainObject();
-                } else {
-                    // This scenario suggests a logic error if objData was provided but not found.
-                    // For robustness, add it as new.
-                    console.warn(`ModelConfig with ID ${modelConfigInstance.modelId} not found in sceneData.models during update; adding as new.`);
-                    allModels.push(modelConfigInstance.toPlainObject());
-                }
+              // Find the corresponding plain object in sceneData.models and update it
+              // This ensures sceneData.models is kept in sync with the current instance state
+              // (e.g., if modelUrl changed).
+              const existingModelIndex = allModels.findIndex(m => m.modelId === modelConfigInstance.modelId);
+              if (existingModelIndex !== -1) {
+                  allModels[existingModelIndex] = modelConfigInstance.toPlainObject();
+              } else {
+                  // This scenario suggests a logic error if objData was provided but not found.
+                  // For robustness, add it as new.
+                  console.warn(`ModelConfig with ID ${modelConfigInstance.modelId} not found in sceneData.models during update; adding as new.`);
+                  allModels.push(modelConfigInstance.toPlainObject());
+              }
 
             } else {
                 // Scenario 1: Loading a New Model (no existing config provided)
@@ -976,14 +989,15 @@ function toggleCamera()
   controls.addEventListener('change', updateTransforms);
   controls.addEventListener('mouseDown', transformDragStart);
   controls.addEventListener('mouseUp', transformDragEnd);
-
+  
+  document.querySelector('#btn_duplicate').addEventListener('mousedown', cloneSelected);
   // Store the initial rotation when interacting starts
-function transformDragStart() {
-    isTransforming = true;
-    // initialRotationX = parseFloat(sceneData.rotationX);
-    // initialRotationY = parseFloat(sceneData.rotationY);
-    // initialRotationZ = parseFloat(sceneData.rotationZ);
-}
+  function transformDragStart() {
+      isTransforming = true;
+      // initialRotationX = parseFloat(sceneData.rotationX);
+      // initialRotationY = parseFloat(sceneData.rotationY);
+      // initialRotationZ = parseFloat(sceneData.rotationZ);
+  }
 
 // Re-enable mouse rotation when interaction ends
 function transformDragEnd(){
@@ -1441,6 +1455,12 @@ function transformDragEnd(){
                 break;
                 // dont allow scaling of group, must be set via single or input
                 // groupControls.setMode('scale');
+            case 'd': //duplicate
+                if(event.ctrlKey)
+                {
+                  event.preventDefault();
+                  cloneSelected();
+                }
             case 'o':
                 orbitActive = !orbitActive;
                 break;
