@@ -201,6 +201,12 @@ hr
       }
   }
 
+  .transButtonActive
+  {
+    background: #2271b1;
+    color: white;
+  }
+
   .rightControls, .leftControls {
       position: absolute;
       display: flex;

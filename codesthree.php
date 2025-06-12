@@ -69,13 +69,13 @@ function get_scene_data($post_id) {
                 'lightPosX'                 => 5,
                 'lightPosY'                 => 10,
                 'lightPosZ'                 => 7.5,
-                'useEnvLight'               => 'off', // Assuming this is a toggle ('on'/'off')
-                'isOrthoCamera'             => 'off', // Assuming this is a toggle ('on'/'off')
-                'mouseAnimationLink'        => 'off',
+                'useEnvLight'               => false, // Assuming this is a toggle ('on'/'off')
+                'isOrthoCamera'             => false, // Assuming this is a toggle ('on'/'off')
+                'mouseAnimationLink'        => false,
                 'mouseRotationX'            => 6.0,
                 'mouseRotationY'            => 6.0,
                 'mouseRotationZ'            => 0.0,
-                'scrollAnimationLink'       => 'off',
+                'scrollAnimationLink'       => false,
                 'scrollMoveX'               => 0.0,
                 'scrollMoveY'               => 5.0,
                 'scrollMoveZ'               => 0.0,
@@ -831,11 +831,12 @@ function threejs_editor_page($post) {
         <!-- <div id="codes_controls"> -->
           <div class='topTransforms'>
 
-              <button type="button" onmousedown="setTransformMode('translate')">Translate (T)</button>
-              <button type="button" onmousedown="setTransformMode('rotate')">Rotate (R)</button>
-              <button id='codesScaleButton' title="not available in loop mode, use scale text input on left" type="button" onmousedown="setTransformMode('scale')">Scale (S)</button>
+              <button class='transModeButton' id="btnTranslateMode" type="button" onmousedown="setTransformMode('translate', event, this)">Translate (T)</button>
+              <button class='transModeButton' id="btnRotateMode" type="button" onmousedown="setTransformMode('rotate', event,  this)">Rotate (R)</button>
+              <button class='transModeButton' id='codesScaleButton' title="not available in loop mode, use scale text input on left" type="button" onmousedown="setTransformMode('scale', event, this)">Scale (S)</button>
           </div>
           <button id="toggleControls" type="button">Toggle Controls</button>
+          <button id="toggleGizmo" type="button">Gizmo</button>
           <div class='leftControls'>
           <!-- Mouse Animation Link -->
             <div class="checkbox-group">

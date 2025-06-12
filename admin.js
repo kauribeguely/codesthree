@@ -90,6 +90,10 @@ window.onload = () =>
   let mouse = new THREE.Vector2();
   const raycaster = new THREE.Raycaster();
   let isTransforming = false;
+  
+  const translateModeButton = document.getElementById('btnTranslateMode');
+  const rotateModeButton = document.getElementById('btnRotateMode');
+  const scaleModeButton = document.getElementById('codesScaleButton');
 
   // Get the toggle elements (checkboxes)
   const mouseAnimationLinkInput = document.getElementById('mouseAnimationLink');
@@ -161,6 +165,13 @@ window.onload = () =>
         }
       }
       
+  });
+
+  const toggleGizmoButton = document.getElementById('toggleGizmo');
+  toggleGizmoButton.addEventListener('click', () => {
+    gizmoVisible = !gizmoVisible;
+    controls.visible = gizmoVisible;
+    controls.enabled = gizmoVisible;
   });
 
   function toggleVisibility(selector) {
@@ -248,10 +259,17 @@ window.onload = () =>
   };
 
   // oninput for toggle (checkbox)
-  mouseAnimationLinkInput.oninput = () => {
+  mouseAnimationLinkInput.oninput = () => 
+  {
+    refreshMouseAnimationLink();
+  };
+
+  function refreshMouseAnimationLink()
+  {
     mouseAnimationLink = mouseAnimationLinkInput.checked;
     if(!mouseAnimationLink)
     {
+      rotateGroup.rotation.set(0, 0, 0);
       // model.rotation.set(
       //     parseFloat(THREE.MathUtils.degToRad(sceneData.rotationX)),
       //     parseFloat(THREE.MathUtils.degToRad(sceneData.rotationY)),
@@ -263,7 +281,7 @@ window.onload = () =>
       // transformObjectToSceneData(fullLoopGroup);
 
     }
-  };
+  }
 
   function resetObjRotation()
   {
@@ -412,7 +430,7 @@ function toggleLoop()
       scene.add(groupControls);
     }
     fullLoopGroup.visible = true;
-    document.querySelector('#codesScaleButton').disabled = true;
+    scaleModeButton.disabled = true;
     // scene.remove(controls);
     refreshLoop();
   }
@@ -420,7 +438,7 @@ function toggleLoop()
   {
     // scene.remove(groupControls);
     // scene.remove(fullLoopGroup);
-    document.querySelector('#codesScaleButton').disabled = false;
+    scaleModeButton.disabled = false;
     fullLoopGroup.visible = false;
     groupControls.visible = false;
     model.visible = true;
@@ -590,8 +608,12 @@ function toggleCamera()
     //INIT()
     let controls, groupControls;
 
+
+    let gizmoVisible = false;
+
     controls = new TransformControls(camera, renderer.domElement);
     scene.add(controls);
+    controls.visible = gizmoVisible;
       
 
     let selectedObj, selectedObjData; //override model
@@ -613,11 +635,11 @@ function toggleCamera()
       // 6. Add Helpers for Visualization (NEW ADDITION)
     // Axes Helper: Red = X, Green = Y, Blue = Z
     const axesHelper = new THREE.AxesHelper(5); // Size 5 units
-    scene.add(axesHelper);
+    // scene.add(axesHelper);
 
     // Grid Helper: Grid on XZ plane
     const gridHelper = new THREE.GridHelper(10, 10); // 10x10 units, 10 divisions
-    scene.add(gridHelper);
+    // scene.add(gridHelper);
 
     // Directional Light Helper (already there, just ensuring its log is here for context)
     const lightHelper = new THREE.DirectionalLightHelper(dlight, 2); // Helper size 2
@@ -793,6 +815,7 @@ function toggleCamera()
                 controls.detach(); // Detach from any previously selected object
                 controls.attach(newThreeJsObject);
                 controls.setSpace('local');
+                controls.visible = gizmoVisible;
                 // Ensure controls are in the scene (might be redundant if always there)
                 // scene.add(controls);
             }
@@ -1367,7 +1390,7 @@ function transformDragEnd(){
                 if(event.altKey)
                 {
                   mouseAnimationLinkInput.checked = !mouseAnimationLinkInput.checked;
-                  mouseAnimationLink = mouseAnimationLinkInput.checked;
+                  refreshMouseAnimationLink();
                 }
                 break;  
           case 'q': 
@@ -1480,15 +1503,42 @@ function transformDragEnd(){
       }
     }, { passive: false });
 
-    function setTransformMode(mode)
+    function setTransformMode(mode, e, clickedButton)
     {
-
+      if(e) e.preventDefault();
       controls.setMode(mode);
       groupControls.setMode(mode);
       if(mode != 'scale')
       {
         groupControls.setMode(mode);
       }
+
+      document.querySelectorAll('.transModeButton').forEach(button => 
+      {
+        button.classList.remove('transButtonActive');
+      });
+
+      let buttonToUpdate;
+      if(clickedButton)
+      {
+        buttonToUpdate = clickedButton;
+      }
+      else
+      {
+        if(mode == 'translate')
+        {
+          buttonToUpdate = translateModeButton;
+        }
+        else if(mode == 'rotate')
+        {
+          buttonToUpdate = rotateModeButton;
+        }
+        else if(mode == 'scale')
+        {
+          buttonToUpdate = scaleModeButton;
+        }
+      }
+      buttonToUpdate.classList.add('transButtonActive');
 
     }
     window.setTransformMode = setTransformMode;
@@ -1545,8 +1595,8 @@ function transformDragEnd(){
             // An object was clicked! Get the first (closest) intersected object.
             let clickedObject = intersects[0].object;
             // console.log("Clicked object (raw):", clickedObject);
-            controls.enabled = true;
-            controls.visible = true;
+            // controls.enabled = true;
+            // controls.visible = true;
 
             isDragging = true;
 
@@ -1616,6 +1666,8 @@ function transformDragEnd(){
         selectedObj = obj;
         selectedObjData = selectedObj.userData.modelConfigRef;
         controls.attach(selectedObj);
+        controls.visible = gizmoVisible;
+        controls.enabled = gizmoVisible;
         highlightSelectedListItem(obj.uuid);
       }
 
