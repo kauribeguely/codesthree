@@ -8,8 +8,8 @@ import * as THREE from 'three';
 // import { MeshBasicMaterial } from 'three';
 // import { Mesh } from 'three';
 // import { AmbientLight } from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+import { GLTFLoader } from 'three/addons/GLTFLoader.js';
+import { RGBELoader } from 'three/addons/RGBELoader.js';
 
 export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
 {

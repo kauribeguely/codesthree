@@ -4,6 +4,8 @@ Plugin Name: Code Three 3D Interactive
 Description: Take WordPress to the next dimension. Easy 3D/3JS scenes. 
 Version: 1.0
 Author: Kauri Beguely
+License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 */
 
 // Exit if accessed directly
@@ -78,22 +80,32 @@ function get_scene_data($post_id) {
    return $final_config;
 }
 
-function inject_threejs_assets() {
-        ?>
+function inject_threejs_assets() 
+{
+?>
 
-        <script type="importmap">
+        <!-- <script type="importmap">
             {
                 "imports": {
                     "three": "https://unpkg.com/three@0.150.1/build/three.module.js",
                     "three/addons/": "https://unpkg.com/three@0.150.1/examples/jsm/"
                 }
             }
-        </script>
-        <script src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
-        <link rel="stylesheet" href="<?php echo plugins_url('styles.css', __FILE__); ?>">
+        </script> -->
 
-        <?php
+<script type="importmap">
+    {
+        "imports": {
+            "three": "<?php echo plugins_url('js/three.module.js', __FILE__); ?>",
+            "three/addons/": "<?php echo plugins_url('js/threeaddons/', __FILE__); ?>"
+        }
     }
+</script>
+<script src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+<link rel="stylesheet" href="<?php echo plugins_url('styles.css', __FILE__); ?>">
+
+<?php
+}
 
 
 // Hook into the wp_head to ensure the assets are loaded globally
@@ -677,36 +689,38 @@ function threejs_editor_page($post) {
 
             <hr>
             <!-- Toggle for Activating Loop -->
-            <label>
-              <input type="checkbox" name="loopActive" id="loopActive" <?php checked($loop_active, 'on'); ?>>
-              Activate Loop
-            </label>
+             <div id="loopComingSoon" style="display:none">
+                    <label>
+                    <input type="checkbox" name="loopActive" id="loopActive" <?php checked($loop_active, 'on'); ?>>
+                    Activate Loop
+                    </label>
 
-            <!-- Loop Count -->
-            <fieldset>
-                <legend>Loop Count</legend>
-                <div class="transform-group">
-                    <div class="transform-field">
-                        <label for="loopCountX">X Count</label>
-                        <input type="number" name="loopCountX" id="loopCountX" step="1" value="<?php echo esc_attr($loop_count_x); ?>">
-                    </div>
-                    <div class="transform-field">
-                        <label for="loopCountY">Y Count</label>
-                        <input type="number" name="loopCountY" id="loopCountY" step="1" value="<?php echo esc_attr($loop_count_y); ?>">
-                    </div>
-                    <div class="transform-field">
-                        <label for="loopCountZ">Z Count</label>
-                        <input type="number" name="loopCountZ" id="loopCountZ" step="1" value="<?php echo esc_attr($loop_count_z); ?>">
-                    </div>
-                </div>
-            </fieldset>
-            <!-- Number Input for Spacing -->
-            <label>Item Spacing: <input type="number" name="itemSpacing" id="itemSpacing" step="0.1" value="0.5"></label>
-            <!-- <label>Item Spacing: <input type="number" name="itemSpacing" id="itemSpacing" step="0.1" value="<?php echo esc_attr($item_spacing); ?>"></label> -->
-            <label>Loop Group Scale: <input type="number" name="loopGroupScale" id="loopGroupScale" step="0.01" value="<?php echo esc_attr($loop_group_scale); ?>"></label>
+                    <!-- Loop Count -->
+                    <fieldset>
+                        <legend>Loop Count</legend>
+                        <div class="transform-group">
+                            <div class="transform-field">
+                                <label for="loopCountX">X Count</label>
+                                <input type="number" name="loopCountX" id="loopCountX" step="1" value="<?php echo esc_attr($loop_count_x); ?>">
+                            </div>
+                            <div class="transform-field">
+                                <label for="loopCountY">Y Count</label>
+                                <input type="number" name="loopCountY" id="loopCountY" step="1" value="<?php echo esc_attr($loop_count_y); ?>">
+                            </div>
+                            <div class="transform-field">
+                                <label for="loopCountZ">Z Count</label>
+                                <input type="number" name="loopCountZ" id="loopCountZ" step="1" value="<?php echo esc_attr($loop_count_z); ?>">
+                            </div>
+                        </div>
+                    </fieldset>
+                    <!-- Number Input for Spacing -->
+                    <label>Item Spacing: <input type="number" name="itemSpacing" id="itemSpacing" step="0.1" value="0.5"></label>
+                    <!-- <label>Item Spacing: <input type="number" name="itemSpacing" id="itemSpacing" step="0.1" value="<?php echo esc_attr($item_spacing); ?>"></label> -->
+                    <label>Loop Group Scale: <input type="number" name="loopGroupScale" id="loopGroupScale" step="0.01" value="<?php echo esc_attr($loop_group_scale); ?>"></label>
 
 
 
+            </div>
           </div>
 
           <p>Use this shortcode to display the scene on your site:</p>
@@ -716,7 +730,7 @@ function threejs_editor_page($post) {
           <hr>
 
           <input type="hidden" id="threejs_model_url" name="threejs_model_url" value="<?php echo esc_url($model_url); ?>" />
-          <button type="button" class="button" id="threejs_model_url_button">Change Model</button>
+          <button type="button" class="button" id="threejs_model_url_button" style="display:none">Change Model</button>
           <p id="threejs_model_url_preview">
               <?php if ($model_url): ?>
                   Current Model: <a href="<?php echo esc_url($model_url); ?>" target="_blank"><?php echo esc_url($model_url); ?></a>
