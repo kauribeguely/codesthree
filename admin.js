@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
-import { TransformControls } from 'three/controls/TransformControls.js';
+import { TransformControls } from 'three/addons/TransformControls.js';
 import { RGBELoader } from 'three/addons/RGBELoader.js';
 
 

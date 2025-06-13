@@ -96,13 +96,13 @@ function inject_threejs_assets()
 <script type="importmap">
     {
         "imports": {
-            "three": "<?php echo plugins_url('js/three.module.js', __FILE__); ?>",
-            "three/addons/": "<?php echo plugins_url('js/threeaddons/', __FILE__); ?>"
+            "three": "<?php echo esc_url(plugins_url('js/three.module.js', __FILE__)); ?>",
+            "three/addons/": "<?php echo esc_url(plugins_url('js/threeaddons/', __FILE__)); ?>"
         }
     }
 </script>
-<script src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
-<link rel="stylesheet" href="<?php echo plugins_url('styles.css', __FILE__); ?>">
+<!-- <script src="<?php esc_url(plugins_url('js/es-module-shims.js')) ?>"></script>
+<link rel="stylesheet" href="<?php echo esc_url(plugins_url('styles.css', __FILE__)); ?>"> -->
 
 <?php
 }
@@ -123,10 +123,18 @@ function create_scene_shortcode($atts)
     $scene_data = get_scene_data($post_id);
     ob_start();
 
+    // Enqueue JS
+    wp_enqueue_script(
+        'codes-script',
+        plugins_url('scene.js', __FILE__),
+        '1.0',
+        true // load in footer
+    );
+
     ?>
 
     <!-- <h1>Scene Below</h1> -->
-    <div id="scene-<?php echo esc_attr($post_id); ?>-<?php echo uniqid(); ?>" class="codes_scene" data-scene-id="<?php echo esc_attr($post_id); ?>" style="width: <?php echo esc_attr($atts['width']); ?>; height: <?php echo esc_attr($atts['height']); ?>;">
+    <div id="scene-<?php echo esc_attr($post_id); ?>-<?php echo esc_attr(uniqid()); ?>" class="codes_scene" data-scene-id="<?php echo esc_attr($post_id); ?>" style="width: <?php echo esc_attr($atts['width']); ?>; height: <?php echo esc_attr($atts['height']); ?>;">
       <div class = "loadScreen">
         <div class = "loadCircle">
           <div class = "loadInnerCircle">
@@ -137,9 +145,9 @@ function create_scene_shortcode($atts)
     </div>
 
     <script type="module">
-      import { initializeThreeJsScene } from "<?php echo plugins_url('scene.js', __FILE__); ?>";
+      import { initializeThreeJsScene } from "<?php echo esc_url(plugins_url('scene.js', __FILE__)); ?>";
       const allSceneData = <?php echo json_encode($scene_data); ?>;
-      const pluginUrl = "<?php echo plugins_url()?>";
+      const pluginUrl = "<?php echo esc_url(plugins_url())?>";
       const containerID = "threejs-scene-container-<?php echo esc_js($post_id); ?>";
       // Get all elements with the same class
       // const containers = document.querySelectorAll('.codes_scene');
@@ -203,8 +211,8 @@ function threejs_enqueue_scene_scripts() {
     if (is_singular('codes_scene')) { // Check if the current post type is 'scene'
         // Enqueue es-module-shims
         wp_enqueue_script(
-            'es-module-shims',
-            'https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js',
+            plugins_url('es-module-shims'),
+            'js/es-module-shims.js',
             array(),
             null,
             false // Load in the header
@@ -237,8 +245,39 @@ function threejs_enqueue_scene_scripts() {
     }
 }
 // add_action('wp_enqueue_scripts', 'threejs_enqueue_scene_scripts');
-
 // add_action('init', 'threejs_enqueue_scene_scripts');
+
+function admin_enqueue_assets() {
+    
+    // Enqueue es-module-shims
+    wp_enqueue_script_module(
+        'es-module',
+        plugins_url('js/es-module-shims.js', __FILE__),
+    );
+
+    // Enqueue CSS
+    wp_enqueue_style(
+        'coedes-admin-styles',
+        plugins_url('styles.css', __FILE__),
+    );
+
+    // Enqueue JS
+    wp_enqueue_script_module(
+        'codes-admin-script',
+        plugins_url('admin.js', __FILE__)
+    );
+}
+add_action('admin_enqueue_scripts', 'admin_enqueue_assets');
+
+function frontend_enqueue_assets() {
+    // Enqueue CSS
+    wp_enqueue_style(
+        'coedes-styles',
+        plugins_url('styles.css', __FILE__),
+    );
+}
+add_action('wp_enqueue_scripts', 'frontend_enqueue_assets');
+
 
 
 
@@ -339,19 +378,21 @@ function save_scene_metadata($post_id) {
     }
 
     // Verify nonce for security (comes from your meta box form)
-    if (
-        !isset($_POST['scene_meta_nonce']) ||
-        !wp_verify_nonce($_POST['scene_meta_nonce'], 'save_scene_metadata')
-    ) {
-        // Log nonce failure for debugging
-        error_log('Scene metadata save failed: Nonce verification failed for post_id ' . $post_id);
+    if ( isset( $_POST['scene_meta_nonce'] ) ) {
+        $nonce = wp_unslash( $_POST['scene_meta_nonce'] ); // Unslash first
+        $nonce = sanitize_key( $nonce ); // Then sanitize
+
+        if ( ! wp_verify_nonce( $nonce, 'save_scene_metadata' ) ) {
+            return;
+        }
+    } 
+    else 
+    {
         return;
     }
 
     // Verify user permissions
     if (!current_user_can('edit_post', $post_id)) {
-        // Log permission failure
-        error_log('Scene metadata save failed: User does not have edit_post capability for post_id ' . $post_id);
         return;
     }
     $frontend_json_field_name = 'threejs_scene_config_json';
@@ -359,7 +400,7 @@ function save_scene_metadata($post_id) {
     $db_meta_key = '_threejs_scene_config_data'; // Using a leading underscore makes it a hidden meta key
 
     if (isset($_POST[$frontend_json_field_name])) {
-        $json_string = wp_unslash($_POST[$frontend_json_field_name]);
+        $json_string = sanitize_text_field(wp_unslash($_POST[$frontend_json_field_name]));
 
         $decoded_data = json_decode($json_string, true);
 
@@ -367,27 +408,15 @@ function save_scene_metadata($post_id) {
 
         // Check if JSON decoding was successful and if the result is an array
         if (json_last_error() === JSON_ERROR_NONE && is_array($decoded_data)) {
-
-
             update_post_meta($post_id, $db_meta_key, $decoded_data);
-
-            error_log("Three.js Scene Config: Successfully saved for post ID {$post_id}. Data: " . substr($json_string, 0, 500) . "...");
-
         } else {
-            // JSON decoding failed or data is not an array.
-            error_log(
-                "Three.js Scene Config: Failed to decode JSON for post ID {$post_id}. " .
-                "Error: " . json_last_error_msg() .
-                " Raw JSON: " . substr($json_string, 0, 500) . "..."
-            );
             // Optionally, delete any existing valid meta to clear the config if invalid data is submitted.
             delete_post_meta($post_id, $db_meta_key);
         }
     } else {
         // 5. --- Handle Case: No JSON Data Submitted ---
         delete_post_meta($post_id, $db_meta_key);
-        error_log("Three.js Scene Config: No '{$frontend_json_field_name}' data found in POST for post ID {$post_id}. Clearing existing config.");
-    }
+        }
 }
 add_action('save_post', 'save_scene_metadata');
 
@@ -429,7 +458,7 @@ add_filter('manage_codes_scene_posts_columns', 'add_codes_scene_shortcode_column
 
 function populate_codes_scene_shortcode_column($column, $post_id) {
     if ($column === 'codes_scene_shortcode') {
-        echo '[codes_scene id="' . $post_id . '"]';
+        echo '[codes_scene id="' . absint($post_id) . '"]';
     }
 }
 add_action('manage_codes_scene_posts_custom_column', 'populate_codes_scene_shortcode_column', 10, 2); // Replace 'your_custom_post_type'
@@ -516,16 +545,17 @@ function threejs_editor_page($post) {
     <!-- start HTMLs -->
     <div id="threejs-editor-container">
         <script type="importmap">
-          {
-            "imports": {
-              "three": "https://unpkg.com/three@0.150.1/build/three.module.js",
-              "three/addons/": "https://unpkg.com/three@0.150.1/examples/jsm/"
+            {
+                "imports": {
+                    "three": "<?php echo esc_url(plugins_url('js/three.module.js', __FILE__)); ?>",
+                    "three/addons/": "<?php echo esc_url(plugins_url('js/threeaddons/', __FILE__)); ?>"
+                }
             }
-          }
         </script>
-        <script src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
-        <link rel='stylesheet' href='<?php echo plugins_url('styles.css', __FILE__); ?>'>
+        <!-- <script src="<?php esc_url(plugins_url('js/es-module-shims.js')) ?>"></script>
+        <link rel='stylesheet' href='<?php echo esc_url(plugins_url('styles.css', __FILE__)); ?>'> -->
         
+
         <input type="hidden"
             name="threejs_scene_config_json"
             id="threejs_scene_config_json"
@@ -742,7 +772,8 @@ function threejs_editor_page($post) {
         const allSceneData = <?php echo json_encode($full_meta); ?>;
         console.log('Three.js Transform Data:', allSceneData);
       </script>
-      <script type="module" src="<?php echo plugins_url('admin.js', __FILE__); ?>"></script>
+
+      <!-- <script type="module" src="<?php echo esc_url(plugins_url('admin.js', __FILE__)); ?>"></script> -->
 
 
     </div>
