@@ -1,6 +1,6 @@
 === Code Three 3D Interactive ===
 Contributors: kauribeguely
-Tags: 3d, three.js, animation, interactive, dimension
+Tags: 3d, three.js, animation, interactive, webgl
 Requires at least: 5.0
 Tested up to: 6.8
 Requires PHP: 7.4
@@ -12,43 +12,47 @@ Easily build animated/interactive 3D scenes and embed using a shortcode. Take yo
 
 == Description ==
 
-**Code 3** lets you embed animated, interactive 3D scenes into your WordPress site using a simple shortcode.
+**Code 3** lets you embed multi-object, interactive 3D scenes into your WordPress site using a simple shortcode.
 
 Ideal for developers, designers, and digital creatives who want to create engaging 3D web experiences — without hardcoding them into templates.
 
 = Features =
+- Upload multiple GLB models to a scene and change their transforms (position, rotation, scale)
 - Embed Three.js 3D scenes via shortcode
-- Mouse and scroll interaction support out of the box
-- Modular plugin architecture: drop your scene code in a dedicated JS file
-- Lightweight, loads only on pages using the shortcode
+- Mousemove and scroll interaction
 
 = How It Works =
-1. Create a `.js` file that initializes your Three.js scene (we provide a template).
-2. Upload it to the plugin's `/scenes` folder.
-3. Use the `[three_scene file="yourfile.js"]` shortcode in any post or page.
-4. The plugin injects your script with canvas container and necessary styles.
+1. After clicking Add New Scene, you can add models by uploading GLB to the media library
+2. You can change all objects position/rotation/scale in the scene editor
+3. You change global settings like light intensity and scroll/mouse interaction
+4. Place the shortcode anywhere you want it to display
 
 = Shortcode Examples =
 
-[codes_scene id="1234]
+`[codes_scene id="39"]`
+
+By default the width will be 100% of the container the shortcode is placed and the height will be 500px
+
+`[codes_scene id="39" width="500px" height="30vh"]`
+
+Set custom height and width of the shortcode, accepts all CSS measurements.
 
 == Installation ==
 
-1. Upload the plugin folder to `/wp-content/plugins/3d-scene-shortcode`.
-2. Activate the plugin through the 'Plugins' menu.
-3. Use the shortcode `[three_scene file="yourfile.js"]` to display a scene.
-4. Upload your scene JavaScript file to `/wp-content/plugins/3d-scene-shortcode/scenes/`.
+Installing and activating via the plugin repository is all that's needed. 
+
+For a guide on how to build a basic scene visit URL HERE
 
 == Frequently Asked Questions ==
 
-= What version of Three.js is included? =
-We bundle version `0.150.1` via module imports, but you can customize this by overriding the import map.
+=I added a model, why can't I see it?=
+The most likely is the model size is huge/tiny. Try scaling it up or down. 
 
-= Can I use this with page builders? =
-Yes! You can use the shortcode block/widget to embed your 3D scene.
+=Why is my model is completely black?=
+Either lighting or materials are not setup correctly. Try change the light intensity or toggle environment light. If it's a material issue you need to fix the model in a 3D software e.g. blender or find a new one.
 
-= How do I add scroll or mouse interaction? =
-Just use standard Three.js input handling in your scene file. The plugin handles canvas setup and resizing — you focus on the fun stuff.
+=My scene looks smaller that I made it=
+The scene size is based on the height/width of the canvas. The editor canvas is large, almost the whole screen. You can either make the container that holds the shortcode bigger, change the width/height values in the shortcode itself or adjust scales of objects in the editor.
 
 == Screenshots ==
 
@@ -57,8 +61,19 @@ Just use standard Three.js input handling in your scene file. The plugin handles
 
 == Changelog ==
 
-= 1.0.0 =
-* Initial release with shortcode rendering
-* Basic canvas and responsive container
-* Support for scroll and mouse input via user scene files
+= 1.0 =
+* Initial release
+* Upload/Add GLB
+* Clone/Delete scene objects
+* Change all transforms of models (gizmo/hotkeys)
+* Default lights, adjustable intensity, directional light can be positioned
+* Environment light with one static texture
+* Insert scenes via shortcodes (can set width and height within these)
+* Allows multiple shortcode instances on the same page
+* Scroll link to camera position animation
+* Mouse move to scene rotation animation
 
+== Upgrade Notice ==
+
+= 1.0 =
+Initial Release

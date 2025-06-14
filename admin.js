@@ -561,7 +561,7 @@ function toggleCamera()
     let controls, groupControls;
 
 
-    let gizmoVisible = false;
+    let gizmoVisible = true;
 
     controls = new TransformControls(camera, renderer.domElement);
     scene.add(controls);

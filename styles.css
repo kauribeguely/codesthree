@@ -87,9 +87,14 @@
 .transform-field input {
     width: 100%;
     /* padding: 6px; */
-    border: 1px solid #ccc;
     border-radius: 4px;
     font-size: 14px;
+}
+
+input[type="number"]
+{
+    
+    border: 1px solid #ccc;
     background: #1d1d1d;
     color: #cdcdcd;
 }
