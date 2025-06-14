@@ -2,8 +2,8 @@
 
 #threejs-canvas
 {
-  border: 1px solid #ccc;
   margin-top: 20px;
+  background: #333333;
 }
 
 #save-model-data
@@ -31,11 +31,13 @@
   .leftControls {
       left: 0;
       width: 241px;
+      border-right: 1px solid rgb(183, 183, 183);
   }
 
   .rightControls {
       right: 0;
       width: 223px;
+      border-left: 1px solid rgb(183, 183, 183);
   }
 
   .topTransforms {
@@ -44,12 +46,10 @@
     left: 50%;
     transform: translate(-50%);
     position: absolute;
+    button
+    {
 
-
-      button
-      {
-
-      }
+    }
   }
 
   .rightControls, .leftControls {
@@ -58,11 +58,12 @@
       flex-wrap: wrap;
       flex-direction: column;
       top: 0;
-      background: #ffffffd4;
+      background: #292929;
       /* padding: 15px; */
       /* height: 100%; */
       padding: 15px;
-      gap: 6px;
+      gap: 18px;
+      color: #bababa;
       /* width: 217px; */
   }
 
@@ -89,6 +90,8 @@
     border: 1px solid #ccc;
     border-radius: 4px;
     font-size: 14px;
+    background: #1d1d1d;
+    color: #cdcdcd;
 }
 
 #newScenePopup {
@@ -207,19 +210,7 @@ hr
     color: white;
   }
 
-  .rightControls, .leftControls {
-      position: absolute;
-      display: flex;
-      flex-wrap: wrap;
-      flex-direction: column;
-      top: 0;
-      background: #ffffffd4;
-      /* padding: 15px; */
-      /* height: 100%; */
-      padding: 15px;
-      gap: 18px;
-      /* width: 217px; */
-  }
+
 
   .transform-group {
     display: flex;
@@ -284,5 +275,10 @@ li.object-list-item {
 li.object-list-item:hover {
     background: #cacaca;
 }
+
+#code_three_metabox .inside {
+    padding: 0px;
+}
+
 
 /* } */

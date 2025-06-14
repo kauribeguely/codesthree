@@ -101,8 +101,6 @@ function inject_threejs_assets()
         }
     }
 </script>
-<!-- <script src="<?php esc_url(plugins_url('js/es-module-shims.js')) ?>"></script>
-<link rel="stylesheet" href="<?php echo esc_url(plugins_url('styles.css', __FILE__)); ?>"> -->
 
 <?php
 }
@@ -379,8 +377,8 @@ function save_scene_metadata($post_id) {
 
     // Verify nonce for security (comes from your meta box form)
     if ( isset( $_POST['scene_meta_nonce'] ) ) {
-        $nonce = wp_unslash( $_POST['scene_meta_nonce'] ); // Unslash first
-        $nonce = sanitize_key( $nonce ); // Then sanitize
+        $nonce = sanitize_text_field(wp_unslash( $_POST['scene_meta_nonce'] )); // Unslash first
+        // $nonce = sanitize_text_field( $nonce );
 
         if ( ! wp_verify_nonce( $nonce, 'save_scene_metadata' ) ) {
             return;
@@ -423,7 +421,7 @@ add_action('save_post', 'save_scene_metadata');
 // Add meta box for 3D Element Editor in Scene post type
 function threejs_add_editor_meta_box() {
     add_meta_box(
-        'threejs_model_editor', // Meta box ID
+        'code_three_metabox', // Meta box ID
         'Codes 3D Scene Editor',    // Meta box title
         'threejs_editor_page', // Callback function to render the content
         'codes_scene',                // Post type where the meta box will appear
@@ -552,9 +550,7 @@ function threejs_editor_page($post) {
                 }
             }
         </script>
-        <!-- <script src="<?php esc_url(plugins_url('js/es-module-shims.js')) ?>"></script>
-        <link rel='stylesheet' href='<?php echo esc_url(plugins_url('styles.css', __FILE__)); ?>'> -->
-        
+       
 
         <input type="hidden"
             name="threejs_scene_config_json"
@@ -573,7 +569,7 @@ function threejs_editor_page($post) {
 
               <button class='transModeButton' id="btnTranslateMode" type="button" onmousedown="setTransformMode('translate', event, this)">Translate (T)</button>
               <button class='transModeButton' id="btnRotateMode" type="button" onmousedown="setTransformMode('rotate', event,  this)">Rotate (R)</button>
-              <button class='transModeButton' id='codesScaleButton' title="not available in loop mode, use scale text input on left" type="button" onmousedown="setTransformMode('scale', event, this)">Scale (S)</button>
+              <button class='transModeButton' id='codesScaleButton' title="not available in loop mode, use scale text input on left" type="button" onmousedown="setTransformMode('scale', event, this)">Scale (Y)</button>
           </div>
           <button id="toggleControls" type="button">Toggle Controls</button>
           <button id="toggleGizmo" type="button">Gizmo</button>
@@ -628,18 +624,19 @@ function threejs_editor_page($post) {
             </fieldset>
             <hr>
 
-            <p>
+            <p style="margin:0px">
                 <label for="ambient-light-slider">Ambient Intensity:</label><br>
                 <input type="range" name="ambient_light_intensity" id="ambient_light_intensity" max="3" step="0.05" value="<?php echo esc_attr($light_intensity); ?>" />
                 <span id="light_intensity_value"><?php echo esc_attr($light_intensity); ?></span>
             </p>
 
             <!-- Directional Light Intensity -->
-            <p>
+            <p style="margin:0px">
               <label>Directional Intensity: <input type="range" name="directionalLightIntensity" id="directionalLightIntensity" max="3" step="0.05" value="<?php echo esc_attr($directional_light_intensity); ?>"></label>
               <span id="directional_intensity_value"><?php echo esc_attr($directional_light_intensity); ?></span>
             </p>
             <!-- Directional Light Position -->
+            <label>Directional Light Position</label>
             <div class="transform-group">
               <div class="transform-field">
                   <label for="lightPosX">X</label>
@@ -678,9 +675,11 @@ function threejs_editor_page($post) {
             </div>
 
             <button type="button" class="button" id="add_model_button" >Add Model</button>
-            <button type="button" class="button" id="delete_model_button">Delete</button>
-            <button type="button" class="button" id="btn_duplicate">Clone</button>
-
+            <div class="transform-group">
+                <button style="width: 50%;" type="button" class="button" id="delete_model_button">Delete</button>
+                <button style="width: 50%;" type="button" class="button" id="btn_duplicate">Clone</button>
+            </div>
+            
             <strong>Position</strong>
             <div class="transform-group">
               <div class="transform-field">
@@ -772,9 +771,6 @@ function threejs_editor_page($post) {
         const allSceneData = <?php echo json_encode($full_meta); ?>;
         console.log('Three.js Transform Data:', allSceneData);
       </script>
-
-      <!-- <script type="module" src="<?php echo esc_url(plugins_url('admin.js', __FILE__)); ?>"></script> -->
-
 
     </div>
     <?php

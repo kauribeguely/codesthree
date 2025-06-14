@@ -1828,6 +1828,7 @@ function updateObjectList() {
 
       const lastObjectInList = allThreeJsObj[allThreeJsObj.length - 1];
       selectModelForEditing(lastObjectInList);
+      updateObjectList();
     }
 
       function updateDataFromUi()
