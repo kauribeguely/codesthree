@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Code Three 3D Interactive
-Description: Take WordPress to the next dimension. Easy 3D/3JS scenes. 
+Description: Easy 3D/3JS scenes. Take WordPress to the next dimension. 
 Version: 1.0
 Author: Kauri Beguely
 License: GPLv2 or later

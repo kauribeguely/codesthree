@@ -46,7 +46,7 @@ For a guide on how to build a basic scene visit URL HERE
 == Frequently Asked Questions ==
 
 =I added a model, why can't I see it?=
-The most likely is the model size is huge/tiny. Try scaling it up or down. 
+The most likely is the model size is huge/tiny. Try scaling it up or down (sometimes alot). 
 
 =Why is my model is completely black?=
 Either lighting or materials are not setup correctly. Try change the light intensity or toggle environment light. If it's a material issue you need to fix the model in a 3D software e.g. blender or find a new one.
@@ -56,8 +56,10 @@ The scene size is based on the height/width of the canvas. The editor canvas is 
 
 == Screenshots ==
 
-1. A rotating 3D cube embedded via shortcode
-2. Scroll-triggered 3D animation example
+1. User Interface with a single object scene. Orthographic camera.
+2. Multi object scene with controls hidden. Perspective camera.
+3. The same scene shortcode used in two different designs (with Elementor)
+4. Lamborghini scene in an Elementor section. Linked to mouse move.
 
 == Changelog ==
 
