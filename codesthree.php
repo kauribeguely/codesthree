@@ -96,7 +96,7 @@ function inject_threejs_assets()
 <script type="importmap">
     {
         "imports": {
-            "three": "<?php echo esc_url(plugins_url('js/three.module.js', __FILE__)); ?>",
+            "three": "<?php echo esc_url(plugins_url('js/threemin.module.js', __FILE__)); ?>",
             "three/addons/": "<?php echo esc_url(plugins_url('js/threeaddons/', __FILE__)); ?>"
         }
     }
@@ -104,8 +104,6 @@ function inject_threejs_assets()
 
 <?php
 }
-
-
 // Hook into the wp_head to ensure the assets are loaded globally
 add_action('wp_head', 'inject_threejs_assets', 0);
 
@@ -122,12 +120,10 @@ function create_scene_shortcode($atts)
     ob_start();
 
     // Enqueue JS
-    wp_enqueue_script(
-        'codes-script',
-        plugins_url('scene.js', __FILE__),
-        '1.0',
-        true // load in footer
-    );
+    // wp_enqueue_script_module(
+    //     'codes-script',
+    //     plugins_url('scene.js', __FILE__),
+    // );
 
     ?>
 
@@ -545,8 +541,8 @@ function threejs_editor_page($post) {
         <script type="importmap">
             {
                 "imports": {
-                    "three": "<?php echo esc_url(plugins_url('js/three.module.js', __FILE__)); ?>",
-                    "three/addons/": "<?php echo esc_url(plugins_url('js/threeaddons/', __FILE__)); ?>"
+                    "three": "<?php echo esc_url(plugins_url('/js/threemin.module.js', __FILE__)); ?>",
+                    "three/addons/": "<?php echo esc_url(plugins_url('/js/threeaddons/', __FILE__)); ?>"
                 }
             }
         </script>

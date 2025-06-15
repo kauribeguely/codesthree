@@ -141,7 +141,7 @@ window.onload = () =>
       toggleVisibility('.leftControls');
       toggleVisibility('.topTransforms');
 
-      controls.visible = isControlsVisible;
+      // controls.visible = isControlsVisible;
       groupControls.visible = isControlsVisible;
       axesHelper.visible = isControlsVisible;
       gridHelper.visible = isControlsVisible;
@@ -152,12 +152,12 @@ window.onload = () =>
       {
         if(loopActive)
         {
-          controls.visible = false;
+          // controls.visible = false;
           groupControls.visible = true;
         }
         else
         {
-          controls.visible = true;
+          // controls.visible = true;
           groupControls.visible = false;
         }
       }
