@@ -5,11 +5,14 @@ import { TransformControls } from 'three/addons/TransformControls.js';
 import { RGBELoader } from 'three/addons/RGBELoader.js';
 
 
+//Feel like i could just make a 2d array that links created threejs models to 
+// utility functions could make this worth it: animate etc
+
 class ModelConfig {
     constructor(data = {}) {
         this.modelId = data.modelId || crypto.randomUUID(); // Assign a new ID if not provided
         this.modelUrl = data.modelUrl || '';
-        this.modelName = data.modelName || 'New Model';
+        this.modelName = data.modelName || 'New Model'; //Allow changable via object list, default to filename (like object list)
 
         // Store position, rotation, scale as THREE.Vector3/Euler for easier use with Three.js
         this.position = new THREE.Vector3(data.positionX || 0, data.positionY || 0, data.positionZ || 0);
@@ -20,9 +23,11 @@ class ModelConfig {
         );
         this.scale = new THREE.Vector3(data.scale || 1, data.scale || 1, data.scale || 1); // Assuming uniform scale
 
-        this.loopActive = data.loopActive || 'off';
+        this.loopActive = data.loopActive || false;
         this.loopCountX = data.loopCountX || 1;
         // ... other loop properties
+
+        this.isMobileConfig = data.isMobileConfig || false;
 
         this.threeJsObject = null; // Reference to the actual THREE.Object3D instance
     }
@@ -68,7 +73,8 @@ class ModelConfig {
 
 
 let keyXRot = false, keyYRot = false, keyZRot = false, keyZTrans = false, keyScale = false;
-
+let isInitialLoad = true;
+let itemsLoaded = 0;
 // document.addEventListener('DOMContentLoaded', () => {
 window.onload = () =>
 {
@@ -80,7 +86,8 @@ window.onload = () =>
 
   //allSceneData = This is set via main php file, contains globalSettings and models
   let sceneData = allSceneData.globalSettings;
-  let allModels = allSceneData.models;
+  let allModels = allSceneData.models[0];
+  let allMobileModels = allSceneData.models[1];
   
   let allThreeJsObj = [];
   console.log('Admin JS Codes 3D started');
@@ -163,6 +170,44 @@ window.onload = () =>
       }
       
   });
+
+  let isMobileView = false;
+  const toggleMobileButton = document.getElementById('mobileMode');
+  const mobileOutline = document.getElementById('mobileOutline');
+  toggleMobileButton.addEventListener('click', toggleMobile);
+  function toggleMobile()
+  {
+    isMobileView = !isMobileView;
+    //change transforms on screen to match current mode
+    if(isMobileView)
+    {      
+      mobileOutline.style.display = 'block';
+    }
+    else
+    {
+      mobileOutline.style.display = 'none';
+    }
+    // console.log(allSceneData);
+    applyAllTransformsFromConfigs();
+    
+  }
+
+  function applyAllTransformsFromConfigs()
+  {
+    allThreeJsObj.forEach(function(obj)
+    {
+      let currentConfig = isMobileView ? obj.userData.modelConfigRefMob : obj.userData.modelConfigRef;
+      applyTransformFromConfig(obj, currentConfig);
+    });    
+  }
+
+  function applyTransformFromConfig(object, config)
+  {
+    object.position.copy(config.position);
+    object.rotation.copy(config.rotation);
+    object.scale.copy(config.scale);
+  }
+
 
   const toggleGizmoButton = document.getElementById('toggleGizmo');
   toggleGizmoButton.addEventListener('click', () => {
@@ -664,8 +709,28 @@ function toggleCamera()
     {
       allModels.forEach(function(model)
       {
-        loadModel(model.modelUrl, model, true);
+        loadModel(model.modelUrl, model, false);
+      });      
+    }
+
+    function loadAllMobileData()
+    {
+      allMobileModels.forEach(function(model, index)
+      {
+        //only add their data to the relative model config
+          //
+        // loadModel(model.modelUrl, model, true);
+        addMobDataToConfigRef(model, index);
       });
+    }
+
+    function addMobDataToConfigRef(data, index)
+    {
+      //find related object 
+      // const modelId = allThreeJsObj.findIndex(m => m.modelId === data.modelId);
+      // const threeJsObject = selectObjectFromList(data.modelId);
+      const threeJsObject = allThreeJsObj[index];
+      threeJsObject.userData.modelConfigRefMob = ModelConfig.fromPlainObject(data);
     }
 
     function duplicateObject(sceneObj)
@@ -685,15 +750,22 @@ function toggleCamera()
 
     //isNew checks if current url/model to be updated
     // function loadModel(url, sceneData, isNew)
-    function loadModel(url, objData, isNew)
+    function loadModel(url, objData, isMobile)
     {
       loader.load(url, (gltf) =>
       {
           const newThreeJsObject = gltf.scene;
-          let modelConfigInstance; // This will be our ModelConfig class instance
+          let modelConfigInstance, modelConfigInstanceMob; // This will be our ModelConfig class instance
+
+          // let modelList = allModels;
+          // if(isMobile)
+          // {
+          //   modelList = allMobileModels;
+          // }
 
           // --- Determine if this is a new model or an existing one being loaded/reloaded ---
-          if (objData) {
+          if (objData) 
+          {
               // Scenario 2: Loading/Reloading an Existing Model
               // We're creating a ModelConfig instance from the plain data we loaded.
               modelConfigInstance = ModelConfig.fromPlainObject(objData);
@@ -717,6 +789,7 @@ function toggleCamera()
               // Find the corresponding plain object in sceneData.models and update it
               // This ensures sceneData.models is kept in sync with the current instance state
               // (e.g., if modelUrl changed).
+              
               const existingModelIndex = allModels.findIndex(m => m.modelId === modelConfigInstance.modelId);
               if (existingModelIndex !== -1) {
                   allModels[existingModelIndex] = modelConfigInstance.toPlainObject();
@@ -727,10 +800,14 @@ function toggleCamera()
                   allModels.push(modelConfigInstance.toPlainObject());
               }
 
-            } else {
+            } 
+            else //no obj data provided i.e. new object
+            {
+
                 // Scenario 1: Loading a New Model (no existing config provided)
                 // Create a completely new ModelConfig instance.
                 modelConfigInstance = new ModelConfig({ modelUrl: url });
+                modelConfigInstanceMob = new ModelConfig({ modelUrl: url, isMobileConfig: true});
 
                 // Apply default (or initial UI) transforms to the new Three.js object.
                 // The ModelConfig constructor already sets defaults for position, rotation, scale.
@@ -740,15 +817,18 @@ function toggleCamera()
 
                 // Add the plain object representation of this new model to sceneData.models for saving.
                 allModels.push(modelConfigInstance.toPlainObject());
+                allMobileModels.push(modelConfigInstanceMob.toPlainObject());
                 console.log("Added new model config to allModels:", modelConfigInstance.toPlainObject());
             }
 
             // --- Link the ModelConfig instance to the THREE.Object3D via userData ---
             newThreeJsObject.userData.modelId = modelConfigInstance.modelId;
             newThreeJsObject.userData.modelConfigRef = modelConfigInstance; // Crucial for easy access
+            newThreeJsObject.userData.modelConfigRefMob = modelConfigInstanceMob; // Crucial for easy access
 
             // Link the THREE.Object3D back to the ModelConfig instance (optional but useful)
             modelConfigInstance.threeJsObject = newThreeJsObject;
+            // modelConfigInstanceMob.threeJsObject = newThreeJsObject;
 
             // Add the new Three.js object to our active tracking array and the scene.
             selectedObj = newThreeJsObject;
@@ -775,6 +855,16 @@ function toggleCamera()
             }
             // --- Crucially, update the hidden JSON field for saving ---
             updateSaveField();
+            if(isInitialLoad)
+            {
+              itemsLoaded++;
+              console.log(itemsLoaded);
+              if(itemsLoaded == allModels.length)
+              {
+                isInitialLoad = false;
+                loadAllMobileData();
+              }
+            }
           // scene.add(controls);
           // // Listen for changes in the TransformControls
           // controls.addEventListener('change', updateTransforms);
@@ -814,6 +904,7 @@ function toggleCamera()
 
  
 
+    //updates values of all inputs based on three object
     function updateTransforms()
     {
       let pos = selectedObj.position;
@@ -854,8 +945,7 @@ function toggleCamera()
       // sceneData.positionY = pos.y;
       // sceneData.positionZ = pos.z;
       
-      const modelConfigInstance = selectedObj.userData.modelConfigRef;
-      
+
       //why only in here?
       if (isTransforming) {
         // Update rotation fields (converted from radians to degrees)
@@ -892,21 +982,43 @@ function toggleCamera()
       scaleInput.value = round(scale.x, 2);
       // sceneData.scale = round(scale.x, 2);
       
+
+      let modelConfigInstance;
+      if(isMobileView)
+      {
+        if(selectedObj.userData.modelConfigRefMob == null)
+        {
+          //create it
+          const plainOriginalConfigData = selectedObj.userData.modelConfigRef.toPlainObject();
+          const clonedModelConfig = ModelConfig.fromPlainObject(plainOriginalConfigData);
+          selectedObj.userData.modelConfigRefMob = clonedModelConfig;
+        }
+        modelConfigInstance = selectedObj.userData.modelConfigRefMob;
+      }
+      else
+      {
+        modelConfigInstance = selectedObj.userData.modelConfigRef;
+      }
+
+      
+      
       modelConfigInstance.position.copy(selectedObj.position);
       modelConfigInstance.rotation.copy(selectedObj.rotation);
       modelConfigInstance.scale.copy(selectedObj.scale);
-      const existingModelIndex = allModels.findIndex(m => m.modelId === modelConfigInstance.modelId);
 
-      if (existingModelIndex !== -1) {
-          // Replace the old plain object with the updated one from our ModelConfig instance.
-          allModels[existingModelIndex] = modelConfigInstance.toPlainObject();
-          // console.log(`Updated model config for ID: ${modelConfigInstance.modelId} in sceneData.models.`);
+      let existingModelIndex;
+      if(isMobileView)
+      {
+        existingModelIndex = allMobileModels.findIndex(m => m.modelId === modelConfigInstance.modelId);
+        allMobileModels[existingModelIndex] = modelConfigInstance.toPlainObject();
+      }
+      else
+      {
+        existingModelIndex = allModels.findIndex(m => m.modelId === modelConfigInstance.modelId);
+        allModels[existingModelIndex] = modelConfigInstance.toPlainObject();
       }
 
       updateSaveField();
-      // console.log(scale, scale.x);
-
-      // THREE.MathUtils.degToRad(sceneData.rotationX)
   };
 
   controls.addEventListener('change', updateTransforms);
@@ -980,7 +1092,7 @@ function transformDragEnd(){
         }
         else
         {
-          loadModel(attachment.url, false, true);
+          loadModel(attachment.url, false, isMobileView);
         }
 
         if(popupOpen)
@@ -1345,6 +1457,10 @@ function transformDragEnd(){
                 break;  
           case 'q': 
                 keyXRot = true;
+                if(event.altKey)
+                {
+                  toggleMobile();
+                }
                 break;  
           case 'w': 
                 keyYRot = true;
@@ -1630,7 +1746,14 @@ function transformDragEnd(){
       function selectModelForEditing(obj)
       {
         selectedObj = obj;
-        selectedObjData = selectedObj.userData.modelConfigRef;
+        if(isMobileView)
+        {
+          selectedObjData = selectedObj.userData.modelConfigRefMob;
+        }
+        else
+        {
+          selectedObjData = selectedObj.userData.modelConfigRef;
+        }
         controls.attach(selectedObj);
         controls.visible = gizmoVisible;
         controls.enabled = gizmoVisible;

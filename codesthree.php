@@ -46,6 +46,9 @@ function get_scene_data($post_id) {
             'models' => [
                 // Start with an empty array if no models are saved
                 // Or you could add a default cube/model config here if your scene always starts with one
+                [],
+                []
+                
             ]
         ];
         return $default_config;
@@ -314,56 +317,6 @@ function codesthree_register_scenes_post_type() {
 }
 
 
-
-// // Add meta boxes for Scene settings
-// function threejs_add_scene_meta_boxes() {
-//     add_meta_box(
-//         'threejs_scene_settings',       // Meta box ID
-//         '3D Scene Settings',            // Meta box title
-//         'threejs_scene_meta_box_html',  // Callback to display fields
-//         'scene',                        // Post type
-//         'normal',                       // Context (normal, side, advanced)
-//         'high'                          // Priority
-//     );
-// }
-// add_action('add_meta_boxes', 'threejs_add_scene_meta_boxes');
-
-
-// function codes_scene_enqueue_assets() {
-//     // Register the styles and scripts
-//     wp_register_style('codes_scene_styles', plugins_url('styles.css', __FILE__));
-//     wp_register_script('codes_scene_importmap', '', [], null, false); // Placeholder for the importmap
-//     wp_register_script('codes_scene_shims', 'https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js', [], null, false);
-// }
-// add_action('wp_enqueue_scripts', 'codes_scene_enqueue_assets');
-//
-//
-// function codes_scene_maybe_enqueue($posts) {
-//     if (is_singular() && has_shortcode(get_post_field('post_content', get_the_ID()), 'codes_scene')) {
-//         // Enqueue styles and scripts if the shortcode is found
-//         wp_enqueue_style('codes_scene_styles');
-//         wp_enqueue_script('codes_scene_shims');
-//
-//         // Inline the importmap script
-//         wp_add_inline_script(
-//             'codes_scene_importmap',
-//             '
-//             <script type="importmap">
-//               {
-//                 "imports": {
-//                   "three": "https://unpkg.com/three@0.150.1/build/three.module.js",
-//                   "three/addons/": "https://unpkg.com/three@0.150.1/examples/jsm/"
-//                 }
-//               }
-//             </script>
-//             ',
-//             'before'
-//         );
-//     }
-// }
-// add_action('wp_enqueue_scripts', 'codes_scene_maybe_enqueue');
-
-
 function save_scene_metadata($post_id) {
 
     // Verify this is a "codes_scene" post type
@@ -555,6 +508,9 @@ function threejs_editor_page($post) {
 
         <!-- <h1>3D Model Editor</h1> -->
 
+
+        <div id="mobileOutline"></div>
+
       <div id="newScenePopup">
         Upload/open a model to get started
         <button type="button" class="button" id="popup_media_button">Select Model</button>
@@ -569,6 +525,7 @@ function threejs_editor_page($post) {
           </div>
           <button id="toggleControls" type="button">Toggle Controls</button>
           <button id="toggleGizmo" type="button">Gizmo</button>
+          <button id="mobileMode" type="button">Mobile</button>
           <div class='leftControls'>
           <!-- Mouse Animation Link -->
             <div class="checkbox-group">

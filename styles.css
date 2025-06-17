@@ -58,7 +58,7 @@
       flex-wrap: wrap;
       flex-direction: column;
       top: 0;
-      background: #292929;
+      background: #00000066;
       /* padding: 15px; */
       /* height: 100%; */
       padding: 15px;
@@ -97,6 +97,20 @@ input[type="number"]
     border: 1px solid #ccc;
     background: #1d1d1d;
     color: #cdcdcd;
+}
+
+#mobileOutline
+{
+  width: 360px !important;
+  border: 10px solid black;
+  border-radius: 20px;
+  box-shadow: 0 0 29px white;
+  height: 68vh;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  display: none;
 }
 
 #newScenePopup {
