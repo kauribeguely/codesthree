@@ -85,6 +85,15 @@ window.onload = () =>
   let initialIntersectionPoint = new THREE.Vector3();
 
   //allSceneData = This is set via main php file, contains globalSettings and models
+  if(allSceneData.models[1] == undefined)
+  {
+    //check if it's type object or array
+    const oldModels = allSceneData.models;
+    allSceneData.models = [];
+    allSceneData.models.push(oldModels);
+    allSceneData.models.push([]);
+  }
+  
   let sceneData = allSceneData.globalSettings;
   let allModels = allSceneData.models[0];
   let allMobileModels = allSceneData.models[1];
