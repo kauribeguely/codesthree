@@ -73,6 +73,8 @@ class ModelConfig {
 
 
 let keyXRot = false, keyYRot = false, keyZRot = false, keyZTrans = false, keyScale = false;
+let shiftDown = false;
+let scrollMultiplier = 1;
 let isInitialLoad = true;
 let itemsLoaded = 0;
 // document.addEventListener('DOMContentLoaded', () => {
@@ -1515,7 +1517,10 @@ function transformDragEnd(){
             case 'Delete':
                 deleteObject();
                 break;
-
+            case 'Shift':
+                shiftDown = true;
+                scrollMultiplier = 0.3;
+                break;
                 
             case 'l': // Scale mode
                 loopActive = !loopActive;
@@ -1541,6 +1546,10 @@ function transformDragEnd(){
               break;
         case 's': 
               keyScale = false;
+        case 'Shift':
+              shiftDown = false;
+              scrollMultiplier = 1;
+              break;
       }
     });
 
@@ -1553,7 +1562,7 @@ function transformDragEnd(){
     }
 
 
-    const scrollRotAmount = THREE.MathUtils.degToRad(5);
+    const scrollRotAmount = THREE.MathUtils.degToRad(10);
     document.addEventListener('wheel', function(e)
     {
       if(keyXRot || keyYRot || keyZRot || keyZTrans || keyScale) 
@@ -1562,31 +1571,31 @@ function transformDragEnd(){
       }
       if(e.wheelDelta > 0) //scroll up, away,
       {
-        if(keyZTrans) selectedObj.position.z -= 0.5;
+        if(keyZTrans) selectedObj.position.z -= scrollMultiplier*0.5;
         // if(keyXRot) selectedObjData.rotation.x -= THREE.MathUtils.degToRad(5);
         // if(keyYRot) selectedObjData.rotation.y -= THREE.MathUtils.degToRad(5);
         // if(keyZRot) selectedObjData.rotation.z -= THREE.MathUtils.degToRad(5);
-        if(keyXRot) selectedObj.rotateX(-scrollRotAmount);
-        if(keyYRot) selectedObj.rotateY(-scrollRotAmount);
-        if(keyZRot) selectedObj.rotateZ(-scrollRotAmount);
+        if(keyXRot) selectedObj.rotateX(scrollMultiplier*-scrollRotAmount);
+        if(keyYRot) selectedObj.rotateY(scrollMultiplier*-scrollRotAmount);
+        if(keyZRot) selectedObj.rotateZ(scrollMultiplier*-scrollRotAmount);
         // if(keyXRot) selectedObj.rotation.x -= scrollRotAmount;
         // if(keyYRot) selectedObj.rotation.y -= scrollRotAmount;
         // if(keyZRot) selectedObj.rotation.z -= scrollRotAmount;
-        if(keyScale) stepScale(-0.1);
+        if(keyScale) stepScale(scrollMultiplier*-0.1);
         // scrollDirection = 'Scroll Up';
         // transformObjectToSceneData(selectedObj);
         updateTransforms();
       }
       else
       {
-        if(keyZTrans) selectedObj.position.z += 0.5;
+        if(keyZTrans) selectedObj.position.z += scrollMultiplier*0.5;
         // if(keyXRot) selectedObjData.rotation.x += THREE.MathUtils.degToRad(5);
         // if(keyYRot) selectedObjData.rotation.y += THREE.MathUtils.degToRad(5);
         // if(keyZRot) selectedObjData.rotation.z += THREE.MathUtils.degToRad(5);
-        if(keyXRot) selectedObj.rotateX(scrollRotAmount);
-        if(keyYRot) selectedObj.rotateY(scrollRotAmount);
-        if(keyZRot) selectedObj.rotateZ(scrollRotAmount);
-        if(keyScale) stepScale(0.1);
+        if(keyXRot) selectedObj.rotateX(scrollMultiplier*scrollRotAmount);
+        if(keyYRot) selectedObj.rotateY(scrollMultiplier*scrollRotAmount);
+        if(keyZRot) selectedObj.rotateZ(scrollMultiplier*scrollRotAmount);
+        if(keyScale) stepScale(scrollMultiplier*0.1);
         // scrollDirection = 'Scroll Down';
         // transformObjectToSceneData(selectedObj);
         updateTransforms();

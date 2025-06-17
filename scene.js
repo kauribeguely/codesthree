@@ -246,7 +246,6 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
         let currentConfig = isMobile ? obj.userData.mobObjData : obj.userData.objData;
         applyTransformFromConfig(obj, currentConfig);
       });    
-      updateTransforms();
     }
 
     function applyTransformFromConfig(object, config)
