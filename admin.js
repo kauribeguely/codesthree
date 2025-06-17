@@ -84,10 +84,9 @@ window.onload = () =>
   let offset = new THREE.Vector3(); // To store the offset between click point and object center
   let initialIntersectionPoint = new THREE.Vector3();
 
-  //allSceneData = This is set via main php file, contains globalSettings and models
+  //backward compatibility
   if(allSceneData.models[1] == undefined)
   {
-    //check if it's type object or array
     const oldModels = allSceneData.models;
     allSceneData.models = [];
     allSceneData.models.push(oldModels);
@@ -208,6 +207,7 @@ window.onload = () =>
       let currentConfig = isMobileView ? obj.userData.modelConfigRefMob : obj.userData.modelConfigRef;
       applyTransformFromConfig(obj, currentConfig);
     });    
+    updateTransforms();
   }
 
   function applyTransformFromConfig(object, config)

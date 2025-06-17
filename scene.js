@@ -11,8 +11,16 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 import { RGBELoader } from 'three/addons/RGBELoader.js';
 
+
+
 export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
 {
+  // TODO, make this part of global config
+  const MOBILE_BREAKPOINT_MAX_WIDTH = 768; 
+
+  // Set the isMobile boolean based on the current window width
+  let isMobile = window.innerWidth <= MOBILE_BREAKPOINT_MAX_WIDTH;
+
   let numLoaded = 0;
     const container = document.getElementById(containerId);
     const loadScreen = container.querySelector('.loadScreen');
@@ -22,8 +30,19 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
     }
 
 
+    //backward compatibility
+    if(allSceneData.models[1] == undefined)
+    {
+      const oldModels = allSceneData.models;
+      allSceneData.models = [];
+      allSceneData.models.push(oldModels);
+      allSceneData.models.push([]);
+    }
+
     let sceneData = allSceneData.globalSettings;
-    let allModels = allSceneData.models;
+    let allModels = allSceneData.models[0];
+    let allMobileModels = allSceneData.models[1];
+    let allThreeJsObj = [];
     // console.log(pluginData.pluginUrl);
     // console.log(pluginUrl);
     const mouseRotationX = sceneData.mouseRotationX; // Maximum rotation range in degrees
@@ -130,11 +149,32 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
 
     function loadAllModels()
     {
-      allModels.forEach(function(model)
+      allModels.forEach(function(model, index)
       {
-        loadModel(model.modelUrl, model, true);
+        loadModel(model.modelUrl, model, allMobileModels[index]);
       });
     }
+
+    // function loadAllMobileData()
+    // {
+    //   allMobileModels.forEach(function(model, index)
+    //   {
+    //     //only add their data to the relative model config
+    //       //
+    //     // loadModel(model.modelUrl, model, true);
+    //     addMobDataToConfigRef(model, index);
+    //   });
+    //   // applyAllTransformsFromConfigs();
+    // }
+
+    // function addMobDataToConfigRef(data, index)
+    // {
+    //   //find related object 
+    //   // const modelId = allThreeJsObj.findIndex(m => m.modelId === data.modelId);
+    //   // const threeJsObject = selectObjectFromList(data.modelId);
+    //   const threeJsObject = allThreeJsObj[index];
+    //   threeJsObject.userData.modelConfigRefMob = ModelConfig.fromPlainObject(data);
+    // }
 
     // if(loopActive)
     // {
@@ -148,7 +188,8 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
 
     // function loadModel(url, sceneData)
     let lastAddedObject;
-    function loadModel(url, objData)
+    // TODO: change data to dataList = [] - can scale to many screen sizes easier
+    function loadModel(url, objData, mobObjData)
     {
       loader.load(url, (gltf) =>
       {
@@ -158,18 +199,32 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
           
           rotateGroup.add(newThreeJsObject);
 
+          // const modelConfigInstance = ModelConfig.fromPlainObject(objData);
+          // const modelConfigInstanceMob = ModelConfig.fromPlainObject(mobObjData);
+          newThreeJsObject.userData.objData = objData; // Crucial for easy access
+          newThreeJsObject.userData.mobObjData = mobObjData; // Crucial for easy access
+          allThreeJsObj.push(newThreeJsObject);
 
-          lastAddedObject.position.set(
-              parseFloat(objData.positionX),
-              parseFloat(objData.positionY),
-              parseFloat(objData.positionZ)
-          );
+          if(isMobile)
+          {
+            applyTransformFromConfig(newThreeJsObject, mobObjData);
+          }
+          else
+          {
+            applyTransformFromConfig(newThreeJsObject, objData);
+          }
 
-          lastAddedObject.rotation.set(
-              parseFloat(THREE.MathUtils.degToRad(objData.rotationX)),
-              parseFloat(THREE.MathUtils.degToRad(objData.rotationY)),
-              parseFloat(THREE.MathUtils.degToRad(objData.rotationZ))
-          );
+          // lastAddedObject.position.set(
+          //     parseFloat(objData.positionX),
+          //     parseFloat(objData.positionY),
+          //     parseFloat(objData.positionZ)
+          // );
+
+          // lastAddedObject.rotation.set(
+          //     parseFloat(THREE.MathUtils.degToRad(objData.rotationX)),
+          //     parseFloat(THREE.MathUtils.degToRad(objData.rotationY)),
+          //     parseFloat(THREE.MathUtils.degToRad(objData.rotationZ))
+          // );
           currentRotation.copy(lastAddedObject.rotation); // The most direct way
 
           lastAddedObject.scale.set(objData.scale, objData.scale, objData.scale);
@@ -182,6 +237,28 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
           hideLoadScreen();
 
         });
+    }
+
+    function applyAllTransformsFromConfigs()
+    {
+      allThreeJsObj.forEach(function(obj)
+      {
+        let currentConfig = isMobile ? obj.userData.mobObjData : obj.userData.objData;
+        applyTransformFromConfig(obj, currentConfig);
+      });    
+      updateTransforms();
+    }
+
+    function applyTransformFromConfig(object, config)
+    {
+      object.position.set(config.positionX, config.positionY, config.positionZ);
+      object.rotation.set(degToRad(config.rotationX), degToRad(config.rotationY), degToRad(config.rotationZ));
+      object.scale.set(config.scale, config.scale, config.scale);
+    }
+
+    function degToRad(deg)
+    {
+      return deg * 0.0174533;
     }
 
     function hideLoadScreen()
@@ -227,9 +304,9 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
       // model.rotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * rotationRange);
       const easing = 0.1 + (1 - 0.1) * 0.05; // Increase easing slightly on each move to simulate ease-out.  Adjust 0.05 for strength.
 
-      targetRotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * mouseRotationX);
-      targetRotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * mouseRotationY);
-      targetRotation.z = THREE.MathUtils.degToRad(initialRotationZ + -mouseX * mouseRotationZ);
+      targetRotation.x = degToRad(initialRotationX + -mouseY * mouseRotationX);
+      targetRotation.y = degToRad(initialRotationY + -mouseX * mouseRotationY);
+      targetRotation.z = degToRad(initialRotationZ + -mouseX * mouseRotationZ);
 
 
       currentRotation.x = THREE.MathUtils.lerp(currentRotation.x, targetRotation.x, easing);
@@ -260,14 +337,38 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
 
 
     // Handle window resizing
-      window.addEventListener('resize', onWindowResize, false);
+    window.addEventListener('resize', onWindowResize, false);
 
-      function onWindowResize() {
-        // Update camera aspect ratio and renderer size on window resize
-        camera.aspect = container.clientWidth / container.clientHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(container.clientWidth, container.clientHeight);
+    function onWindowResize() 
+    {
+      // Update camera aspect ratio and renderer size on window resize
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+
+      const belowBreakPoint = window.innerWidth <= MOBILE_BREAKPOINT_MAX_WIDTH;
+      let changed = false;
+      if(belowBreakPoint)
+      {
+        if(!isMobile)
+        {
+          isMobile = true;
+          changed = true;
+        }
       }
+      else
+      {
+        if(isMobile)
+        {
+          isMobile = false;
+          changed = true;
+        }
+      }
+      if(changed)
+      {
+        applyAllTransformsFromConfigs();
+      }
+    }
 
       // Get the canvas container's distance to the top of the screen
       const getCanvasOffset = () => {
