@@ -87,7 +87,8 @@ window.onload = () =>
   let initialIntersectionPoint = new THREE.Vector3();
 
   //backward compatibility
-  if(allSceneData.models[1] == undefined)
+  // if(allSceneData.models[1] == undefined)
+  if(!Array.isArray(allSceneData.models[1]))    
   {
     const oldModels = allSceneData.models;
     allSceneData.models = [];
