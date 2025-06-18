@@ -12,7 +12,7 @@ class ModelConfig {
     constructor(data = {}) {
         this.modelId = data.modelId || crypto.randomUUID(); // Assign a new ID if not provided
         this.modelUrl = data.modelUrl || '';
-        this.modelName = data.modelName || 'New Model'; //Allow changable via object list, default to filename (like object list)
+        this.modelName = data.modelName || data.modelUrl.split('/').pop();; //Allow changable via object list, default to filename (like object list)
 
         // Store position, rotation, scale as THREE.Vector3/Euler for easier use with Three.js
         this.position = new THREE.Vector3(data.positionX || 0, data.positionY || 0, data.positionZ || 0);
@@ -749,8 +749,16 @@ function toggleCamera()
     {
       const oldObjData = sceneObj.userData.modelConfigRef.toPlainObject();
       const objData = JSON.parse(JSON.stringify(oldObjData)); 
+      
+      const oldObjDataMob = sceneObj.userData.modelConfigRefMob.toPlainObject();
+      const objDataMob = JSON.parse(JSON.stringify(oldObjDataMob)); 
       objData.modelId = crypto.randomUUID();
-      loadModel(objData.modelUrl, objData);
+      objDataMob.modelId = objData.modelId;
+
+      loadModel(objData.modelUrl, objData, function()
+      {
+        addMobDataToConfigRef(objDataMob, allThreeJsObj.length-1);
+      });      
     }
 
     function cloneSelected()
@@ -762,7 +770,7 @@ function toggleCamera()
 
     //isNew checks if current url/model to be updated
     // function loadModel(url, sceneData, isNew)
-    function loadModel(url, objData, isMobile)
+    function loadModel(url, objData, callback)
     {
       loader.load(url, (gltf) =>
       {
@@ -836,6 +844,7 @@ function toggleCamera()
             // --- Link the ModelConfig instance to the THREE.Object3D via userData ---
             newThreeJsObject.userData.modelId = modelConfigInstance.modelId;
             newThreeJsObject.userData.modelConfigRef = modelConfigInstance; // Crucial for easy access
+
             newThreeJsObject.userData.modelConfigRefMob = modelConfigInstanceMob; // Crucial for easy access
 
             // Link the THREE.Object3D back to the ModelConfig instance (optional but useful)
@@ -876,6 +885,11 @@ function toggleCamera()
                 isInitialLoad = false;
                 loadAllMobileData();
               }
+            }
+
+            if(callback)
+            {
+              callback();
             }
           // scene.add(controls);
           // // Listen for changes in the TransformControls
@@ -1798,7 +1812,8 @@ function updateObjectList() {
         // const objDisplayName = obj.name || obj.uuid.substring(0, 8); // Shorten UUID for display
         const modelUrl = obj.userData.modelConfigRef.modelUrl;
         const lastPart = modelUrl.split('/').pop();
-        const objDisplayName = lastPart; // Shorten UUID for display
+        const objDisplayName = lastPart; 
+        // const objDisplayName = obj.userData.modelConfigRef.modelName; 
 
         // --- Create the clickable text (for selection) ---
         const objectNameSpan = document.createElement('span');
@@ -1920,6 +1935,7 @@ function updateObjectList() {
 
       // 2. Get the modelId from the corresponding modelConfigInstance in allModels
       const modelConfigToDelete = allModels[threeJsObjectIndex];
+      const modelConfigMobToDelete = allMobileModels[threeJsObjectIndex];
 
       if (!modelConfigToDelete || !modelConfigToDelete.modelId) {
           console.error("Corresponding model configuration or modelId not found for the selected Three.js object.");
@@ -1927,6 +1943,7 @@ function updateObjectList() {
       }
 
       const modelIdToDelete = modelConfigToDelete.modelId;
+      // const modelIdToDelete = modelConfigMobToDelete.modelId;
 
       // 3. Find the index in allModels using the modelId
       const modelConfigIndex = allModels.findIndex(m => m.modelId === modelIdToDelete);
@@ -1950,6 +1967,7 @@ function updateObjectList() {
 
       // 6. Remove from allModels
       allModels.splice(modelConfigIndex, 1);
+      allMobileModels.splice(modelConfigIndex, 1);
       console.log(`Removed model config from allModels at index ${modelConfigIndex} (modelId: ${modelIdToDelete})`);
 
       // Optional: Dispose of Three.js geometry, material, and textures
@@ -1968,6 +1986,7 @@ function updateObjectList() {
           console.log(`Disposed material(s) for object: ${selectedObj.name || selectedObj.uuid}`);
       }
 
+      // TODO: if last object deleted, show first screen again
       const lastObjectInList = allThreeJsObj[allThreeJsObj.length - 1];
       selectModelForEditing(lastObjectInList);
       updateObjectList();

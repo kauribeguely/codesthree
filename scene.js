@@ -15,11 +15,8 @@ import { RGBELoader } from 'three/addons/RGBELoader.js';
 
 export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
 {
-  // TODO, make this part of global config
-  const MOBILE_BREAKPOINT_MAX_WIDTH = 768; 
 
-  // Set the isMobile boolean based on the current window width
-  let isMobile = window.innerWidth <= MOBILE_BREAKPOINT_MAX_WIDTH;
+  
 
   let numLoaded = 0;
     const container = document.getElementById(containerId);
@@ -44,6 +41,10 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
     let allModels = allSceneData.models[0];
     let allMobileModels = allSceneData.models[1];
     let allThreeJsObj = [];
+    const MOBILE_BREAKPOINT_MAX_WIDTH = 768; 
+    // Set the isMobile boolean based on the current window width
+    let isMobile = window.innerWidth <= MOBILE_BREAKPOINT_MAX_WIDTH;
+    // const MOBILE_BREAKPOINT_MAX_WIDTH = sceneData.breakPoint; 
     // console.log(pluginData.pluginUrl);
     // console.log(pluginUrl);
     const mouseRotationX = sceneData.mouseRotationX; // Maximum rotation range in degrees
