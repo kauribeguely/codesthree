@@ -184,7 +184,15 @@ window.onload = () =>
 
   let isMobileView = false;
   const toggleMobileButton = document.getElementById('mobileMode');
+  const breakPoint = document.getElementById('breakPoint');
+  breakPoint.oninput = () =>
+  {
+    sceneData.breakpoint = parseFloat(breakPoint.value);
+    updateMobileOutlineWidth();
+  };
+
   const mobileOutline = document.getElementById('mobileOutline');
+  updateMobileOutlineWidth();
   toggleMobileButton.addEventListener('click', toggleMobile);
   function toggleMobile()
   {
@@ -199,8 +207,12 @@ window.onload = () =>
       mobileOutline.style.display = 'none';
     }
     // console.log(allSceneData);
-    applyAllTransformsFromConfigs();
-    
+    applyAllTransformsFromConfigs();    
+  }
+
+  function updateMobileOutlineWidth()
+  {
+    mobileOutline.style.width = sceneData.breakpoint +'px';
   }
 
   function applyAllTransformsFromConfigs()
@@ -2007,6 +2019,7 @@ function updateObjectList() {
         sceneData.scrollAnimationLink = scrollAnimationLinkInput.checked;
         sceneData.useEnvLight = useEnvLightInput.checked;
         sceneData.isOrthoCamera = isOrthoCameraInput.checked;
+        sceneData.breakPoint = parseFloat(breakPoint.value);
         updateSaveField();
       }
 

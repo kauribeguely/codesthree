@@ -41,7 +41,7 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
     let allModels = allSceneData.models[0];
     let allMobileModels = allSceneData.models[1];
     let allThreeJsObj = [];
-    const MOBILE_BREAKPOINT_MAX_WIDTH = 768; 
+    const MOBILE_BREAKPOINT_MAX_WIDTH = sceneData.breakpoint; 
     // Set the isMobile boolean based on the current window width
     let isMobile = window.innerWidth <= MOBILE_BREAKPOINT_MAX_WIDTH;
     // const MOBILE_BREAKPOINT_MAX_WIDTH = sceneData.breakPoint; 
@@ -243,6 +243,7 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
 
     function applyAllTransformsFromConfigs()
     {
+      // console.log(allThreeJsObj.length);
       allThreeJsObj.forEach(function(obj)
       {
         let currentConfig = isMobile ? obj.userData.mobObjData : obj.userData.objData;

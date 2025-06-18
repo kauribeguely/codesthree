@@ -101,7 +101,7 @@ input[type="number"]
 
 #mobileOutline
 {
-  width: 360px !important;
+  width: 360px;
   border: 10px solid black;
   border-radius: 20px;
   box-shadow: 0 0 29px white;

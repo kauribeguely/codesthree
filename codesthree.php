@@ -41,6 +41,7 @@ function get_scene_data($post_id) {
                 'scrollMoveX'               => 0.0,
                 'scrollMoveY'               => 5.0,
                 'scrollMoveZ'               => 0.0,
+                'breakpoint'               => 768,
                 // Add any other global default settings here
             ],
             'models' => [
@@ -69,16 +70,18 @@ function get_scene_data($post_id) {
         'lightPosX'                 => 5,
         'lightPosY'                 => 10,
         'lightPosZ'                 => 7.5,
-        'useEnvLight'               => 'off',
-        'isOrthoCamera'             => 'off',
-        'mouseAnimationLink'        => 'off',
+        'useEnvLight'               => false,
+        'isOrthoCamera'             => false,
+        'mouseAnimationLink'        => false,
         'mouseRotationX'            => 0.0,
         'mouseRotationY'            => 0.0,
         'mouseRotationZ'            => 0.0,
-        'scrollAnimationLink'       => 'off',
+        'scrollAnimationLink'       => false,
         'scrollMoveX'               => 0.0,
         'scrollMoveY'               => 0.0,
         'scrollMoveZ'               => 0.0,
+        'scrollMoveZ'               => 0.0,
+        'breakpoint'               => 768,
     ], $final_config['globalSettings']);
    return $final_config;
 }
@@ -371,7 +374,7 @@ add_action('save_post', 'save_scene_metadata');
 function threejs_add_editor_meta_box() {
     add_meta_box(
         'code_three_metabox', // Meta box ID
-        'Codes 3D Scene Editor',    // Meta box title
+        'Code Three Scene Editor',    // Meta box title
         'threejs_editor_page', // Callback function to render the content
         'codes_scene',                // Post type where the meta box will appear
         'normal',               // Context (normal, side, or advanced)
@@ -455,6 +458,8 @@ function threejs_editor_page($post) {
     $scroll_mov_y = $globalSettings['scrollMoveY'];
     $scroll_mov_z = $globalSettings['scrollMoveZ'];
 
+    $breakpoint = $globalSettings['breakpoint'];
+
     // Animation Toggles (global)
     $mouse_enabled = $globalSettings['mouseAnimationLink'] ?: '';
     $scroll_enabled = $globalSettings['scrollAnimationLink'] ?: '';
@@ -517,15 +522,18 @@ function threejs_editor_page($post) {
       </div>
         <div id="threejs-canvas" style="width: 100%; height: 70vh;"></div>
         <!-- <div id="codes_controls"> -->
-          <div class='topTransforms'>
+            <div class='topTransforms'>
 
-              <button class='transModeButton' id="btnTranslateMode" type="button" onmousedown="setTransformMode('translate', event, this)">Translate (T)</button>
-              <button class='transModeButton' id="btnRotateMode" type="button" onmousedown="setTransformMode('rotate', event,  this)">Rotate (R)</button>
-              <button class='transModeButton' id='codesScaleButton' title="not available in loop mode, use scale text input on left" type="button" onmousedown="setTransformMode('scale', event, this)">Scale (Y)</button>
-          </div>
-          <button id="toggleControls" type="button">Toggle Controls</button>
-          <button id="toggleGizmo" type="button">Gizmo</button>
-          <button id="mobileMode" type="button">Mobile</button>
+                <button class='transModeButton' id="btnTranslateMode" type="button" onmousedown="setTransformMode('translate', event, this)">Translate (T)</button>
+                <button class='transModeButton' id="btnRotateMode" type="button" onmousedown="setTransformMode('rotate', event,  this)">Rotate (R)</button>
+                <button class='transModeButton' id='codesScaleButton' title="not available in loop mode, use scale text input on left" type="button" onmousedown="setTransformMode('scale', event, this)">Scale (Y)</button>
+            </div>
+
+            <div style="display: flex; justify-content: center;">
+                <button id="toggleControls" type="button">Toggle Controls</button>
+                <button id="toggleGizmo" type="button">Gizmo</button>
+            </div>
+
           <div class='leftControls'>
           <!-- Mouse Animation Link -->
             <div class="checkbox-group">
@@ -617,6 +625,16 @@ function threejs_editor_page($post) {
                 <input type="checkbox" name="isOrthoCamera" id="isOrthoCamera" <?php checked($is_ortho_camera, 'on'); ?>>
                 Use Orthographic Camera
             </label>
+
+            <hr>
+
+            <!-- Toggle for isOrthoCamera -->
+            <label>Breakpoint (px)
+                <input id="breakPoint" type="number" value="<?php echo esc_attr($breakpoint); ?>">
+            </label>
+
+            <button id="mobileMode" type="button">Mobile</button>
+
           </div>
 
 
