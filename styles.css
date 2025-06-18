@@ -1,4 +1,7 @@
-
+:root
+{
+  --canvas-height: 850px;
+}
 
 #threejs-canvas
 {
@@ -105,7 +108,7 @@ input[type="number"]
   border: 10px solid black;
   border-radius: 20px;
   box-shadow: 0 0 29px white;
-  height: 68vh;
+  height: calc(var(--canvas-height) - 20px);
   position: absolute;
   left: 50%;
   transform: translateX(-50%);

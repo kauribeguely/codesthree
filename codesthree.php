@@ -520,7 +520,7 @@ function threejs_editor_page($post) {
         Upload/open a model to get started
         <button type="button" class="button" id="popup_media_button">Select Model</button>
       </div>
-        <div id="threejs-canvas" style="width: 100%; height: 70vh;"></div>
+        <div id="threejs-canvas" style="width: 100%; height: var(--canvas-height);"></div>
         <!-- <div id="codes_controls"> -->
             <div class='topTransforms'>
 

@@ -731,9 +731,9 @@ function toggleCamera()
 
     function loadAllModels()
     {
-      allModels.forEach(function(model)
+      allModels.forEach(function(model, index)
       {
-        loadModel(model.modelUrl, model, false);
+        loadModel(model.modelUrl, model, false, index);
       });      
     }
 
@@ -754,6 +754,7 @@ function toggleCamera()
       // const modelId = allThreeJsObj.findIndex(m => m.modelId === data.modelId);
       // const threeJsObject = selectObjectFromList(data.modelId);
       const threeJsObject = allThreeJsObj[index];
+      console.log(index, threeJsObject.userData.modelConfigRef.modelUrl, data.modelUrl);
       threeJsObject.userData.modelConfigRefMob = ModelConfig.fromPlainObject(data);
     }
 
@@ -782,7 +783,7 @@ function toggleCamera()
 
     //isNew checks if current url/model to be updated
     // function loadModel(url, sceneData, isNew)
-    function loadModel(url, objData, callback)
+    function loadModel(url, objData, callback, index)
     {
       loader.load(url, (gltf) =>
       {
@@ -804,14 +805,13 @@ function toggleCamera()
               modelConfigInstance.modelUrl = url; // Ensure the URL is up-to-date in the instance
 
               // Before adding the new object, remove the old THREE.Object3D instance if it exists.
-              // This is crucial if we're reloading a model that's already in the scene (e.g., changing its URL).
-              const oldThreeJsObject = allThreeJsObj.find(obj => obj.userData.modelId === modelConfigInstance.modelId);
-              if (oldThreeJsObject) {
-                  scene.remove(oldThreeJsObject);
-                  // Remove from our active tracking array
-                  allThreeJsObj = allThreeJsObj.filter(obj => obj.userData.modelId !== modelConfigInstance.modelId);
-                  console.log(`Removed old Three.js object for modelId: ${modelConfigInstance.modelId}`);
-              }
+              // const oldThreeJsObject = allThreeJsObj.find(obj => obj.userData.modelConfigRef.modelId === modelConfigInstance.modelId);
+              // if (oldThreeJsObject) {
+              //     scene.remove(oldThreeJsObject);
+              //     // Remove from our active tracking array
+              //     allThreeJsObj = allThreeJsObj.filter(obj => obj.userData.modelId !== modelConfigInstance.modelId);
+              //     console.log(`Removed old Three.js object for modelId: ${modelConfigInstance.modelId}`);
+              // }
 
               // Apply saved transforms to the new Three.js object
               newThreeJsObject.position.copy(modelConfigInstance.position);
@@ -849,7 +849,8 @@ function toggleCamera()
 
                 // Add the plain object representation of this new model to sceneData.models for saving.
                 allModels.push(modelConfigInstance.toPlainObject());
-                allMobileModels.push(modelConfigInstanceMob.toPlainObject());
+                allMobileModels[allModels.length-1] = modelConfigInstanceMob.toPlainObject();
+                // allMobileModels.push(modelConfigInstanceMob.toPlainObject());
                 console.log("Added new model config to allModels:", modelConfigInstance.toPlainObject());
             }
 
@@ -866,7 +867,14 @@ function toggleCamera()
             // Add the new Three.js object to our active tracking array and the scene.
             selectedObj = newThreeJsObject;
             selectedObjData = modelConfigInstance;
-            allThreeJsObj.push(newThreeJsObject);
+            if(index == undefined)
+            {
+              allThreeJsObj.push(newThreeJsObject);
+            }
+            else
+            {
+              allThreeJsObj[index] = newThreeJsObject;              
+            }
             // scene.add(newThreeJsObject);
             rotateGroup.add(newThreeJsObject);
 
@@ -891,7 +899,7 @@ function toggleCamera()
             if(isInitialLoad)
             {
               itemsLoaded++;
-              console.log(itemsLoaded);
+              // console.log(itemsLoaded);
               if(itemsLoaded == allModels.length)
               {
                 isInitialLoad = false;
