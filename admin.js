@@ -698,23 +698,28 @@ function toggleCamera()
       else
       {
         //when intiate new scene, show the open popup
-        popup.style.display = 'flex';
-        popupOpen = true;
+        showUploadPopup()
       }
 
       scene.add(groupControls);
-      if(sceneData.loopActive)
-      {
-        sceneDataLoop();
-        document.querySelector('#codesScaleButton').disabled = true;
+      // if(sceneData.loopActive)
+      // {
+      //   sceneDataLoop();
+      //   document.querySelector('#codesScaleButton').disabled = true;
 
-      }
-      else
-      {
-        groupControls.visible = false;
-      }
+      // }
+      // else
+      // {
+      //   groupControls.visible = false;
+      // }
 
       updateSaveField();
+    }
+
+    function showUploadPopup()
+    {      
+        popup.style.display = 'flex';
+        popupOpen = true;
     }
 
     function loadEnvTexture(url)
@@ -754,7 +759,7 @@ function toggleCamera()
       // const modelId = allThreeJsObj.findIndex(m => m.modelId === data.modelId);
       // const threeJsObject = selectObjectFromList(data.modelId);
       const threeJsObject = allThreeJsObj[index];
-      console.log(index, threeJsObject.userData.modelConfigRef.modelUrl, data.modelUrl);
+      // console.log(index, threeJsObject.userData.modelConfigRef.modelUrl, data.modelUrl);
       threeJsObject.userData.modelConfigRefMob = ModelConfig.fromPlainObject(data);
     }
 
@@ -2007,9 +2012,17 @@ function updateObjectList() {
       }
 
       // TODO: if last object deleted, show first screen again
-      const lastObjectInList = allThreeJsObj[allThreeJsObj.length - 1];
-      selectModelForEditing(lastObjectInList);
-      updateObjectList();
+      if(allThreeJsObj.length == 0)
+      {
+        controls.attach(rotateGroup);
+        showUploadPopup();
+      }
+      else
+      {
+        const lastObjectInList = allThreeJsObj[allThreeJsObj.length - 1];
+        selectModelForEditing(lastObjectInList);
+        updateObjectList();
+      }
     }
 
       function updateDataFromUi()

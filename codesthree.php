@@ -479,7 +479,7 @@ function threejs_editor_page($post) {
 
     // You would do this for all other model-specific fields like modelUrl, loopActive, etc.
     $model_url = isset($current_model_data['modelUrl']) ? $current_model_data['modelUrl'] : '';
-    $loop_active = isset($current_model_data['loopActive']) ? $current_model_data['loopActive'] : '';
+    $loop_active = isset($current_model_data['loopActive']) ? $current_model_data['loopActive'] : false;
     $loop_count_x = isset($current_model_data['loopCountX']) ? $current_model_data['loopCountX'] : 1;
     $loop_count_y = isset($current_model_data['loopCountY']) ? $current_model_data['loopCountY'] : 1;
     $loop_count_z = isset($current_model_data['loopCountZ']) ? $current_model_data['loopCountZ'] : 1;
@@ -691,7 +691,7 @@ function threejs_editor_page($post) {
             <!-- Toggle for Activating Loop -->
              <div id="loopComingSoon" style="display:none">
                     <label>
-                    <input type="checkbox" name="loopActive" id="loopActive" <?php checked($loop_active, 'on'); ?>>
+                    <input type="checkbox" name="loopActive" id="loopActive" <?php checked($loop_active, true); ?>>
                     Activate Loop
                     </label>
 
