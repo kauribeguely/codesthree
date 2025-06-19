@@ -761,6 +761,10 @@ function toggleCamera()
       const threeJsObject = allThreeJsObj[index];
       // console.log(index, threeJsObject.userData.modelConfigRef.modelUrl, data.modelUrl);
       threeJsObject.userData.modelConfigRefMob = ModelConfig.fromPlainObject(data);
+      if(allMobileModels[index] == undefined)
+      {
+        allMobileModels[index] = data;
+      }
     }
 
     function duplicateObject(sceneObj)
@@ -770,13 +774,19 @@ function toggleCamera()
       
       const oldObjDataMob = sceneObj.userData.modelConfigRefMob.toPlainObject();
       const objDataMob = JSON.parse(JSON.stringify(oldObjDataMob)); 
+
       objData.modelId = crypto.randomUUID();
       objDataMob.modelId = objData.modelId;
 
       loadModel(objData.modelUrl, objData, function()
       {
         addMobDataToConfigRef(objDataMob, allThreeJsObj.length-1);
-      });      
+      });
+      
+      console.log(allModels.length);
+      console.log(allThreeJsObj[allThreeJsObj.length-2].userData.modelConfigRef);
+      console.log(allMobileModels.length);
+      console.log(allThreeJsObj[allThreeJsObj.length-1].userData.modelConfigRef);
     }
 
     function cloneSelected()
