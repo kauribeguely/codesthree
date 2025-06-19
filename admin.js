@@ -1109,19 +1109,22 @@ function transformDragEnd(){
 
 
     popupMediaButton.addEventListener('click', function (e) {
-      e.preventDefault();
-      mediaUploader.open();
+        openMediaUploader(e);
     });
 
     mediaButton.addEventListener('click', function (e) {
-        e.preventDefault();
-        mediaUploader.open();
+        openMediaUploader(e);
     });
 
     addModelButton.addEventListener('click', function (e) {
-        e.preventDefault();
-        mediaUploader.open();
+        openMediaUploader(e);
     });
+
+    function openMediaUploader(e)
+    {
+      e.preventDefault();
+      mediaUploader.open();
+    }
 
 
     const mediaUploader = wp.media({
@@ -1504,8 +1507,14 @@ function transformDragEnd(){
                 {
                   mouseAnimationLinkInput.checked = !mouseAnimationLinkInput.checked;
                   refreshMouseAnimationLink();
-                }
+                }                
                 break;  
+          case 'A':
+                if(event.shiftKey)
+                {
+                  openMediaUploader(event);
+                }
+                break;
           case 'q': 
                 keyXRot = true;
                 if(event.altKey)
@@ -1561,7 +1570,6 @@ function transformDragEnd(){
                 shiftDown = true;
                 scrollMultiplier = 0.3;
                 break;
-                
             case 'l': // Scale mode
                 loopActive = !loopActive;
                 loopActiveInput.checked = loopActive;
@@ -1646,11 +1654,11 @@ function transformDragEnd(){
     {
       if(e) e.preventDefault();
       controls.setMode(mode);
-      groupControls.setMode(mode);
+      // groupControls.setMode(mode);
       setGizmoVisible(true);
       if(mode != 'scale')
       {
-        groupControls.setMode(mode);
+        // groupControls.setMode(mode);
       }
 
       document.querySelectorAll('.transModeButton').forEach(button => 
