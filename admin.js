@@ -12,8 +12,11 @@ class ModelConfig {
     constructor(data = {}) {
         this.modelId = data.modelId || crypto.randomUUID(); // Assign a new ID if not provided
         this.modelUrl = data.modelUrl || '';
-        this.modelName = data.modelName || data.modelUrl.split('/').pop();; //Allow changable via object list, default to filename (like object list)
-
+        if(data.modelUrl || data.modelName)
+        {
+          this.modelName = data.modelName || data.modelUrl.split('/').pop();; //Allow changable via object list, default to filename (like object list)
+        }
+        this.type = data.type;
         // Store position, rotation, scale as THREE.Vector3/Euler for easier use with Three.js
         this.position = new THREE.Vector3(data.positionX || 0, data.positionY || 0, data.positionZ || 0);
         this.rotation = new THREE.Euler(
@@ -34,6 +37,11 @@ class ModelConfig {
 
     // Method to convert this class instance back to a plain object for JSON stringification
     toPlainObject() {
+      // for (const key of allowedKeys) {
+      //       if (this.hasOwnProperty(key)) {
+      //           plainObject[key] = this[key];
+      //       }
+      //   }
         return {
             modelId: this.modelId,
             modelUrl: this.modelUrl,
@@ -47,6 +55,7 @@ class ModelConfig {
             scale: this.scale.x, // Assuming uniform scale
             loopActive: this.loopActive,
             loopCountX: this.loopCountX,
+            type: this.type,
             // ... include all other properties
         };
     }
@@ -77,6 +86,8 @@ let shiftDown = false;
 let scrollMultiplier = 1;
 let isInitialLoad = true;
 let itemsLoaded = 0;
+const hiddenInputField = document.getElementById('threejs_scene_config_json');
+
 // document.addEventListener('DOMContentLoaded', () => {
 window.onload = () =>
 {
@@ -220,6 +231,12 @@ window.onload = () =>
     allThreeJsObj.forEach(function(obj)
     {
       let currentConfig = isMobileView ? obj.userData.modelConfigRefMob : obj.userData.modelConfigRef;
+      
+      if(currentConfig == undefined)
+      {
+        //create a new empty one
+        console.log('no userdata found for this view');
+      }
       applyTransformFromConfig(obj, currentConfig);
     });    
     updateTransforms();
@@ -738,7 +755,8 @@ function toggleCamera()
     {
       allModels.forEach(function(model, index)
       {
-        loadModel(model.modelUrl, model, false, index);
+        createObject(model.type, model, false, index);
+        // loadModel(model.modelUrl, model, false, index);
       });      
     }
 
@@ -802,8 +820,10 @@ function toggleCamera()
     {
       loader.load(url, (gltf) =>
       {
-          const newThreeJsObject = gltf.scene;
-          let modelConfigInstance, modelConfigInstanceMob; // This will be our ModelConfig class instance
+          gltf.scene.userData.type = 'model';
+          addObject(gltf.scene, objData, callback, index, url);
+          // const newThreeJsObject = gltf.scene;
+          // let modelConfigInstance, modelConfigInstanceMob; // This will be our ModelConfig class instance
 
           // let modelList = allModels;
           // if(isMobile)
@@ -812,136 +832,190 @@ function toggleCamera()
           // }
 
           // --- Determine if this is a new model or an existing one being loaded/reloaded ---
-          if (objData) 
-          {
-              // Scenario 2: Loading/Reloading an Existing Model
-              // We're creating a ModelConfig instance from the plain data we loaded.
-              modelConfigInstance = ModelConfig.fromPlainObject(objData);
-              modelConfigInstance.modelUrl = url; // Ensure the URL is up-to-date in the instance
-
-              // Before adding the new object, remove the old THREE.Object3D instance if it exists.
-              // const oldThreeJsObject = allThreeJsObj.find(obj => obj.userData.modelConfigRef.modelId === modelConfigInstance.modelId);
-              // if (oldThreeJsObject) {
-              //     scene.remove(oldThreeJsObject);
-              //     // Remove from our active tracking array
-              //     allThreeJsObj = allThreeJsObj.filter(obj => obj.userData.modelId !== modelConfigInstance.modelId);
-              //     console.log(`Removed old Three.js object for modelId: ${modelConfigInstance.modelId}`);
-              // }
-
-              // Apply saved transforms to the new Three.js object
-              newThreeJsObject.position.copy(modelConfigInstance.position);
-              newThreeJsObject.rotation.copy(modelConfigInstance.rotation);
-              newThreeJsObject.scale.copy(modelConfigInstance.scale);
-
-              // Find the corresponding plain object in sceneData.models and update it
-              // This ensures sceneData.models is kept in sync with the current instance state
-              // (e.g., if modelUrl changed).
-              
-              const existingModelIndex = allModels.findIndex(m => m.modelId === modelConfigInstance.modelId);
-              if (existingModelIndex !== -1) {
-                  allModels[existingModelIndex] = modelConfigInstance.toPlainObject();
-              } else {
-                  // This scenario suggests a logic error if objData was provided but not found.
-                  // For robustness, add it as new.
-                  console.warn(`ModelConfig with ID ${modelConfigInstance.modelId} not found in sceneData.models during update; adding as new.`);
-                  allModels.push(modelConfigInstance.toPlainObject());
-              }
-
-            } 
-            else //no obj data provided i.e. new object
-            {
-
-                // Scenario 1: Loading a New Model (no existing config provided)
-                // Create a completely new ModelConfig instance.
-                modelConfigInstance = new ModelConfig({ modelUrl: url });
-                modelConfigInstanceMob = new ModelConfig({ modelUrl: url, isMobileConfig: true});
-
-                // Apply default (or initial UI) transforms to the new Three.js object.
-                // The ModelConfig constructor already sets defaults for position, rotation, scale.
-                newThreeJsObject.position.copy(modelConfigInstance.position);
-                newThreeJsObject.rotation.copy(modelConfigInstance.rotation);
-                newThreeJsObject.scale.copy(modelConfigInstance.scale);
-
-                // Add the plain object representation of this new model to sceneData.models for saving.
-                allModels.push(modelConfigInstance.toPlainObject());
-                allMobileModels[allModels.length-1] = modelConfigInstanceMob.toPlainObject();
-                // allMobileModels.push(modelConfigInstanceMob.toPlainObject());
-                console.log("Added new model config to allModels:", modelConfigInstance.toPlainObject());
-            }
-
-            // --- Link the ModelConfig instance to the THREE.Object3D via userData ---
-            newThreeJsObject.userData.modelId = modelConfigInstance.modelId;
-            newThreeJsObject.userData.modelConfigRef = modelConfigInstance; // Crucial for easy access
-
-            newThreeJsObject.userData.modelConfigRefMob = modelConfigInstanceMob; // Crucial for easy access
-
-            // Link the THREE.Object3D back to the ModelConfig instance (optional but useful)
-            modelConfigInstance.threeJsObject = newThreeJsObject;
-            // modelConfigInstanceMob.threeJsObject = newThreeJsObject;
-
-            // Add the new Three.js object to our active tracking array and the scene.
-            selectedObj = newThreeJsObject;
-            selectedObjData = modelConfigInstance;
-            if(index == undefined)
-            {
-              allThreeJsObj.push(newThreeJsObject);
-            }
-            else
-            {
-              allThreeJsObj[index] = newThreeJsObject;              
-            }
-            // scene.add(newThreeJsObject);
-            rotateGroup.add(newThreeJsObject);
-
-            // Update the globally selected object (if applicable for UI/TransformControls).
-            // This is often done externally after this function resolves.
-            // For now, let's just make it the new selected object if controls exist.
-            if (controls) {
-                controls.detach(); // Detach from any previously selected object
-                controls.attach(newThreeJsObject);
-                controls.setSpace('local');
-                controls.visible = gizmoVisible;
-                // Ensure controls are in the scene (might be redundant if always there)
-                // scene.add(controls);
-            }
-
-            if(allModels.length == allThreeJsObj.length)
-            {
-              updateObjectList();
-            }
-            // --- Crucially, update the hidden JSON field for saving ---
-            updateSaveField();
-            if(isInitialLoad)
-            {
-              itemsLoaded++;
-              // console.log(itemsLoaded);
-              if(itemsLoaded == allModels.length)
-              {
-                isInitialLoad = false;
-                loadAllMobileData();
-              }
-            }
-
-            if(callback)
-            {
-              callback();
-            }
-          // scene.add(controls);
-          // // Listen for changes in the TransformControls
-          // controls.addEventListener('change', updateTransforms);
-          // controls.addEventListener('mouseDown', transformDragStart);
-          // controls.addEventListener('mouseUp', transformDragEnd);
-          // // if()
-          // window.addEventListener('mousemove', onMouseMove);
-
-          // if(objData.loopActive)
-          // {
-          //   selectedObj.visible = false;
-          //   controls.visible = false;
-          //   // scene.remove(model);
-          //   // scene.remove(controls);
-          // }
+          
         });
+    }
+
+    //adds new object to scene and sceneData
+    // function addObject(type, objData, callback, index)
+
+    function createObject(type, objData, callback, index)
+    {
+      let newThreeJsObject;
+      if(type == 'group')
+      {
+        //add to scene, add to sceneData
+        newThreeJsObject = new THREE.Group();
+      }
+      if(type == 'plane')
+      {
+        //add to scene, add to sceneData
+        const planeGeo = new THREE.PlaneGeometry(1, 1); // 10x10 units wide and tall
+        const planeMaterial = new THREE.MeshStandardMaterial({
+                color: 0x00ff00, // Green color
+                side: THREE.DoubleSide // Render both sides of the plane
+            });
+        newThreeJsObject = new THREE.Mesh(planeGeo, planeMaterial);
+      }
+      else if(type == 'model')
+      {
+        loadModel(objData.modelUrl, objData, callback, index)
+      }
+
+      //model calls add after loaded
+      if(type != 'model')
+      {
+        newThreeJsObject.userData.type = type;
+        addObject(newThreeJsObject, objData, false, index);
+      }
+    }
+
+    //add to scene and scenedata
+    //applies objData if exists
+    function addObject(newThreeJsObject, objData, callback, index, url)
+    {
+      // let newThreeJsObject;
+      let modelConfigInstance, modelConfigInstanceMob; // This will be our ModelConfig class instance
+
+      let isModel = url != undefined;
+      if (objData) 
+      {
+            // Scenario 2: Loading/Reloading an Existing Model
+            // We're creating a ModelConfig instance from the plain data we loaded.
+            modelConfigInstance = ModelConfig.fromPlainObject(objData);
+            if(isModel) modelConfigInstance.modelUrl = url; // Ensure the URL is up-to-date in the instance
+
+            // Before adding the new object, remove the old THREE.Object3D instance if it exists.
+            // const oldThreeJsObject = allThreeJsObj.find(obj => obj.userData.modelConfigRef.modelId === modelConfigInstance.modelId);
+            // if (oldThreeJsObject) {
+            //     scene.remove(oldThreeJsObject);
+            //     // Remove from our active tracking array
+            //     allThreeJsObj = allThreeJsObj.filter(obj => obj.userData.modelId !== modelConfigInstance.modelId);
+            //     console.log(`Removed old Three.js object for modelId: ${modelConfigInstance.modelId}`);
+            // }
+
+            // Apply saved transforms to the new Three.js object
+            newThreeJsObject.position.copy(modelConfigInstance.position);
+            newThreeJsObject.rotation.copy(modelConfigInstance.rotation);
+            newThreeJsObject.scale.copy(modelConfigInstance.scale);
+
+            // Find the corresponding plain object in sceneData.models and update it
+            // This ensures sceneData.models is kept in sync with the current instance state
+            // (e.g., if modelUrl changed).
+            
+            const existingModelIndex = allModels.findIndex(m => m.modelId === modelConfigInstance.modelId);
+            if (existingModelIndex !== -1) {
+                allModels[existingModelIndex] = modelConfigInstance.toPlainObject();
+            } else {
+                // This scenario suggests a logic error if objData was provided but not found.
+                // For robustness, add it as new.
+                console.warn(`ModelConfig with ID ${modelConfigInstance.modelId} not found in sceneData.models during update; adding as new.`);
+                allModels.push(modelConfigInstance.toPlainObject());
+            }
+
+        } 
+        else //no obj data provided i.e. new object
+        {
+
+            // Scenario 1: Loading a New Model (no existing config provided)
+            // Create a completely new ModelConfig instance.
+            modelConfigInstance = new ModelConfig({ modelUrl: url });
+            modelConfigInstanceMob = new ModelConfig({ modelUrl: url, isMobileConfig: true});
+
+            if(isModel)
+            {
+              modelConfigInstance.modelUrl = url;
+              modelConfigInstanceMob.modelUrl = url;
+            }
+            
+            // Apply default (or initial UI) transforms to the new Three.js object.
+            // The ModelConfig constructor already sets defaults for position, rotation, scale.
+            newThreeJsObject.position.copy(modelConfigInstance.position);
+            newThreeJsObject.rotation.copy(modelConfigInstance.rotation);
+            newThreeJsObject.scale.copy(modelConfigInstance.scale);        
+            // Add the plain object representation of this new model to sceneData.models for saving.
+            allModels.push(modelConfigInstance.toPlainObject());
+            allMobileModels[allModels.length-1] = modelConfigInstanceMob.toPlainObject();
+            // allMobileModels.push(modelConfigInstanceMob.toPlainObject());
+            console.log("Added new model config to allModels:", modelConfigInstance.toPlainObject());
+          }
+          
+          
+        modelConfigInstance.type = newThreeJsObject.userData.type;
+        if(modelConfigInstanceMob) modelConfigInstanceMob.type = newThreeJsObject.userData.type;
+
+        // --- Link the ModelConfig instance to the THREE.Object3D via userData ---
+        newThreeJsObject.userData.modelId = modelConfigInstance.modelId;
+        newThreeJsObject.userData.modelConfigRef = modelConfigInstance; // Crucial for easy access
+
+        newThreeJsObject.userData.modelConfigRefMob = modelConfigInstanceMob; // Crucial for easy access
+
+        // Link the THREE.Object3D back to the ModelConfig instance (optional but useful)
+        modelConfigInstance.threeJsObject = newThreeJsObject;
+        // modelConfigInstanceMob.threeJsObject = newThreeJsObject;
+
+        // Add the new Three.js object to our active tracking array and the scene.
+        selectedObj = newThreeJsObject;
+        selectedObjData = modelConfigInstance;
+        if(index == undefined)
+        {
+          allThreeJsObj.push(newThreeJsObject);
+        }
+        else
+        {
+          allThreeJsObj[index] = newThreeJsObject;              
+        }
+        // scene.add(newThreeJsObject);
+        rotateGroup.add(newThreeJsObject);
+
+        // Update the globally selected object (if applicable for UI/TransformControls).
+        // This is often done externally after this function resolves.
+        // For now, let's just make it the new selected object if controls exist.
+        if (controls) {
+            controls.detach(); // Detach from any previously selected object
+            controls.attach(newThreeJsObject);
+            controls.setSpace('local');
+            controls.visible = gizmoVisible;
+            // Ensure controls are in the scene (might be redundant if always there)
+            // scene.add(controls);
+        }
+
+        if(allModels.length == allThreeJsObj.length)
+        {
+          updateObjectList();
+        }
+        // --- Crucially, update the hidden JSON field for saving ---
+        updateSaveField();
+        if(isInitialLoad)
+        {
+          itemsLoaded++;
+          // console.log(itemsLoaded);
+          if(itemsLoaded == allModels.length)
+          {
+            isInitialLoad = false;
+            loadAllMobileData();
+          }
+        }
+
+        if(callback)
+        {
+          callback();
+        }
+      // scene.add(controls);
+      // // Listen for changes in the TransformControls
+      // controls.addEventListener('change', updateTransforms);
+      // controls.addEventListener('mouseDown', transformDragStart);
+      // controls.addEventListener('mouseUp', transformDragEnd);
+      // // if()
+      // window.addEventListener('mousemove', onMouseMove);
+
+      // if(objData.loopActive)
+      // {
+      //   selectedObj.visible = false;
+      //   controls.visible = false;
+      //   // scene.remove(model);
+      //   // scene.remove(controls);
+      // }
     }
 
 
@@ -1541,6 +1615,11 @@ function transformDragEnd(){
           case 'f': 
                 keyZTrans = true;
                 break;  
+          case 'g': 
+                createObject('group');
+                break;  
+          case 'h': 
+                createObject('plane');
                 break;  
           case 't': // Translate mode
                 setTransformMode('translate');
@@ -1851,11 +1930,18 @@ function updateObjectList() {
         const listItem = document.createElement('li');
         listItem.classList.add('object-list-item'); // Add a class for styling
 
+        let objDisplayName;
+        if(obj.userData.modelConfigRef.modelUrl)
+        {          
+          objDisplayName = obj.userData.modelConfigRef.modelName; 
+        }
+        else
+        {
+          //Todo, make unique
+          objDisplayName = obj.type + allThreeJsObj.length;
+        }
         // Get a display name for the object (use its 'name' property, or fallback to 'uuid')
         // const objDisplayName = obj.name || obj.uuid.substring(0, 8); // Shorten UUID for display
-        const modelUrl = obj.userData.modelConfigRef.modelUrl;
-        const lastPart = modelUrl.split('/').pop();
-        const objDisplayName = lastPart; 
         // const objDisplayName = obj.userData.modelConfigRef.modelName; 
 
         // --- Create the clickable text (for selection) ---
@@ -2064,8 +2150,8 @@ function updateObjectList() {
 
       function updateSaveField()
       {
-        const hiddenInputField = document.getElementById('threejs_scene_config_json');
-
+        // Enable this line to override mobile data with current .models, helpful if mobile data is corrupted
+        // allSceneData.models[1] = allSceneData.models[0];
         if (hiddenInputField) 
           {
                 try {
