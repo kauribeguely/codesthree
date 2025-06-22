@@ -806,10 +806,6 @@ function toggleCamera()
         addMobDataToConfigRef(objDataMob, allThreeJsObj.length-1);
       });
       
-      console.log(allModels.length);
-      console.log(allThreeJsObj[allThreeJsObj.length-2].userData.modelConfigRef);
-      console.log(allMobileModels.length);
-      console.log(allThreeJsObj[allThreeJsObj.length-1].userData.modelConfigRef);
     }
 
     function cloneSelected()
@@ -2200,13 +2196,15 @@ function getThreeJsObjectByUuid(modelId)
         wpPublishButton.addEventListener('click', updateDataFromUi);
     }
 
-    function deleteObject()
+    function deleteObject(threeJsObject)
     {
-      const threeJsObjectIndex = allThreeJsObj.indexOf(selectedObj);
-      const groupIndex = allGroups.indexOf(selectedObj);
+      let objectToDelete = threeJsObject ? threeJsObject : selectedObj;
+      let deleteObjData = threeJsObject ? threeJsObject.userData.modelConfigRef : selectedObjData;
+      let threeJsObjectIndex = allThreeJsObj.indexOf(objectToDelete);
+      const groupIndex = allGroups.indexOf(objectToDelete);
       if(groupIndex != -1)
       {
-        groupIndex.splice(groupIndex, 1);
+        allGroups.splice(groupIndex, 1);
       }
       if (threeJsObjectIndex === -1) {
           console.warn("Selected Three.js object not found in allThreeJsObj array.");
@@ -2234,9 +2232,33 @@ function getThreeJsObjectByUuid(modelId)
       }
 
       // 4. Remove from the Three.js scene
-      if (rotateGroup && selectedObj instanceof THREE.Object3D) { // Ensure 'scene' is a Three.js scene and 'selectedObj' is a Three.js object
-          rotateGroup.remove(selectedObj);
-          console.log(`Removed object from scene: ${selectedObj.name || selectedObj.uuid}`);
+      if (rotateGroup && objectToDelete instanceof THREE.Object3D) { // Ensure 'scene' is a Three.js scene and 'selectedObj' is a Three.js object
+        if(deleteObjData.parentUuid != -1)
+        {
+          objectToDelete.parent.remove(objectToDelete);
+        } 
+        else
+        {
+          if(deleteObjData.type == 'group')
+          {
+            //also delete all it's children
+            const childrenToRemove = [...selectedObj.children];
+
+            childrenToRemove.forEach(child => {
+              deleteObject(child);
+            });            
+            //show a warning before hand
+
+            // Refresh index after children removed
+            threeJsObjectIndex = allThreeJsObj.indexOf(objectToDelete);
+            rotateGroup.remove(objectToDelete);
+          }
+          else
+          {
+            rotateGroup.remove(objectToDelete);
+          }
+        } 
+          console.log(`Removed object from scene: ${objectToDelete.name || objectToDelete.uuid}`);
       } else {
           console.warn("Three.js scene not provided or selectedObj is not a valid Three.js object. Object might not be removed from the scene.");
       }
@@ -2252,18 +2274,18 @@ function getThreeJsObjectByUuid(modelId)
 
       // Optional: Dispose of Three.js geometry, material, and textures
       // This is crucial to prevent memory leaks, especially if you load many models.
-      if (selectedObj.geometry) {
-          selectedObj.geometry.dispose();
-          console.log(`Disposed geometry for object: ${selectedObj.name || selectedObj.uuid}`);
+      if (objectToDelete.geometry) {
+          objectToDelete.geometry.dispose();
+          console.log(`Disposed geometry for object: ${objectToDelete.name || selectedObj.uuid}`);
       }
-      if (selectedObj.material) {
+      if (objectToDelete.material) {
           // If material is an array of materials
-          if (Array.isArray(selectedObj.material)) {
-              selectedObj.material.forEach(material => material.dispose());
+          if (Array.isArray(objectToDelete.material)) {
+              objectToDelete.material.forEach(material => material.dispose());
           } else {
-              selectedObj.material.dispose();
+              objectToDelete.material.dispose();
           }
-          console.log(`Disposed material(s) for object: ${selectedObj.name || selectedObj.uuid}`);
+          console.log(`Disposed material(s) for object: ${objectToDelete.name || selectedObj.uuid}`);
       }
 
       // TODO: if last object deleted, show first screen again
