@@ -19,6 +19,9 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
   
 
   let numLoaded = 0;
+  let itemsLoaded = 0;
+  let allGroups = [];
+  let lastAddedObject;
     const container = document.getElementById(containerId);
     const loadScreen = container.querySelector('.loadScreen');
     if (!container) {
@@ -153,10 +156,97 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
     {
       allModels.forEach(function(model, index)
       {
-        loadModel(model.modelUrl, model, allMobileModels[index]);
+        createObject(model.type, model, false, index);        
+        // loadModel(model.modelUrl, model, allMobileModels[index]);
       });
     }
 
+    function createObject(type, objData, callback, index)
+    {
+      let newThreeJsObject;
+      if(type == 'group')
+      {
+        //add to scene, add to sceneData
+        newThreeJsObject = new THREE.Group();
+        allGroups.push(newThreeJsObject);
+      }
+      if(type == 'plane')
+      {
+        //add to scene, add to sceneData
+        const planeGeo = new THREE.PlaneGeometry(1, 1); // 10x10 units wide and tall
+        const planeMaterial = new THREE.MeshStandardMaterial({
+                color: 0x00ff00, // Green color
+                side: THREE.DoubleSide // Render both sides of the plane
+            });
+        newThreeJsObject = new THREE.Mesh(planeGeo, planeMaterial);
+      }
+      else if(type == 'model' || type == undefined)
+      {
+        loadModel(objData.modelUrl, objData, callback, index)
+      }
+
+      //model calls add after loaded
+      if(type != 'model' && type != undefined)
+      {
+        newThreeJsObject.userData.type = type;
+        addObject(newThreeJsObject, objData, false, index);
+      }
+    }
+
+    function addObject(newThreeJsObject, objData, callback, index, url)
+    {
+          lastAddedObject = newThreeJsObject;
+          
+          rotateGroup.add(newThreeJsObject);
+
+          // const modelConfigInstance = ModelConfig.fromPlainObject(objData);
+          // const modelConfigInstanceMob = ModelConfig.fromPlainObject(mobObjData);
+          let mobObjData = allMobileModels[index];
+          newThreeJsObject.userData.objData = objData; // Crucial for easy access
+          newThreeJsObject.userData.mobObjData = mobObjData; // Crucial for easy access
+          allThreeJsObj.push(newThreeJsObject);
+
+          if(isMobile)
+          {
+            applyTransformFromConfig(newThreeJsObject, mobObjData);
+          }
+          else
+          {
+            applyTransformFromConfig(newThreeJsObject, objData);
+          }
+          
+          objData.threeJsObject = newThreeJsObject;
+          // lastAddedObject.position.set(
+          //     parseFloat(objData.positionX),
+          //     parseFloat(objData.positionY),
+          //     parseFloat(objData.positionZ)
+          // );
+
+          // lastAddedObject.rotation.set(
+          //     parseFloat(THREE.MathUtils.degToRad(objData.rotationX)),
+          //     parseFloat(THREE.MathUtils.degToRad(objData.rotationY)),
+          //     parseFloat(THREE.MathUtils.degToRad(objData.rotationZ))
+          // );
+          currentRotation.copy(lastAddedObject.rotation); // The most direct way
+          
+          // lastAddedObject.scale.set(objData.scale, objData.scale, objData.scale);
+
+          // if(mouseAnimationLink) window.addEventListener('mousemove', onMouseMove);
+
+          renderer.render(scene, camera);
+          if(scrollAnimationLink) applyScrollTransforms();
+
+
+          itemsLoaded++;
+          // console.log(itemsLoaded);
+          if(itemsLoaded == allModels.length)
+          {
+            moveAllObjectsToGroups();
+          }
+
+          //TODO count properly, along with env texture if enabled
+          hideLoadScreen();
+    }
     // function loadAllMobileData()
     // {
     //   allMobileModels.forEach(function(model, index)
@@ -189,57 +279,49 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
     // loadModel('http://localhost/wPpractice/wp-content/uploads/2025/01/first-room.glb', sceneData);
 
     // function loadModel(url, sceneData)
-    let lastAddedObject;
+    
     // TODO: change data to dataList = [] - can scale to many screen sizes easier
-    function loadModel(url, objData, mobObjData)
+    // function loadModel(url, objData, mobObjData)
+    function loadModel(url, objData, callback, index)
     {
       loader.load(url, (gltf) =>
       {
-          const newThreeJsObject = gltf.scene;
-          lastAddedObject = newThreeJsObject;
-          // model = gltf.scene;
-          
-          rotateGroup.add(newThreeJsObject);
-
-          // const modelConfigInstance = ModelConfig.fromPlainObject(objData);
-          // const modelConfigInstanceMob = ModelConfig.fromPlainObject(mobObjData);
-          newThreeJsObject.userData.objData = objData; // Crucial for easy access
-          newThreeJsObject.userData.mobObjData = mobObjData; // Crucial for easy access
-          allThreeJsObj.push(newThreeJsObject);
-
-          if(isMobile)
-          {
-            applyTransformFromConfig(newThreeJsObject, mobObjData);
-          }
-          else
-          {
-            applyTransformFromConfig(newThreeJsObject, objData);
-          }
-
-          // lastAddedObject.position.set(
-          //     parseFloat(objData.positionX),
-          //     parseFloat(objData.positionY),
-          //     parseFloat(objData.positionZ)
-          // );
-
-          // lastAddedObject.rotation.set(
-          //     parseFloat(THREE.MathUtils.degToRad(objData.rotationX)),
-          //     parseFloat(THREE.MathUtils.degToRad(objData.rotationY)),
-          //     parseFloat(THREE.MathUtils.degToRad(objData.rotationZ))
-          // );
-          currentRotation.copy(lastAddedObject.rotation); // The most direct way
-
-          lastAddedObject.scale.set(objData.scale, objData.scale, objData.scale);
-
-          // if(mouseAnimationLink) window.addEventListener('mousemove', onMouseMove);
-
-          renderer.render(scene, camera);
-          if(scrollAnimationLink) applyScrollTransforms();
-
-          hideLoadScreen();
-
-        });
+          gltf.scene.userData.type = 'model';
+          addObject(gltf.scene, objData, callback, index, url);     
+      });
     }
+
+    function moveAllObjectsToGroups()
+    {
+      allThreeJsObj.forEach(function(model)
+      {
+        const parentModelId = model.userData.objData.parentUuid;
+        // if(modelIndex != -1 && modelIndex != undefined)
+        if(parentModelId != -1)
+        {
+          moveObjectToGroup(model, getThreeJsObjectByUuid(parentModelId));
+        }
+      });
+    }
+
+    function moveObjectToGroup(model, groupObject)
+    {
+      model.parent.remove(model);
+      groupObject.add(model);
+    }
+
+    function getThreeJsObjectByUuid(modelId)
+    {
+      // return scene.getObjectByProperty('uuid', uuid);
+      for (let i = 0; i < allThreeJsObj.length; i++) {
+            const modelConfigRef = allThreeJsObj[i].userData.objData; // Get the current item from the array
+            if (modelConfigRef.modelId === modelId) {
+                return modelConfigRef.threeJsObject; // Return the associated THREE.Object3D
+            }
+        }
+    }
+
+
 
     function applyAllTransformsFromConfigs()
     {
