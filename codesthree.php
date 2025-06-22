@@ -654,8 +654,9 @@ function threejs_editor_page($post) {
             </div>
             
             <div style="margin-top: 15px;">
-                <label for="parentSelector">Reparent Selected Object To:</label>
+                <label for="parentSelector">Move to group:</label>
                 <select id="parentSelector" style="width: 100%; padding: 5px;"></select>
+                <p>Current group: <span id='current-group-label'></span></p>
             </div>
             <strong>Position</strong>
             <div class="transform-group">

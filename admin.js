@@ -1217,6 +1217,7 @@ function transformDragEnd(){
     const preview = document.getElementById('threejs_model_url_preview');
     
     const parentInput = document.getElementById('parentSelector');
+    const currentGroupLabel = document.getElementById('current-group-label');
 
 
     let popupOpen = false;
@@ -2036,7 +2037,6 @@ function updateObjectList() {
 
 function updateParentList()
 {
-  //TODO: show current group that selected object belongs to, a label
   parentInput.innerHTML = '';
   const currentOption = document.createElement('option');
   currentOption.value = -1;
@@ -2050,6 +2050,10 @@ function updateParentList()
   {
     parentInput.appendChild(mainScene);
   }
+  else
+  {
+    currentGroupLabel.innerHTML = 'No Group';
+  }
     // Add each found group as an option in the dropdown
   allGroups.forEach((group, index) => {
     if(selectedObj.parent != group && selectedObj != group)
@@ -2060,7 +2064,14 @@ function updateParentList()
       option.textContent = group.userData.modelConfigRef.modelName;
       parentInput.appendChild(option);
     }
+
+    if(selectedObj.parent == group)
+    {
+      currentGroupLabel.innerHTML = group.userData.modelConfigRef.modelName;
+    }
   });
+  
+
 }
 
 // .onchange
@@ -2082,7 +2093,7 @@ parentInput.addEventListener('change', () => {
     newParent = getThreeJsObjectByUuid(groupUuid);
     selectedObj.userData.modelConfigRef.parentUuid = newParent.userData.modelConfigRef.modelId;
   }
-  console.log(allModels[0].parentUuid);
+  // console.log(allModels[0].parentUuid);
   moveObjectToGroup(selectedObj, newParent);
   updateModelData(selectedObjData);
   updateParentList();
@@ -2103,6 +2114,8 @@ function moveAllObjectsToGroups()
 
 function moveObjectToGroup(model, groupObject)
 {
+  //This method maintains it's world position, ruins drag positioning
+  // groupObject.attach(model);
   model.parent.remove(model);
   groupObject.add(model);
 }
