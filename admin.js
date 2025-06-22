@@ -1325,15 +1325,22 @@ function transformDragEnd(){
             const newIntersectPoint = new THREE.Vector3();
             raycaster.ray.intersectPlane(plane, newIntersectPoint);
 
-            const targetX = newIntersectPoint.x + offset.x;
-            const targetY = newIntersectPoint.y + offset.y;
+            // Compute the desired world position (apply offset in world space)
+            const newWorldPosition = new THREE.Vector3(
+              newIntersectPoint.x + offset.x,
+              newIntersectPoint.y + offset.y,
+              selectedObj.getWorldPosition(new THREE.Vector3()).z // Keep current world Z
+            );
 
-            // Apply the new X and Y, but keep the current Z
-            selectedObj.position.set(targetX, targetY, selectedObj.position.z);
+            // Convert world position to local position relative to selectedObj's parent
+            const newLocalPosition = selectedObj.parent.worldToLocal(newWorldPosition.clone());
+
+            // Apply new local position
+            selectedObj.position.copy(newLocalPosition);
+
+            // Update any necessary transforms
             updateTransforms();
-            // selectedObj.position.copy(newIntersectPoint).add(offset);
-            
-            // console.log(newIntersectPoint, offset);
+
           }
       };
       window.addEventListener('mousemove', onMouseMove);
@@ -1889,8 +1896,9 @@ function transformDragEnd(){
                 camera.getWorldDirection(plane.normal), // Plane perpendicular to camera's view
                 clickedObject.position // Or the intersection point itself, if you want a different drag feel
             );
+            selectModelForEditing(selectableObject); // Call your existing selection function
             
-            
+            const worldPos = selectedObj.getWorldPosition(new THREE.Vector3());
             // const intersectPoint = new THREE.Vector3();
             raycaster.ray.intersectPlane(plane, initialIntersectionPoint);
 
@@ -1898,14 +1906,14 @@ function transformDragEnd(){
 
             const hit = raycaster.ray.intersectPlane(plane, initialIntersectionPoint);
             if (hit) {
-              offset.copy(selectableObject.position).sub(initialIntersectionPoint);
+              // offset.copy(selectableObject.position).sub(initialIntersectionPoint);
+              offset.copy(worldPos).sub(initialIntersectionPoint);
             } else {
               console.warn("Ray did not intersect the plane");
             }
 
 
 
-              selectModelForEditing(selectableObject); // Call your existing selection function
 
 
             // if (selectableObject && selectableObject !== selectedObj) {
@@ -2096,6 +2104,7 @@ parentInput.addEventListener('change', () => {
   // console.log(allModels[0].parentUuid);
   moveObjectToGroup(selectedObj, newParent);
   updateModelData(selectedObjData);
+  updateTransforms(); //relative transforms change
   updateParentList();
 });
 
@@ -2114,10 +2123,10 @@ function moveAllObjectsToGroups()
 
 function moveObjectToGroup(model, groupObject)
 {
-  //This method maintains it's world position, ruins drag positioning
-  // groupObject.attach(model);
-  model.parent.remove(model);
-  groupObject.add(model);
+  //This method maintains it's world position
+  groupObject.attach(model);
+  // model.parent.remove(model);
+  // groupObject.add(model);
 }
 
 function getThreeJsObjectByUuid(modelId)
