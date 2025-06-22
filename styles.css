@@ -283,6 +283,7 @@ hr
 
 span.object-name-span {
     width: 100%;
+    padding: 10px 0px;
 }
 
 li.object-list-item {
@@ -291,7 +292,6 @@ li.object-list-item {
     display: flex;
     justify-content: space-between;
     margin: 0;
-    padding: 10px 0px;
 }
 
 li.object-list-item:hover {

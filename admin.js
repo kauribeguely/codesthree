@@ -11,12 +11,15 @@ import { RGBELoader } from 'three/addons/RGBELoader.js';
 class ModelConfig {
     constructor(data = {}) {
         this.modelId = data.modelId || crypto.randomUUID(); // Assign a new ID if not provided
+        // console.log(this.modelId);
         this.modelUrl = data.modelUrl || '';
         if(data.modelUrl || data.modelName)
         {
           this.modelName = data.modelName || data.modelUrl.split('/').pop();; //Allow changable via object list, default to filename (like object list)
         }
         this.type = data.type;
+        this.parentUuid = data.parentUuid || -1;
+        // this.groupListId = ;
         // Store position, rotation, scale as THREE.Vector3/Euler for easier use with Three.js
         this.position = new THREE.Vector3(data.positionX || 0, data.positionY || 0, data.positionZ || 0);
         this.rotation = new THREE.Euler(
@@ -56,6 +59,7 @@ class ModelConfig {
             loopActive: this.loopActive,
             loopCountX: this.loopCountX,
             type: this.type,
+            parentUuid: this.parentUuid,
             // ... include all other properties
         };
     }
@@ -75,6 +79,8 @@ class ModelConfig {
             scale: obj.scale,
             loopActive: obj.loopActive,
             loopCountX: obj.loopCountX,
+            parentUuid: obj.parentUuid,
+
             // ... include all other properties
         });
     }
@@ -112,6 +118,7 @@ window.onload = () =>
   let allMobileModels = allSceneData.models[1];
   
   let allThreeJsObj = [];
+  let allGroups = [];
   console.log('Admin JS Codes 3D started');
 
   let mouseDown = false;
@@ -639,7 +646,6 @@ function toggleCamera()
       light.intensity = parseFloat(intensity);
     }
 
-    console.log('Light: ' + sceneData.ambientLightIntensity);
     setLightIntensity(alight, sceneData.ambientLightIntensity);
 
 
@@ -755,9 +761,10 @@ function toggleCamera()
     {
       allModels.forEach(function(model, index)
       {
-        createObject(model.type, model, false, index);
+        createObject(model.type, model, false, index);        
         // loadModel(model.modelUrl, model, false, index);
-      });      
+      });    
+      updateParentList();  
     }
 
     function loadAllMobileData()
@@ -846,6 +853,7 @@ function toggleCamera()
       {
         //add to scene, add to sceneData
         newThreeJsObject = new THREE.Group();
+        allGroups.push(newThreeJsObject);
       }
       if(type == 'plane')
       {
@@ -857,13 +865,13 @@ function toggleCamera()
             });
         newThreeJsObject = new THREE.Mesh(planeGeo, planeMaterial);
       }
-      else if(type == 'model')
+      else if(type == 'model' || type == undefined)
       {
         loadModel(objData.modelUrl, objData, callback, index)
       }
 
       //model calls add after loaded
-      if(type != 'model')
+      if(type != 'model' && type != undefined)
       {
         newThreeJsObject.userData.type = type;
         addObject(newThreeJsObject, objData, false, index);
@@ -903,15 +911,15 @@ function toggleCamera()
             // This ensures sceneData.models is kept in sync with the current instance state
             // (e.g., if modelUrl changed).
             
-            const existingModelIndex = allModels.findIndex(m => m.modelId === modelConfigInstance.modelId);
-            if (existingModelIndex !== -1) {
-                allModels[existingModelIndex] = modelConfigInstance.toPlainObject();
-            } else {
-                // This scenario suggests a logic error if objData was provided but not found.
-                // For robustness, add it as new.
-                console.warn(`ModelConfig with ID ${modelConfigInstance.modelId} not found in sceneData.models during update; adding as new.`);
-                allModels.push(modelConfigInstance.toPlainObject());
-            }
+            // const existingModelIndex = allModels.findIndex(m => m.modelId === modelConfigInstance.modelId);
+            // if (existingModelIndex !== -1) {
+            //     allModels[existingModelIndex] = modelConfigInstance.toPlainObject();
+            // } else {
+            //     // This scenario suggests a logic error if objData was provided but not found.
+            //     // For robustness, add it as new.
+            //     console.warn(`ModelConfig with ID ${modelConfigInstance.modelId} not found in sceneData.models during update; adding as new.`);
+            //     allModels.push(modelConfigInstance.toPlainObject());
+            // }
 
         } 
         else //no obj data provided i.e. new object
@@ -928,6 +936,21 @@ function toggleCamera()
               modelConfigInstanceMob.modelUrl = url;
             }
             
+            let type = newThreeJsObject.userData.type;
+            if(type == 'model')
+            {
+
+            }
+            else if(type == 'group')
+            {
+              //to do, loop all current names to see if find duplicate, if so plus one and try again
+              //allGroups.forEach - remove self from a copy of this list to check others;
+              modelConfigInstance.modelName = newThreeJsObject.type + allGroups.length;
+            }
+            else
+            {
+              modelConfigInstance.modelName = newThreeJsObject.type + allThreeJsObj.length;
+            }
             // Apply default (or initial UI) transforms to the new Three.js object.
             // The ModelConfig constructor already sets defaults for position, rotation, scale.
             newThreeJsObject.position.copy(modelConfigInstance.position);
@@ -945,7 +968,7 @@ function toggleCamera()
         if(modelConfigInstanceMob) modelConfigInstanceMob.type = newThreeJsObject.userData.type;
 
         // --- Link the ModelConfig instance to the THREE.Object3D via userData ---
-        newThreeJsObject.userData.modelId = modelConfigInstance.modelId;
+        // newThreeJsObject.userData.modelId = modelConfigInstance.modelId;
         newThreeJsObject.userData.modelConfigRef = modelConfigInstance; // Crucial for easy access
 
         newThreeJsObject.userData.modelConfigRefMob = modelConfigInstanceMob; // Crucial for easy access
@@ -994,6 +1017,7 @@ function toggleCamera()
           {
             isInitialLoad = false;
             loadAllMobileData();
+            moveAllObjectsToGroups();
           }
         }
 
@@ -1185,6 +1209,8 @@ function transformDragEnd(){
     const popup = document.getElementById('newScenePopup');
     const modelUrlField = document.getElementById('threejs_model_url');
     const preview = document.getElementById('threejs_model_url_preview');
+    
+    const parentInput = document.getElementById('parentSelector');
 
 
     let popupOpen = false;
@@ -1912,7 +1938,8 @@ function transformDragEnd(){
         controls.attach(selectedObj);
         controls.visible = gizmoVisible;
         controls.enabled = gizmoVisible;
-        highlightSelectedListItem(obj.uuid);
+        highlightSelectedListItem(obj.uuid);        
+        updateParentList();
       }
 
       // Get references to your HTML elements
@@ -1930,16 +1957,24 @@ function updateObjectList() {
         const listItem = document.createElement('li');
         listItem.classList.add('object-list-item'); // Add a class for styling
 
-        let objDisplayName;
-        if(obj.userData.modelConfigRef.modelUrl)
-        {          
-          objDisplayName = obj.userData.modelConfigRef.modelName; 
-        }
-        else
-        {
-          //Todo, make unique
-          objDisplayName = obj.type + allThreeJsObj.length;
-        }
+        // let objDisplayName;
+        let objDisplayName = obj.userData.modelConfigRef.modelName;
+        // if(obj.userData.modelConfigRef.modelUrl)
+        // {          
+        //   objDisplayName = obj.userData.modelConfigRef.modelName; 
+        // }
+        // else
+        // {
+        //   if(obj.type == 'group')
+        //   {
+        //     objDisplayName = obj.type + allGroups.length;
+        //   }
+        //   else
+        //   {
+        //     //Todo, make unique
+        //     objDisplayName = obj.type + allThreeJsObj.length;
+        //   }      
+        // }
         // Get a display name for the object (use its 'name' property, or fallback to 'uuid')
         // const objDisplayName = obj.name || obj.uuid.substring(0, 8); // Shorten UUID for display
         // const objDisplayName = obj.userData.modelConfigRef.modelName; 
@@ -1991,6 +2026,67 @@ function updateObjectList() {
           toggleObjectVisibility(obj.uuid, e.target); // Pass the button element to update its text
         });
     });
+}
+
+function updateParentList()
+{
+  parentInput.innerHTML = '';
+  const currentOption = document.createElement('option');
+  currentOption.value = -1;
+  currentOption.textContent = "Select a group";
+  parentInput.appendChild(currentOption);
+    // Add each found group as an option in the dropdown
+  allGroups.forEach((group, index) => {
+    if(selectedObj.parent != group && selectedObj != group)
+    {
+      const option = document.createElement('option');
+      // option.value = group.uuid;
+      option.value = group.userData.modelConfigRef.modelId;
+      option.textContent = group.userData.modelConfigRef.modelName;
+      parentInput.appendChild(option);
+    }
+  });
+}
+
+parentInput.addEventListener('change', () => {
+  
+  const groupUuid = parentInput.value;
+  if(groupUuid == -1) return;
+  // const newParent = allGroups[groupIndex];
+  // const newParent = getThreeJsObjectByUuid(groupUuid);
+  const newParent = getThreeJsObjectByUuid(groupUuid);
+  moveObjectToGroup(selectedObj, newParent);
+  selectedObj.userData.modelConfigRef.parentUuid = newParent.userData.modelConfigRef.modelId;
+});
+
+function moveAllObjectsToGroups()
+{
+  allThreeJsObj.forEach(function(model)
+  {
+    const parentModelId = model.userData.modelConfigRef.parentUuid;
+    // if(modelIndex != -1 && modelIndex != undefined)
+    if(parentModelId != -1)
+    {
+      moveObjectToGroup(model, getThreeJsObjectByUuid(parentModelId));
+    }
+  });
+}
+
+function moveObjectToGroup(model, groupObject)
+{
+  model.parent.remove(model);
+  groupObject.add(model);
+}
+
+function getThreeJsObjectByUuid(modelId)
+{
+  // return scene.getObjectByProperty('uuid', uuid);
+  for (let i = 0; i < allThreeJsObj.length; i++) {
+        const modelConfigRef = allThreeJsObj[i].userData.modelConfigRef; // Get the current item from the array
+        if (modelConfigRef.modelId === modelId) {
+            return modelConfigRef.threeJsObject; // Return the associated THREE.Object3D
+        }
+    }
 }
 
   // Function to select an object when its name in the list is clicked
@@ -2056,7 +2152,11 @@ function updateObjectList() {
     function deleteObject()
     {
       const threeJsObjectIndex = allThreeJsObj.indexOf(selectedObj);
-
+      const groupIndex = allGroups.indexOf(selectedObj);
+      if(groupIndex != -1)
+      {
+        groupIndex.splice(groupIndex, 1);
+      }
       if (threeJsObjectIndex === -1) {
           console.warn("Selected Three.js object not found in allThreeJsObj array.");
           return;
@@ -2126,6 +2226,7 @@ function updateObjectList() {
         const lastObjectInList = allThreeJsObj[allThreeJsObj.length - 1];
         selectModelForEditing(lastObjectInList);
         updateObjectList();
+        updateParentList();
       }
     }
 

@@ -645,12 +645,18 @@ function threejs_editor_page($post) {
                 </ul>
             </div>
 
+            
+            
             <button type="button" class="button" id="add_model_button" >Add Model</button>
             <div class="transform-group">
                 <button style="width: 50%;" type="button" class="button" id="delete_model_button">Delete</button>
                 <button style="width: 50%;" type="button" class="button" id="btn_duplicate">Clone</button>
             </div>
             
+            <div style="margin-top: 15px;">
+                <label for="parentSelector">Reparent Selected Object To:</label>
+                <select id="parentSelector" style="width: 100%; padding: 5px;"></select>
+            </div>
             <strong>Position</strong>
             <div class="transform-group">
               <div class="transform-field">
