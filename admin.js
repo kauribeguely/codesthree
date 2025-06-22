@@ -648,8 +648,6 @@ function toggleCamera()
 
     setLightIntensity(alight, sceneData.ambientLightIntensity);
 
-
-    //INIT()
     let controls, groupControls;
 
 
@@ -1003,12 +1001,14 @@ function toggleCamera()
             // scene.add(controls);
         }
 
+        //when last model added (i.e. last in load all or adding a new one)
         if(allModels.length == allThreeJsObj.length)
         {
           updateObjectList();
+          updateParentList();
+          updateSaveField(); //more for new objects
         }
         // --- Crucially, update the hidden JSON field for saving ---
-        updateSaveField();
         if(isInitialLoad)
         {
           itemsLoaded++;
@@ -1165,20 +1165,26 @@ function toggleCamera()
       modelConfigInstance.rotation.copy(selectedObj.rotation);
       modelConfigInstance.scale.copy(selectedObj.scale);
 
-      let existingModelIndex;
-      if(isMobileView)
-      {
-        existingModelIndex = allMobileModels.findIndex(m => m.modelId === modelConfigInstance.modelId);
-        allMobileModels[existingModelIndex] = modelConfigInstance.toPlainObject();
-      }
-      else
-      {
-        existingModelIndex = allModels.findIndex(m => m.modelId === modelConfigInstance.modelId);
-        allModels[existingModelIndex] = modelConfigInstance.toPlainObject();
-      }
+      updateModelData(modelConfigInstance);
 
       updateSaveField();
   };
+
+  //updates the allModel list so changes are saved
+  function updateModelData(modelConfigInstance)
+  {
+    let existingModelIndex;
+    if(isMobileView)
+    {
+      existingModelIndex = allMobileModels.findIndex(m => m.modelId === modelConfigInstance.modelId);
+      allMobileModels[existingModelIndex] = modelConfigInstance.toPlainObject();
+    }
+    else
+    {
+      existingModelIndex = allModels.findIndex(m => m.modelId === modelConfigInstance.modelId);
+      allModels[existingModelIndex] = modelConfigInstance.toPlainObject();
+    }
+  }
 
   controls.addEventListener('change', updateTransforms);
   controls.addEventListener('mouseDown', transformDragStart);
@@ -2030,11 +2036,20 @@ function updateObjectList() {
 
 function updateParentList()
 {
+  //TODO: show current group that selected object belongs to, a label
   parentInput.innerHTML = '';
   const currentOption = document.createElement('option');
   currentOption.value = -1;
   currentOption.textContent = "Select a group";
   parentInput.appendChild(currentOption);
+
+  const mainScene = document.createElement('option');
+  mainScene.value = -2;
+  mainScene.textContent = "No Group";
+  if(selectedObj.userData.modelConfigRef.parentUuid != -1)
+  {
+    parentInput.appendChild(mainScene);
+  }
     // Add each found group as an option in the dropdown
   allGroups.forEach((group, index) => {
     if(selectedObj.parent != group && selectedObj != group)
@@ -2048,15 +2063,29 @@ function updateParentList()
   });
 }
 
+// .onchange
 parentInput.addEventListener('change', () => {
   
   const groupUuid = parentInput.value;
   if(groupUuid == -1) return;
-  // const newParent = allGroups[groupIndex];
-  // const newParent = getThreeJsObjectByUuid(groupUuid);
-  const newParent = getThreeJsObjectByUuid(groupUuid);
+  let newParent;
+  //back to top level scene
+  if(groupUuid == -2)
+  {
+    newParent = scene.children[0];
+    selectedObj.userData.modelConfigRef.parentUuid = -1;
+  }
+  else
+  {
+    // const newParent = allGroups[groupIndex];
+    // const newParent = getThreeJsObjectByUuid(groupUuid);
+    newParent = getThreeJsObjectByUuid(groupUuid);
+    selectedObj.userData.modelConfigRef.parentUuid = newParent.userData.modelConfigRef.modelId;
+  }
+  console.log(allModels[0].parentUuid);
   moveObjectToGroup(selectedObj, newParent);
-  selectedObj.userData.modelConfigRef.parentUuid = newParent.userData.modelConfigRef.modelId;
+  updateModelData(selectedObjData);
+  updateParentList();
 });
 
 function moveAllObjectsToGroups()
