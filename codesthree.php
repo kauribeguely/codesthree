@@ -640,14 +640,17 @@ function threejs_editor_page($post) {
 
           <div class='rightControls'>
 
-            <div id="objectListContainer" style="padding: 10px;max-height: 90%;overflow-y: auto;z-index: 100;border: 1px solid #2271b1;border-radius: 3px;">    <strong>Scene Objects</strong>
+            <div id="objectListContainer" style="padding: 10px;max-height: 90%;overflow-y: auto; border: 1px solid #2271b1;border-radius: 3px;">    <strong>Scene Objects</strong>
                 <ul id="sceneObjectList" style="list-style: none; padding: 0; margin: 0;">
                 </ul>
             </div>
 
             
             
-            <button type="button" class="button" id="add_model_button" >Add Model</button>
+            <div class="transform-group">
+                <button style="width: 50%;" type="button" class="button" id="add_model_button" >Add Model</button>
+                <button style="width: 50%;" type="button" class="button" id="add_group_button" >Add Group</button>
+            </div>
             <div class="transform-group">
                 <button style="width: 50%;" type="button" class="button" id="delete_model_button">Delete</button>
                 <button style="width: 50%;" type="button" class="button" id="btn_duplicate">Clone</button>

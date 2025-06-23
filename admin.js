@@ -801,11 +801,31 @@ function toggleCamera()
       objData.modelId = crypto.randomUUID();
       objDataMob.modelId = objData.modelId;
 
-      loadModel(objData.modelUrl, objData, function()
+      //if duplicated from object in a group
+      // if(objData.parentModelId != -1)
+      // {
+
+      // }
+
+      createObject(objData.type, objData, function()
       {
         addMobDataToConfigRef(objDataMob, allThreeJsObj.length-1);
+        // if(objData.parentUuid != -1 || objData.parentUuid != undefined)
+        if(objData.parentUuid != -1)
+        {
+          const newParent = getThreeJsObjectByUuid(objData.parentUuid);
+          // moveObjectToGroup(selectedObj, newParent);
+          duplicateObjectInGroup(selectedObj, newParent);
+        }
       });
+
       
+      // loadModel(objData.modelUrl, objData, function()
+      // {
+      //   addMobDataToConfigRef(objDataMob, allThreeJsObj.length-1);
+      // });
+
+
     }
 
     function cloneSelected()
@@ -880,7 +900,7 @@ function toggleCamera()
       let modelConfigInstance, modelConfigInstanceMob; // This will be our ModelConfig class instance
 
       let isModel = url != undefined;
-      if (objData) 
+      if(objData) 
       {
             // Scenario 2: Loading/Reloading an Existing Model
             // We're creating a ModelConfig instance from the plain data we loaded.
@@ -905,16 +925,15 @@ function toggleCamera()
             // This ensures sceneData.models is kept in sync with the current instance state
             // (e.g., if modelUrl changed).
             
-            // const existingModelIndex = allModels.findIndex(m => m.modelId === modelConfigInstance.modelId);
-            // if (existingModelIndex !== -1) {
-            //     allModels[existingModelIndex] = modelConfigInstance.toPlainObject();
-            // } else {
-            //     // This scenario suggests a logic error if objData was provided but not found.
-            //     // For robustness, add it as new.
-            //     console.warn(`ModelConfig with ID ${modelConfigInstance.modelId} not found in sceneData.models during update; adding as new.`);
-            //     allModels.push(modelConfigInstance.toPlainObject());
-            // }
-
+            const existingModelIndex = allModels.findIndex(m => m.modelId === modelConfigInstance.modelId);
+            if (existingModelIndex !== -1) {
+                allModels[existingModelIndex] = modelConfigInstance.toPlainObject();
+            } else {
+                // This scenario suggests a logic error if objData was provided but not found.
+                // For robustness, add it as new.
+                console.warn(`ModelConfig with ID ${modelConfigInstance.modelId} not found in sceneData.models during update; adding as new.`);
+                allModels.push(modelConfigInstance.toPlainObject());
+            }
         } 
         else //no obj data provided i.e. new object
         {
@@ -1000,10 +1019,10 @@ function toggleCamera()
         //when last model added (i.e. last in load all or adding a new one)
         if(allModels.length == allThreeJsObj.length)
         {
-          updateObjectList();
           updateParentList();
           updateSaveField(); //more for new objects
         }
+        updateObjectList();
         // --- Crucially, update the hidden JSON field for saving ---
         if(isInitialLoad)
         {
@@ -1207,6 +1226,7 @@ function transformDragEnd(){
     const mediaButton = document.getElementById('threejs_model_url_button');
     const popupMediaButton = document.getElementById('popup_media_button');
     const addModelButton = document.getElementById('add_model_button');
+    const addGroupButton = document.getElementById('add_group_button');
     const deleteModelButton = document.getElementById('delete_model_button');
     const popup = document.getElementById('newScenePopup');
     const modelUrlField = document.getElementById('threejs_model_url');
@@ -1231,6 +1251,10 @@ function transformDragEnd(){
 
     addModelButton.addEventListener('click', function (e) {
         openMediaUploader(e);
+    });
+
+    addGroupButton.addEventListener('click', function (e) {
+        createObject('group');
     });
 
     function openMediaUploader(e)
@@ -1742,36 +1766,39 @@ function transformDragEnd(){
       {
         e.preventDefault();
       }
-      if(e.wheelDelta > 0) //scroll up, away,
+      if(selectedObj != undefined)
       {
-        if(keyZTrans) selectedObj.position.z -= scrollMultiplier*0.5;
-        // if(keyXRot) selectedObjData.rotation.x -= THREE.MathUtils.degToRad(5);
-        // if(keyYRot) selectedObjData.rotation.y -= THREE.MathUtils.degToRad(5);
-        // if(keyZRot) selectedObjData.rotation.z -= THREE.MathUtils.degToRad(5);
-        if(keyXRot) selectedObj.rotateX(scrollMultiplier*-scrollRotAmount);
-        if(keyYRot) selectedObj.rotateY(scrollMultiplier*-scrollRotAmount);
-        if(keyZRot) selectedObj.rotateZ(scrollMultiplier*-scrollRotAmount);
-        // if(keyXRot) selectedObj.rotation.x -= scrollRotAmount;
-        // if(keyYRot) selectedObj.rotation.y -= scrollRotAmount;
-        // if(keyZRot) selectedObj.rotation.z -= scrollRotAmount;
-        if(keyScale) stepScale(scrollMultiplier*-0.1);
-        // scrollDirection = 'Scroll Up';
-        // transformObjectToSceneData(selectedObj);
-        updateTransforms();
-      }
-      else
-      {
-        if(keyZTrans) selectedObj.position.z += scrollMultiplier*0.5;
-        // if(keyXRot) selectedObjData.rotation.x += THREE.MathUtils.degToRad(5);
-        // if(keyYRot) selectedObjData.rotation.y += THREE.MathUtils.degToRad(5);
-        // if(keyZRot) selectedObjData.rotation.z += THREE.MathUtils.degToRad(5);
-        if(keyXRot) selectedObj.rotateX(scrollMultiplier*scrollRotAmount);
-        if(keyYRot) selectedObj.rotateY(scrollMultiplier*scrollRotAmount);
-        if(keyZRot) selectedObj.rotateZ(scrollMultiplier*scrollRotAmount);
-        if(keyScale) stepScale(scrollMultiplier*0.1);
-        // scrollDirection = 'Scroll Down';
-        // transformObjectToSceneData(selectedObj);
-        updateTransforms();
+        if(e.wheelDelta > 0) //scroll up, away,
+        {
+          if(keyZTrans) selectedObj.position.z -= scrollMultiplier*0.5;
+          // if(keyXRot) selectedObjData.rotation.x -= THREE.MathUtils.degToRad(5);
+          // if(keyYRot) selectedObjData.rotation.y -= THREE.MathUtils.degToRad(5);
+          // if(keyZRot) selectedObjData.rotation.z -= THREE.MathUtils.degToRad(5);
+          if(keyXRot) selectedObj.rotateX(scrollMultiplier*-scrollRotAmount);
+          if(keyYRot) selectedObj.rotateY(scrollMultiplier*-scrollRotAmount);
+          if(keyZRot) selectedObj.rotateZ(scrollMultiplier*-scrollRotAmount);
+          // if(keyXRot) selectedObj.rotation.x -= scrollRotAmount;
+          // if(keyYRot) selectedObj.rotation.y -= scrollRotAmount;
+          // if(keyZRot) selectedObj.rotation.z -= scrollRotAmount;
+          if(keyScale) stepScale(scrollMultiplier*-0.1);
+          // scrollDirection = 'Scroll Up';
+          // transformObjectToSceneData(selectedObj);
+          updateTransforms();
+        }
+        else
+        {
+          if(keyZTrans) selectedObj.position.z += scrollMultiplier*0.5;
+          // if(keyXRot) selectedObjData.rotation.x += THREE.MathUtils.degToRad(5);
+          // if(keyYRot) selectedObjData.rotation.y += THREE.MathUtils.degToRad(5);
+          // if(keyZRot) selectedObjData.rotation.z += THREE.MathUtils.degToRad(5);
+          if(keyXRot) selectedObj.rotateX(scrollMultiplier*scrollRotAmount);
+          if(keyYRot) selectedObj.rotateY(scrollMultiplier*scrollRotAmount);
+          if(keyZRot) selectedObj.rotateZ(scrollMultiplier*scrollRotAmount);
+          if(keyScale) stepScale(scrollMultiplier*0.1);
+          // scrollDirection = 'Scroll Down';
+          // transformObjectToSceneData(selectedObj);
+          updateTransforms();
+        }
       }
     }, { passive: false });
 
@@ -2124,6 +2151,28 @@ function moveObjectToGroup(model, groupObject)
   // model.parent.remove(model);
   // groupObject.add(model);
 }
+
+function duplicateObjectInGroup(object, newParent) {
+  // 1. Copy the object's current local transforms
+  const originalPosition = object.position.clone();
+  const originalRotation = object.rotation.clone(); // Euler
+  const originalScale = object.scale.clone();
+
+  // 2. Reset transforms to identity (0 position, 0 rotation, 1 scale)
+  object.position.set(0, 0, 0);
+  object.rotation.set(0, 0, 0);
+  object.scale.set(1, 1, 1);
+
+  // 3. Add object to the new parent
+  newParent.add(object);
+
+  // 4. Reapply the original local transforms
+  object.position.copy(originalPosition);
+  object.rotation.copy(originalRotation);
+  object.scale.copy(originalScale);
+}
+
+
 
 function getThreeJsObjectByUuid(modelId)
 {
