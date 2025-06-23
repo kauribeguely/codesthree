@@ -1,6 +1,6 @@
 :root
 {
-  --canvas-height: 850px;
+  --canvas-height: 881px;
 }
 
 #threejs-canvas
@@ -49,10 +49,6 @@
     left: 50%;
     transform: translate(-50%);
     position: absolute;
-    button
-    {
-
-    }
   }
 
   .rightControls, .leftControls {
@@ -67,6 +63,8 @@
       padding: 15px;
       gap: 18px;
       color: #bababa;
+      height: var(--canvas-height);
+      box-sizing: border-box;
       /* width: 217px; */
   }
 
@@ -85,13 +83,6 @@
     font-weight: bold;
     margin-bottom: 3px; /* Adds spacing between label and input */
     text-align: center;
-}
-
-.transform-field input {
-    width: 100%;
-    /* padding: 6px; */
-    border-radius: 4px;
-    font-size: 14px;
 }
 
 input[type="number"]
@@ -253,13 +244,14 @@ hr
 
 .transform-field input {
     width: 100%;
-    padding: 6px;
+    padding: 2px 6px;
     border: 1px solid #ccc;
     border-radius: 4px;
     font-size: 14px;
 }
 
-#newScenePopup {
+#newScenePopup 
+{
     position: absolute;
     width: 100%;
     height: 100%;
@@ -281,9 +273,10 @@ hr
     margin: 0;
 }
 
-span.object-name-span {
+span.object-name-span 
+{
     width: 100%;
-    padding: 10px 0px;
+    padding: 7px 0px;
 }
 
 li.object-list-item {

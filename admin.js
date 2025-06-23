@@ -561,8 +561,8 @@ function toggleCamera()
     } else {
         camera = perspectiveCamera;
     }
-    // controls.camera = camera;
-    groupControls.camera = camera;
+    controls.camera = camera;
+    // groupControls.camera = camera;
 
     camera.position.set(cameraPos[0], cameraPos[1], cameraPos[2]);
     scene.add(camera);
@@ -1998,26 +1998,6 @@ function updateObjectList() {
 
         // let objDisplayName;
         let objDisplayName = obj.userData.modelConfigRef.modelName;
-        // if(obj.userData.modelConfigRef.modelUrl)
-        // {          
-        //   objDisplayName = obj.userData.modelConfigRef.modelName; 
-        // }
-        // else
-        // {
-        //   if(obj.type == 'group')
-        //   {
-        //     objDisplayName = obj.type + allGroups.length;
-        //   }
-        //   else
-        //   {
-        //     //Todo, make unique
-        //     objDisplayName = obj.type + allThreeJsObj.length;
-        //   }      
-        // }
-        // Get a display name for the object (use its 'name' property, or fallback to 'uuid')
-        // const objDisplayName = obj.name || obj.uuid.substring(0, 8); // Shorten UUID for display
-        // const objDisplayName = obj.userData.modelConfigRef.modelName; 
-
         // --- Create the clickable text (for selection) ---
         const objectNameSpan = document.createElement('span');
         objectNameSpan.textContent = objDisplayName;

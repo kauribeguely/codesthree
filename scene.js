@@ -28,7 +28,14 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
         console.error("Container not found:", containerId);
         return;
     }
-
+    // Get the canvas container's distance to the top of the screen
+    const getCanvasOffset = () => {
+      const rect = container.getBoundingClientRect();
+      const canvasTop = rect.top + window.scrollY;
+      const screenHeight = window.innerHeight;
+      // return canvasTop / screenHeight; // Returns a value between 0 and 1
+      return rect.top / container.offsetHeight; // Returns a value between 0 and 1
+    };
 
     //backward compatibility
     // if(allSceneData.models[1] == undefined)
@@ -214,7 +221,7 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
           {
             applyTransformFromConfig(newThreeJsObject, objData);
           }
-          
+
           objData.threeJsObject = newThreeJsObject;
           // lastAddedObject.position.set(
           //     parseFloat(objData.positionX),
@@ -234,7 +241,6 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
           // if(mouseAnimationLink) window.addEventListener('mousemove', onMouseMove);
 
           renderer.render(scene, camera);
-          if(scrollAnimationLink) applyScrollTransforms();
 
 
           itemsLoaded++;
@@ -242,6 +248,8 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
           if(itemsLoaded == allModels.length)
           {
             moveAllObjectsToGroups();
+          if(scrollAnimationLink) applyScrollTransforms();
+
           }
 
           //TODO count properly, along with env texture if enabled
@@ -297,7 +305,7 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
       {
         const parentModelId = model.userData.objData.parentUuid;
         // if(modelIndex != -1 && modelIndex != undefined)
-        if(parentModelId != -1)
+        if(parentModelId != -1 && parentModelId != undefined)
         {
           moveObjectToGroup(model, getThreeJsObjectByUuid(parentModelId));
         }
@@ -453,15 +461,6 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
         applyAllTransformsFromConfigs();
       }
     }
-
-      // Get the canvas container's distance to the top of the screen
-      const getCanvasOffset = () => {
-        const rect = container.getBoundingClientRect();
-        const canvasTop = rect.top + window.scrollY;
-        const screenHeight = window.innerHeight;
-        // return canvasTop / screenHeight; // Returns a value between 0 and 1
-        return rect.top / container.offsetHeight; // Returns a value between 0 and 1
-      };
 
       // Handle the scroll event
       // window.addEventListener('scroll', (event) => {

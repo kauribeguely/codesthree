@@ -13,6 +13,22 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+function my_shortcode_box_in_publish_meta() {
+    global $post;
+
+    // Only show for a specific post type if needed
+    if ($post->post_type !== 'codes_scene') return;
+
+    // Create the shortcode string using the post ID or other info
+    $shortcode = '[codes_scene id="' . $post->ID . '"]';
+
+    echo '<div class="misc-pub-section">';
+    echo '<label for="my_shortcode_field"><strong>Shortcode:</strong></label><br>';
+    echo '<input type="text" readonly value="' . esc_attr($shortcode) . '" style="width:100%; background:#f9f9f9; cursor:text;" onclick="this.select()" />';
+    echo '</div>';
+}
+add_action('post_submitbox_misc_actions', 'my_shortcode_box_in_publish_meta');
+
 function get_scene_data($post_id) {
     // Define the meta key where the full JSON configuration is stored
     $db_meta_key = '_threejs_scene_config_data';
@@ -640,7 +656,7 @@ function threejs_editor_page($post) {
 
           <div class='rightControls'>
 
-            <div id="objectListContainer" style="padding: 10px;max-height: 90%;overflow-y: auto; border: 1px solid #2271b1;border-radius: 3px;">    <strong>Scene Objects</strong>
+            <div id="objectListContainer" style="padding: 10px;max-height: 280px; overflow-y: auto; border: 1px solid #2271b1;border-radius: 3px;">    <strong>Scene Objects</strong>
                 <ul id="sceneObjectList" style="list-style: none; padding: 0; margin: 0;">
                 </ul>
             </div>
