@@ -815,7 +815,8 @@ function toggleCamera()
         {
           const newParent = getThreeJsObjectByUuid(objData.parentUuid);
           // moveObjectToGroup(selectedObj, newParent);
-          duplicateObjectInGroup(selectedObj, newParent);
+          // duplicateObjectInGroup(selectedObj, newParent);
+          moveToGroupKeepLocalPosition(selectedObj, newParent);
         }
       });
 
@@ -1023,9 +1024,9 @@ function toggleCamera()
           updateSaveField(); //more for new objects
         }
         updateObjectList();
-        // --- Crucially, update the hidden JSON field for saving ---
         if(isInitialLoad)
         {
+          //can add scene size via here, add whenever new model loaded
           itemsLoaded++;
           // console.log(itemsLoaded);
           if(itemsLoaded == allModels.length)
@@ -2139,18 +2140,26 @@ function moveAllObjectsToGroups()
     // if(modelIndex != -1 && modelIndex != undefined)
     if(parentModelId != -1)
     {
-      moveObjectToGroup(model, getThreeJsObjectByUuid(parentModelId));
+      moveToGroupKeepLocalPosition(model, getThreeJsObjectByUuid(parentModelId));
+      // moveObjectToGroup(model, getThreeJsObjectByUuid(parentModelId));
+      // duplicateObjectInGroup(model, getThreeJsObjectByUuid(parentModelId));
     }
   });
+  updateTransforms();
+}
+
+function moveToGroupKeepLocalPosition(model, groupObject)
+{
+  model.parent.remove(model);
+  groupObject.add(model);
 }
 
 function moveObjectToGroup(model, groupObject)
 {
   //This method maintains it's world position
   groupObject.attach(model);
-  // model.parent.remove(model);
-  // groupObject.add(model);
 }
+
 
 function duplicateObjectInGroup(object, newParent) {
   // 1. Copy the object's current local transforms
