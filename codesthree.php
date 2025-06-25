@@ -22,10 +22,7 @@ function my_shortcode_box_in_publish_meta() {
     // Create the shortcode string using the post ID or other info
     $shortcode = '[codes_scene id="' . $post->ID . '"]';
 
-    echo '<div class="misc-pub-section">';
-    echo '<label for="my_shortcode_field"><strong>Shortcode:</strong></label><br>';
     echo '<input type="text" readonly value="' . esc_attr($shortcode) . '" style="width:100%; background:#f9f9f9; cursor:text;" onclick="this.select()" />';
-    echo '</div>';
 }
 add_action('post_submitbox_misc_actions', 'my_shortcode_box_in_publish_meta');
 
@@ -573,7 +570,7 @@ function threejs_editor_page($post) {
                 
             <div class='leftBottom'>
                 <p>Use this shortcode to display the scene on your site:</p>
-                <textarea readonly style="width: 100%;"><?php echo esc_html($shortcode); ?></textarea>
+                <textarea id='shortcodeArea' readonly style="width: 100%;"><?php echo esc_html($shortcode); ?></textarea>
             </div>
 
 

@@ -2077,30 +2077,33 @@ function updateParentList()
   const mainScene = document.createElement('option');
   mainScene.value = -2;
   mainScene.textContent = "No Group";
-  if(selectedObj.userData.modelConfigRef.parentUuid != -1)
+  if(selectedObj)
   {
-    parentInput.appendChild(mainScene);
-  }
-  else
-  {
-    currentGroupLabel.innerHTML = 'No Group';
-  }
+    if(selectedObj.userData.modelConfigRef.parentUuid != -1)
+    {
+      parentInput.appendChild(mainScene);
+    }
+    else
+    {
+      currentGroupLabel.innerHTML = 'No Group';
+    }
     // Add each found group as an option in the dropdown
-  allGroups.forEach((group, index) => {
-    if(selectedObj.parent != group && selectedObj != group)
-    {
-      const option = document.createElement('option');
-      // option.value = group.uuid;
-      option.value = group.userData.modelConfigRef.modelId;
-      option.textContent = group.userData.modelConfigRef.modelName;
-      parentInput.appendChild(option);
-    }
+    allGroups.forEach((group, index) => {
+      if(selectedObj.parent != group && selectedObj != group)
+      {
+        const option = document.createElement('option');
+        // option.value = group.uuid;
+        option.value = group.userData.modelConfigRef.modelId;
+        option.textContent = group.userData.modelConfigRef.modelName;
+        parentInput.appendChild(option);
+      }
 
-    if(selectedObj.parent == group)
-    {
-      currentGroupLabel.innerHTML = group.userData.modelConfigRef.modelName;
-    }
-  });
+      if(selectedObj.parent == group)
+      {
+        currentGroupLabel.innerHTML = group.userData.modelConfigRef.modelName;
+      }
+    });
+  }
   
 
 }
@@ -2435,6 +2438,24 @@ function getThreeJsObjectByUuid(modelId)
         });
 
       init();
+
+      const shortcodeTextarea = document.querySelector('#shortcodeArea');
+      shortcodeTextarea.addEventListener('mousedown', () => 
+      {        
+        copyShortcodeToClipboard();
+      });
+
+      function copyShortcodeToClipboard()
+      {
+        const shortCodeText = shortcodeTextarea.value;
+        shortcodeTextarea.select();
+        shortcodeTextarea.setSelectionRange(0, shortcodeTextarea.value.length);
+        navigator.clipboard.writeText(shortcodeTextarea.value)
+        shortcodeTextarea.value = 'Copied!';
+        setTimeout(() => {
+            shortcodeTextarea.value = shortCodeText;
+        }, 1000);
+      }
 
 }
 
