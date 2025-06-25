@@ -713,7 +713,7 @@ function threejs_editor_page($post) {
               <strong>Scale (model): </strong><input type="number" name="scale" id="codes_scale" value="<?php echo esc_attr($scale); ?>" step="0.01" />
             </p>
 
-            <hr>
+            <!-- <hr> -->
             <!-- Toggle for Activating Loop -->
              <div id="loopComingSoon" style="display:none">
                     <label>

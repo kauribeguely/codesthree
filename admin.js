@@ -1646,20 +1646,24 @@ function transformDragEnd(){
 
     // Optional: Enable drag interaction with the transform controls
     window.addEventListener('keydown', (event) => {
-        switch (event.key) {
+        switch (event.key.toLowerCase()) {
           case 'a': 
                 if(event.altKey)
                 {
                   mouseAnimationLinkInput.checked = !mouseAnimationLinkInput.checked;
                   refreshMouseAnimationLink();
-                }                
-                break;  
-          case 'A':
+                }
                 if(event.shiftKey)
                 {
                   openMediaUploader(event);
-                }
-                break;
+                }                
+                break;  
+          case 'A':
+                // if(event.shiftKey)
+                // {
+                //   openMediaUploader(event);
+                // }
+                // break;
           case 'q': 
                 keyXRot = true;
                 if(event.altKey)
@@ -1713,10 +1717,10 @@ function transformDragEnd(){
             case 'o':
                 orbitActive = !orbitActive;
                 break;
-            case 'Delete':
+            case 'delete':
                 deleteObject();
                 break;
-            case 'Shift':
+            case 'shift':
                 shiftDown = true;
                 scrollMultiplier = 0.3;
                 break;
@@ -1729,7 +1733,7 @@ function transformDragEnd(){
     });
 
     window.addEventListener('keyup', (event) => {
-      switch (event.key) {
+      switch (event.key.toLowerCase()) {
         case 'q': 
               keyXRot = false;
               break;  
@@ -1744,7 +1748,7 @@ function transformDragEnd(){
               break;
         case 's': 
               keyScale = false;
-        case 'Shift':
+        case 'shift':
               shiftDown = false;
               scrollMultiplier = 1;
               break;
