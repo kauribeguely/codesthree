@@ -5,7 +5,6 @@
 
 #threejs-canvas
 {
-  margin-top: 20px;
   background: #333333;
 }
 
@@ -19,6 +18,11 @@
   cursor: pointer;
 }
 
+#canvasAndControls
+{
+  position: relative;
+}
+
 .codes_scene
 {
   display: flex;
@@ -26,6 +30,11 @@
   position: relative;
 }
 
+
+.rangeWithValue input
+{
+  width: 80%;
+}
 /* #codes_controls {
     position: absolute;
     top: 0; */

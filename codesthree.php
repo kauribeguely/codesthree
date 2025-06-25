@@ -532,23 +532,25 @@ function threejs_editor_page($post) {
 
         <div id="mobileOutline"></div>
 
-      <div id="newScenePopup">
-        Upload/open a model to get started
-        <button type="button" class="button" id="popup_media_button">Select Model</button>
-      </div>
-        <div id="threejs-canvas" style="width: 100%; height: var(--canvas-height);"></div>
-        <!-- <div id="codes_controls"> -->
-            <div class='topTransforms'>
+        <div id="newScenePopup">
+            Upload/open a model to get started
+            <button type="button" class="button" id="popup_media_button">Select Model</button>
+        </div>
+        <div style="display: flex; justify-content: center; background: black; padding: 10px;">
+            <button id="toggleControls" type="button">Toggle Controls</button>
+        </div>
+        <div id = "canvasAndControls">
+            <div id="threejs-canvas" style="width: 100%; height: var(--canvas-height);"></div>
+            <!-- <div id="codes_controls"> -->
+                <div class='topTransforms'>
 
-                <button class='transModeButton' id="btnTranslateMode" type="button" onmousedown="setTransformMode('translate', event, this)">Translate (T)</button>
-                <button class='transModeButton' id="btnRotateMode" type="button" onmousedown="setTransformMode('rotate', event,  this)">Rotate (R)</button>
-                <button class='transModeButton' id='codesScaleButton' title="not available in loop mode, use scale text input on left" type="button" onmousedown="setTransformMode('scale', event, this)">Scale (Y)</button>
-            </div>
+                    <button class='transModeButton' id="btnTranslateMode" type="button" onmousedown="setTransformMode('translate', event, this)">Translate (T)</button>
+                    <button class='transModeButton' id="btnRotateMode" type="button" onmousedown="setTransformMode('rotate', event,  this)">Rotate (R)</button>
+                    <button class='transModeButton' id='codesScaleButton' title="not available in loop mode, use scale text input on left" type="button" onmousedown="setTransformMode('scale', event, this)">Scale (Y)</button>
+                    <button id="toggleGizmo" type="button">Gizmo</button>
+                </div>
 
-            <div style="display: flex; justify-content: center;">
-                <button id="toggleControls" type="button">Toggle Controls</button>
-                <button id="toggleGizmo" type="button">Gizmo</button>
-            </div>
+            
 
 
 
@@ -594,37 +596,41 @@ function threejs_editor_page($post) {
                 <!-- <div id='' class="tab" onmousedown="tabClicked('export')">&infin</div> -->
             </div>
             <div class='tabContent cobject'>
-                <strong>Position</strong>
-                <div class="transform-group">
-                <div class="transform-field">
-                    <label for="threejs_position_x">X</label>
-                    <input type="number" name="threejs_pos_x" id="threejs_position_x" value="<?php echo esc_attr($pos_x); ?>" step="0.01">
-                </div>
-                <div class="transform-field">
-                    <label for="threejs_position_y">Y</label>
-                    <input type="number" name="threejs_pos_y" id="threejs_position_y" value="<?php echo esc_attr($pos_y); ?>" step="0.01">
-                </div>
-                <div class="transform-field">
-                    <label for="threejs_position_z">Z</label>
-                    <input type="number" name="threejs_pos_z" id="threejs_position_z" value="<?php echo esc_attr($pos_z); ?>" step="0.01">
-                </div>
-                </div>
+                <fieldset>
+                    <strong>Position</strong>
+                    <div class="transform-group">
+                    <div class="transform-field">
+                        <label for="threejs_position_x">X</label>
+                        <input type="number" name="threejs_pos_x" id="threejs_position_x" value="<?php echo esc_attr($pos_x); ?>" step="0.01">
+                    </div>
+                    <div class="transform-field">
+                        <label for="threejs_position_y">Y</label>
+                        <input type="number" name="threejs_pos_y" id="threejs_position_y" value="<?php echo esc_attr($pos_y); ?>" step="0.01">
+                    </div>
+                    <div class="transform-field">
+                        <label for="threejs_position_z">Z</label>
+                        <input type="number" name="threejs_pos_z" id="threejs_position_z" value="<?php echo esc_attr($pos_z); ?>" step="0.01">
+                    </div>
+                    </div>
+                </fieldset>
 
-                <strong>Rotation</strong>
-                <div class="transform-group">
-                <div class="transform-field">
-                    <label for="threejs_rotation_x">X</label>
-                    <input type="number" name="threejs_rot_x" id="threejs_rotation_x" value="<?php echo esc_attr($rot_x); ?>" step="0.01">
-                </div>
-                <div class="transform-field">
-                    <label for="threejs_rotation_y">Y</label>
-                    <input type="number" name="threejs_rot_y" id="threejs_rotation_y" value="<?php echo esc_attr($rot_y); ?>" step="0.01">
-                </div>
-                <div class="transform-field">
-                    <label for="threejs_rotation_z">Z</label>
-                    <input type="number" name="threejs_rot_z" id="threejs_rotation_z" value="<?php echo esc_attr($rot_z); ?>" step="0.01">
-                </div>
-                </div>
+                <fieldset>
+                    <strong>Rotation</strong>
+                    <div class="transform-group">
+                    <div class="transform-field">
+                        <label for="threejs_rotation_x">X</label>
+                        <input type="number" name="threejs_rot_x" id="threejs_rotation_x" value="<?php echo esc_attr($rot_x); ?>" step="0.01">
+                    </div>
+                    <div class="transform-field">
+                        <label for="threejs_rotation_y">Y</label>
+                        <input type="number" name="threejs_rot_y" id="threejs_rotation_y" value="<?php echo esc_attr($rot_y); ?>" step="0.01">
+                    </div>
+                    <div class="transform-field">
+                        <label for="threejs_rotation_z">Z</label>
+                        <input type="number" name="threejs_rot_z" id="threejs_rotation_z" value="<?php echo esc_attr($rot_z); ?>" step="0.01">
+                    </div>
+                    </div>
+                </fieldset>
 
                 <p>
                 <strong>Scale (model): </strong><input type="number" name="scale" id="codes_scale" value="<?php echo esc_attr($scale); ?>" step="0.01" />
@@ -703,17 +709,17 @@ function threejs_editor_page($post) {
 
             
             <div class='tabContent clights'>
-                <p style="margin:0px">
-                    <label for="ambient-light-slider">Ambient Intensity:</label><br>
+                <label for="ambient-light-slider">Ambient Intensity:</label>
+                <div class="rangeWithValue">
                     <input type="range" name="ambient_light_intensity" id="ambient_light_intensity" max="3" step="0.05" value="<?php echo esc_attr($light_intensity); ?>" />
                     <span id="light_intensity_value"><?php echo esc_attr($light_intensity); ?></span>
-                </p>
-
+                </div>
                 <!-- Directional Light Intensity -->
-                <p style="margin:0px">
-                <label>Directional Intensity: <input type="range" name="directionalLightIntensity" id="directionalLightIntensity" max="3" step="0.05" value="<?php echo esc_attr($directional_light_intensity); ?>"></label>
-                <span id="directional_intensity_value"><?php echo esc_attr($directional_light_intensity); ?></span>
-                </p>
+                <label>Directional Intensity: </label>
+                <div class="rangeWithValue">
+                    <input type="range" name="directionalLightIntensity" id="directionalLightIntensity" max="3" step="0.05" value="<?php echo esc_attr($directional_light_intensity); ?>">
+                    <span id="directional_intensity_value"><?php echo esc_attr($directional_light_intensity); ?></span>
+                </div>
                 <!-- Directional Light Position -->
                 <label>Directional Light Position</label>
                 <div class="transform-group">
@@ -779,6 +785,8 @@ function threejs_editor_page($post) {
 
             </div>
           </div>
+          
+        </div>
 
           <input type="hidden" id="threejs_model_url" name="threejs_model_url" value="<?php echo esc_url($model_url); ?>" />
           <button type="button" class="button" id="threejs_model_url_button" style="display:none">Change Model</button>

@@ -261,6 +261,7 @@ window.onload = () =>
   toggleGizmoButton.addEventListener('click', () => {
     gizmoVisible = !gizmoVisible;
     setGizmoVisible(gizmoVisible);
+    toggleGizmoButton.classList.toggle('transButtonActive');
   });
 
   function setGizmoVisible(visible)
