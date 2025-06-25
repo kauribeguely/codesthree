@@ -30,11 +30,19 @@
     position: absolute;
     top: 0; */
 
+  .leftContInner
+  {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
 
   .leftControls {
       left: 0;
       width: 241px;
       border-right: 1px solid rgb(183, 183, 183);
+      padding: 20px;      
+      justify-content: space-between;
   }
 
   .rightControls {
@@ -60,7 +68,7 @@
       background: #00000066;
       /* padding: 15px; */
       /* height: 100%; */
-      padding: 15px;
+      /* padding: 15px; */
       gap: 18px;
       color: #bababa;
       height: var(--canvas-height);
@@ -193,11 +201,6 @@ hr
     top: 0; */
 
 
-  .leftControls {
-      left: 0;
-      width: 241px;
-  }
-
   .rightControls {
       right: 0;
       width: 223px;
@@ -280,7 +283,7 @@ span.object-name-span
 }
 
 li.object-list-item {
-    border-top: 1px solid black;
+    border-top: 1px solid #f0f0f0;
     width: 100%;
     display: flex;
     justify-content: space-between;
@@ -288,12 +291,54 @@ li.object-list-item {
 }
 
 li.object-list-item:hover {
-    background: #cacaca;
+    background: #3b3b3b;
 }
 
 #code_three_metabox .inside {
     padding: 0px;
 }
+
+#objectListContainer
+{
+  padding: 10px;
+  max-height: 280px; 
+  height: 280px;
+  overflow-y: auto; 
+  border: 1px solid #2271b1;
+  border-radius: 3px;
+}
+
+.tabContainer 
+{
+    display: flex;
+}
+
+.tab
+{
+  border: 1px solid gray;
+  padding: 5px;
+  cursor: pointer;
+  border-radius: 3px 3px 0 0;
+  color: gray;
+  width: 25%;
+  height: 20px;
+  text-align: center;
+}
+
+.tabContent
+{
+  display: none;
+  flex-direction: column;
+  gap: 16px;
+  padding: 12px;
+}
+
+.activeTab
+{
+  border-bottom: none;
+  color: white;
+}
+
 
 
 /* } */

@@ -1646,6 +1646,20 @@ function transformDragEnd(){
 
     // Optional: Enable drag interaction with the transform controls
     window.addEventListener('keydown', (event) => {
+
+
+        const targetElement = event.target;
+        const targetTagName = targetElement.tagName.toUpperCase();
+
+        if (
+            targetTagName === 'INPUT' ||
+            targetTagName === 'TEXTAREA' ||
+            targetTagName === 'SELECT' ||
+            targetElement.isContentEditable 
+        ) {
+            return;
+        }
+
         switch (event.key.toLowerCase()) {
           case 'a': 
                 if(event.altKey)
@@ -2385,10 +2399,43 @@ function getThreeJsObjectByUuid(modelId)
             }
         }
 
+        const allTabs = document.querySelectorAll('.tab');
+        const allTabsContent = document.querySelectorAll('.tabContent');
+        let activeTab = 'object';
+        tabClicked(activeTab);
+
+        function tabClicked(tabName)
+        {
+          //show clicked, hide all rest
+          hideAllTabs();
+          activeTab = tabName;
+          document.querySelector('.c'+tabName).style.display = 'flex';
+
+          document.querySelector('.activeTab').classList.remove('activeTab');
+          document.querySelector('#'+tabName+'Tab').classList.add('activeTab');
+        }
+
+        function hideAllTabs()
+        {
+          allTabsContent.forEach(tabContent => {
+              tabContent.style.display = 'none';
+          });
+        }
+
+        allTabs.forEach(tabElement => {
+            const handleTabClick = (event) => {
+                const fullTabId = event.target.id;
+                const tabParameter = fullTabId.replace('Tab', '');
+                
+                tabClicked(tabParameter);
+            };
+
+            tabElement.addEventListener('mousedown', handleTabClick);
+        });
+
       init();
 
 }
 
 
 
-// });

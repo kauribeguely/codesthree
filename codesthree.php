@@ -550,90 +550,191 @@ function threejs_editor_page($post) {
                 <button id="toggleGizmo" type="button">Gizmo</button>
             </div>
 
+
+
           <div class='leftControls'>
-          <!-- Mouse Animation Link -->
-            <div class="checkbox-group">
-              <input type="checkbox" name="mouseAnimationLink" id="mouseAnimationLink" <?php checked($mouse_enabled, 'on'); ?>>
-              <label for="mouseAnimationLink">Enable Mouse Animation</label>
-            </div>
-            <!-- Mouse Rotation Strength -->
-            <fieldset>
-                <legend>Mouse Rotation Strength</legend>
-                <div class="transform-group">
-                    <div class="transform-field">
-                        <label for="mouseRotationX">X</label>
-                        <input type="number" name="mouseRotationX" id="mouseRotationX" step="1" value="<?php echo esc_attr($mouse_rot_x); ?>">
-                    </div>
-                    <div class="transform-field">
-                        <label for="mouseRotationY">Y</label>
-                        <input type="number" name="mouseRotationY" id="mouseRotationY" step="1" value="<?php echo esc_attr($mouse_rot_y); ?>">
-                    </div>
-                    <div class="transform-field">
-                        <label for="mouseRotationZ">Z</label>
-                        <input type="number" name="mouseRotationZ" id="mouseRotationZ" step="1" value="<?php echo esc_attr($mouse_rot_z); ?>">
-                    </div>
+            <div class='leftContInner'>
+                <div id="objectListContainer" style="">    <strong>Scene Objects</strong>
+                    <ul id="sceneObjectList" style="list-style: none; padding: 0; margin: 0;">
+                    </ul>
                 </div>
-            </fieldset>
-                        <hr>
-            <!-- Scroll Animation Link -->
-            <div class="checkbox-group">
-                <input type="checkbox" name="scrollAnimationLink" id="scrollAnimationLink" <?php checked($scroll_enabled, 'on'); ?>>
-                <label for="scrollAnimationLink">Enable Scroll Animation</label>
-            </div>
 
-            <!-- Scroll Camera Movement -->
-            <fieldset>
-                <legend>Scroll Camera Movement</legend>
+                <label>Add Object</label>
+            
                 <div class="transform-group">
-                    <div class="transform-field">
-                        <label for="scrollMoveX">X</label>
-                        <input type="number" name="scrollMoveX" id="scrollMoveX" step="0.01" value="<?php echo esc_attr($scroll_mov_x); ?>">
-                    </div>
-                    <div class="transform-field">
-                        <label for="scrollMoveY">Y</label>
-                        <input type="number" name="scrollMoveY" id="scrollMoveY" step="0.01" value="<?php echo esc_attr($scroll_mov_y); ?>">
-                    </div>
-                    <div class="transform-field">
-                        <label for="scrollMoveZ">Z</label>
-                        <input type="number" name="scrollMoveZ" id="scrollMoveZ" step="0.01" value="<?php echo esc_attr($scroll_mov_z); ?>">
-                    </div>
+                    <button style="width: 50%;" type="button" class="button" id="add_model_button" >Model 🧊</button>
+                    <button style="width: 50%;" type="button" class="button" id="add_group_button" >Group 📁</button>
                 </div>
-            </fieldset>
-            <hr>
-
-            <p style="margin:0px">
-                <label for="ambient-light-slider">Ambient Intensity:</label><br>
-                <input type="range" name="ambient_light_intensity" id="ambient_light_intensity" max="3" step="0.05" value="<?php echo esc_attr($light_intensity); ?>" />
-                <span id="light_intensity_value"><?php echo esc_attr($light_intensity); ?></span>
-            </p>
-
-            <!-- Directional Light Intensity -->
-            <p style="margin:0px">
-              <label>Directional Intensity: <input type="range" name="directionalLightIntensity" id="directionalLightIntensity" max="3" step="0.05" value="<?php echo esc_attr($directional_light_intensity); ?>"></label>
-              <span id="directional_intensity_value"><?php echo esc_attr($directional_light_intensity); ?></span>
-            </p>
-            <!-- Directional Light Position -->
-            <label>Directional Light Position</label>
-            <div class="transform-group">
-              <div class="transform-field">
-                  <label for="lightPosX">X</label>
-                  <input type="number" name="lightPosX" id="lightPosX" step="0.1" value="<?php echo esc_attr($light_pos_x); ?>">
-              </div>
-              <div class="transform-field">
-                  <label for="lightPosY">Y</label>
-                  <input type="number" name="lightPosY" id="lightPosY" step="0.1" value="<?php echo esc_attr($light_pos_y); ?>">
-              </div>
-              <div class="transform-field">
-                  <label for="lightPosZ">Z</label>
-                  <input type="number" name="lightPosZ" id="lightPosZ" step="0.1" value="<?php echo esc_attr($light_pos_z); ?>">
-              </div>
             </div>
 
-            <label>
-                <input type="checkbox" name="useEnvLight" id="useEnvLight" <?php checked($use_env_light, 'on'); ?>>
-                Use Environment Light (HDR)
-            </label>
 
+                
+            <div class='leftBottom'>
+                <p>Use this shortcode to display the scene on your site:</p>
+                <textarea readonly style="width: 100%;"><?php echo esc_html($shortcode); ?></textarea>
+            </div>
+
+
+
+
+
+          </div>
+          <!-- end left controls -->
+
+
+          <div class='rightControls'>
+
+
+
+            <div class="tabContainer">
+                <div id="objectTab" class="tab activeTab" >Obj</div>
+                <div id="animationTab" class="tab">Anim</div>
+                <div id="lightsTab" class="tab">💡🎥</div>
+                <div id="settingsTab" class="tab">⚙️</div>
+                <!-- <div id='' class="tab" onmousedown="tabClicked('export')">&infin</div> -->
+            </div>
+            <div class='tabContent cobject'>
+                <strong>Position</strong>
+                <div class="transform-group">
+                <div class="transform-field">
+                    <label for="threejs_position_x">X</label>
+                    <input type="number" name="threejs_pos_x" id="threejs_position_x" value="<?php echo esc_attr($pos_x); ?>" step="0.01">
+                </div>
+                <div class="transform-field">
+                    <label for="threejs_position_y">Y</label>
+                    <input type="number" name="threejs_pos_y" id="threejs_position_y" value="<?php echo esc_attr($pos_y); ?>" step="0.01">
+                </div>
+                <div class="transform-field">
+                    <label for="threejs_position_z">Z</label>
+                    <input type="number" name="threejs_pos_z" id="threejs_position_z" value="<?php echo esc_attr($pos_z); ?>" step="0.01">
+                </div>
+                </div>
+
+                <strong>Rotation</strong>
+                <div class="transform-group">
+                <div class="transform-field">
+                    <label for="threejs_rotation_x">X</label>
+                    <input type="number" name="threejs_rot_x" id="threejs_rotation_x" value="<?php echo esc_attr($rot_x); ?>" step="0.01">
+                </div>
+                <div class="transform-field">
+                    <label for="threejs_rotation_y">Y</label>
+                    <input type="number" name="threejs_rot_y" id="threejs_rotation_y" value="<?php echo esc_attr($rot_y); ?>" step="0.01">
+                </div>
+                <div class="transform-field">
+                    <label for="threejs_rotation_z">Z</label>
+                    <input type="number" name="threejs_rot_z" id="threejs_rotation_z" value="<?php echo esc_attr($rot_z); ?>" step="0.01">
+                </div>
+                </div>
+
+                <p>
+                <strong>Scale (model): </strong><input type="number" name="scale" id="codes_scale" value="<?php echo esc_attr($scale); ?>" step="0.01" />
+                </p>
+
+                <div style="">
+                    <label for="parentSelector">Move to group:</label>
+                    <select id="parentSelector" style="width: 100%; padding: 5px;"></select>
+                <p>Current group: <span id='current-group-label'></span></p>
+                </div>
+
+                <div class="transform-group">
+                    <button style="width: 50%;" type="button" class="button" id="delete_model_button">Delete</button>
+                    <button style="width: 50%;" type="button" class="button" id="btn_duplicate">Clone</button>
+                </div>
+            </div>
+            
+            <div class='tabContent csettings'>
+                <label>Breakpoint (px)
+                    <input id="breakPoint" type="number" value="<?php echo esc_attr($breakpoint); ?>">
+                </label>
+                <button id="mobileMode" type="button">Mobile View</button>
+            </div>
+
+            <div class='tabContent canimation'>
+                <!-- Mouse Animation Link -->
+                    <div class="checkbox-group">
+                    <input type="checkbox" name="mouseAnimationLink" id="mouseAnimationLink" <?php checked($mouse_enabled, 'on'); ?>>
+                    <label for="mouseAnimationLink">Enable Mouse Animation</label>
+                    </div>
+                    <!-- Mouse Rotation Strength -->
+                    <fieldset>
+                        <legend>Mouse Rotation Strength</legend>
+                        <div class="transform-group">
+                            <div class="transform-field">
+                                <label for="mouseRotationX">X</label>
+                                <input type="number" name="mouseRotationX" id="mouseRotationX" step="1" value="<?php echo esc_attr($mouse_rot_x); ?>">
+                            </div>
+                            <div class="transform-field">
+                                <label for="mouseRotationY">Y</label>
+                                <input type="number" name="mouseRotationY" id="mouseRotationY" step="1" value="<?php echo esc_attr($mouse_rot_y); ?>">
+                            </div>
+                            <div class="transform-field">
+                                <label for="mouseRotationZ">Z</label>
+                                <input type="number" name="mouseRotationZ" id="mouseRotationZ" step="1" value="<?php echo esc_attr($mouse_rot_z); ?>">
+                            </div>
+                        </div>
+                    </fieldset>
+                                <hr>
+                    <!-- Scroll Animation Link -->
+                    <div class="checkbox-group">
+                        <input type="checkbox" name="scrollAnimationLink" id="scrollAnimationLink" <?php checked($scroll_enabled, 'on'); ?>>
+                        <label for="scrollAnimationLink">Enable Scroll Animation</label>
+                    </div>
+
+                    <!-- Scroll Camera Movement -->
+                    <fieldset>
+                        <legend>Scroll Camera Movement</legend>
+                        <div class="transform-group">
+                            <div class="transform-field">
+                                <label for="scrollMoveX">X</label>
+                                <input type="number" name="scrollMoveX" id="scrollMoveX" step="0.01" value="<?php echo esc_attr($scroll_mov_x); ?>">
+                            </div>
+                            <div class="transform-field">
+                                <label for="scrollMoveY">Y</label>
+                                <input type="number" name="scrollMoveY" id="scrollMoveY" step="0.01" value="<?php echo esc_attr($scroll_mov_y); ?>">
+                            </div>
+                            <div class="transform-field">
+                                <label for="scrollMoveZ">Z</label>
+                                <input type="number" name="scrollMoveZ" id="scrollMoveZ" step="0.01" value="<?php echo esc_attr($scroll_mov_z); ?>">
+                            </div>
+                        </div>
+                    </fieldset>
+                    <hr>
+                </div>
+
+            
+            <div class='tabContent clights'>
+                <p style="margin:0px">
+                    <label for="ambient-light-slider">Ambient Intensity:</label><br>
+                    <input type="range" name="ambient_light_intensity" id="ambient_light_intensity" max="3" step="0.05" value="<?php echo esc_attr($light_intensity); ?>" />
+                    <span id="light_intensity_value"><?php echo esc_attr($light_intensity); ?></span>
+                </p>
+
+                <!-- Directional Light Intensity -->
+                <p style="margin:0px">
+                <label>Directional Intensity: <input type="range" name="directionalLightIntensity" id="directionalLightIntensity" max="3" step="0.05" value="<?php echo esc_attr($directional_light_intensity); ?>"></label>
+                <span id="directional_intensity_value"><?php echo esc_attr($directional_light_intensity); ?></span>
+                </p>
+                <!-- Directional Light Position -->
+                <label>Directional Light Position</label>
+                <div class="transform-group">
+                <div class="transform-field">
+                    <label for="lightPosX">X</label>
+                    <input type="number" name="lightPosX" id="lightPosX" step="0.1" value="<?php echo esc_attr($light_pos_x); ?>">
+                </div>
+                <div class="transform-field">
+                    <label for="lightPosY">Y</label>
+                    <input type="number" name="lightPosY" id="lightPosY" step="0.1" value="<?php echo esc_attr($light_pos_y); ?>">
+                </div>
+                <div class="transform-field">
+                    <label for="lightPosZ">Z</label>
+                    <input type="number" name="lightPosZ" id="lightPosZ" step="0.1" value="<?php echo esc_attr($light_pos_z); ?>">
+                </div>
+                </div>
+
+                <label>
+                    <input type="checkbox" name="useEnvLight" id="useEnvLight" <?php checked($use_env_light, 'on'); ?>>
+                    Use Environment Light (HDR)
+                </label>
             <hr>
 
             <!-- Toggle for isOrthoCamera -->
@@ -642,78 +743,8 @@ function threejs_editor_page($post) {
                 Use Orthographic Camera
             </label>
 
-            <hr>
-
-            <!-- Toggle for isOrthoCamera -->
-            <label>Breakpoint (px)
-                <input id="breakPoint" type="number" value="<?php echo esc_attr($breakpoint); ?>">
-            </label>
-
-            <button id="mobileMode" type="button">Mobile</button>
-
-          </div>
-
-
-          <div class='rightControls'>
-
-            <div id="objectListContainer" style="padding: 10px;max-height: 280px; overflow-y: auto; border: 1px solid #2271b1;border-radius: 3px;">    <strong>Scene Objects</strong>
-                <ul id="sceneObjectList" style="list-style: none; padding: 0; margin: 0;">
-                </ul>
             </div>
-
-            
-            
-            <div class="transform-group">
-                <button style="width: 50%;" type="button" class="button" id="add_model_button" >Add Model</button>
-                <button style="width: 50%;" type="button" class="button" id="add_group_button" >Add Group</button>
-            </div>
-            <div class="transform-group">
-                <button style="width: 50%;" type="button" class="button" id="delete_model_button">Delete</button>
-                <button style="width: 50%;" type="button" class="button" id="btn_duplicate">Clone</button>
-            </div>
-            
-            <div style="margin-top: 15px;">
-                <label for="parentSelector">Move to group:</label>
-                <select id="parentSelector" style="width: 100%; padding: 5px;"></select>
-                <p>Current group: <span id='current-group-label'></span></p>
-            </div>
-            <strong>Position</strong>
-            <div class="transform-group">
-              <div class="transform-field">
-                  <label for="threejs_position_x">X</label>
-                  <input type="number" name="threejs_pos_x" id="threejs_position_x" value="<?php echo esc_attr($pos_x); ?>" step="0.01">
-              </div>
-              <div class="transform-field">
-                  <label for="threejs_position_y">Y</label>
-                  <input type="number" name="threejs_pos_y" id="threejs_position_y" value="<?php echo esc_attr($pos_y); ?>" step="0.01">
-              </div>
-              <div class="transform-field">
-                  <label for="threejs_position_z">Z</label>
-                  <input type="number" name="threejs_pos_z" id="threejs_position_z" value="<?php echo esc_attr($pos_z); ?>" step="0.01">
-              </div>
-            </div>
-
-            <strong>Rotation</strong>
-            <div class="transform-group">
-              <div class="transform-field">
-                  <label for="threejs_rotation_x">X</label>
-                  <input type="number" name="threejs_rot_x" id="threejs_rotation_x" value="<?php echo esc_attr($rot_x); ?>" step="0.01">
-              </div>
-              <div class="transform-field">
-                  <label for="threejs_rotation_y">Y</label>
-                  <input type="number" name="threejs_rot_y" id="threejs_rotation_y" value="<?php echo esc_attr($rot_y); ?>" step="0.01">
-              </div>
-              <div class="transform-field">
-                  <label for="threejs_rotation_z">Z</label>
-                  <input type="number" name="threejs_rot_z" id="threejs_rotation_z" value="<?php echo esc_attr($rot_z); ?>" step="0.01">
-              </div>
-            </div>
-
-            <p>
-              <strong>Scale (model): </strong><input type="number" name="scale" id="codes_scale" value="<?php echo esc_attr($scale); ?>" step="0.01" />
-            </p>
-
-            <!-- <hr> -->
+                <!-- <hr> -->
             <!-- Toggle for Activating Loop -->
              <div id="loopComingSoon" style="display:none">
                     <label>
@@ -748,12 +779,6 @@ function threejs_editor_page($post) {
 
             </div>
           </div>
-
-          <p>Use this shortcode to display the scene on your site:</p>
-          <textarea readonly style="width: 100%;"><?php echo esc_html($shortcode); ?></textarea>
-
-
-          <hr>
 
           <input type="hidden" id="threejs_model_url" name="threejs_model_url" value="<?php echo esc_url($model_url); ?>" />
           <button type="button" class="button" id="threejs_model_url_button" style="display:none">Change Model</button>
