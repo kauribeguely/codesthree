@@ -325,6 +325,7 @@ window.onload = () =>
     if(useEnvLight)
     {
       loadEnvTexture('sunset.hdr');
+      // loadEnvTexture('night.hdr');
     }
     else
     {
@@ -1786,11 +1787,30 @@ function transformDragEnd(){
       {
         e.preventDefault();
       }
+
       if(selectedObj != undefined)
       {
+        let currentWorldPosition = new THREE.Vector3();    
+        selectedObj.getWorldPosition(currentWorldPosition);
+        const targetWorldPosition = currentWorldPosition.clone();
+
         if(e.wheelDelta > 0) //scroll up, away,
         {
-          if(keyZTrans) selectedObj.position.z -= scrollMultiplier*0.5;
+          if(keyZTrans)
+          {
+            if (selectedObjData.parentUuid != -1) 
+            { 
+                targetWorldPosition.z -= scrollMultiplier * 0.5;
+                selectedObj.parent.worldToLocal(targetWorldPosition);
+                selectedObj.position.copy(targetWorldPosition);
+            } 
+            else 
+            {
+                // If there's no parent or the parent is the scene, the object's position is already in world coordinates.
+                selectedObj.position.z -= scrollMultiplier * 0.5;
+                // selectedObj.position.z = targetWorldPosition.z; // Directly set the world Z
+            }
+          }
           // if(keyXRot) selectedObjData.rotation.x -= THREE.MathUtils.degToRad(5);
           // if(keyYRot) selectedObjData.rotation.y -= THREE.MathUtils.degToRad(5);
           // if(keyZRot) selectedObjData.rotation.z -= THREE.MathUtils.degToRad(5);
@@ -1807,7 +1827,22 @@ function transformDragEnd(){
         }
         else
         {
-          if(keyZTrans) selectedObj.position.z += scrollMultiplier*0.5;
+          if(keyZTrans)
+          {
+            if (selectedObjData.parentUuid != -1) 
+              { 
+                  targetWorldPosition.z += scrollMultiplier * 0.5;
+                  selectedObj.parent.worldToLocal(targetWorldPosition);
+                  selectedObj.position.copy(targetWorldPosition);
+              } 
+              else 
+              {
+                  // If there's no parent or the parent is the scene, the object's position is already in world coordinates.
+                  selectedObj.position.z += scrollMultiplier * 0.5;
+                  // selectedObj.position.z = targetWorldPosition.z; // Directly set the world Z
+              }
+          }
+          // if(keyZTrans) selectedObj.position.z += scrollMultiplier*0.5;
           // if(keyXRot) selectedObjData.rotation.x += THREE.MathUtils.degToRad(5);
           // if(keyYRot) selectedObjData.rotation.y += THREE.MathUtils.degToRad(5);
           // if(keyZRot) selectedObjData.rotation.z += THREE.MathUtils.degToRad(5);
@@ -1819,6 +1854,8 @@ function transformDragEnd(){
           // transformObjectToSceneData(selectedObj);
           updateTransforms();
         }
+        //refactor
+        // set modifier based on wheel data > 0 then multiply the transform
       }
     }, { passive: false });
 
