@@ -1,5 +1,7 @@
 <?php
 /* Template for displaying custom scenes */
+if ( ! defined( 'ABSPATH' ) ) exit;
+
 get_header();
 ?>
 <div class="custom-scene-container">

@@ -1,12 +1,9 @@
 import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/OrbitControls.js';
+// import { OrbitControls } from 'three/addons/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 import { TransformControls } from 'three/addons/TransformControls.js';
 import { RGBELoader } from 'three/addons/RGBELoader.js';
 
-
-//Feel like i could just make a 2d array that links created threejs models to 
-// utility functions could make this worth it: animate etc
 
 class ModelConfig {
     constructor(data = {}) {
@@ -86,7 +83,6 @@ class ModelConfig {
     }
 }
 
-
 let keyXRot = false, keyYRot = false, keyZRot = false, keyZTrans = false, keyScale = false;
 let shiftDown = false;
 let scrollMultiplier = 1;
@@ -105,6 +101,7 @@ window.onload = () =>
 
   //backward compatibility
   // if(allSceneData.models[1] == undefined)
+
   if(!Array.isArray(allSceneData.models[1]))    
   {
     const oldModels = allSceneData.models;
@@ -1830,17 +1827,17 @@ function transformDragEnd(){
           if(keyZTrans)
           {
             if (selectedObjData.parentUuid != -1) 
-              { 
-                  targetWorldPosition.z += scrollMultiplier * 0.5;
-                  selectedObj.parent.worldToLocal(targetWorldPosition);
-                  selectedObj.position.copy(targetWorldPosition);
-              } 
-              else 
-              {
-                  // If there's no parent or the parent is the scene, the object's position is already in world coordinates.
-                  selectedObj.position.z += scrollMultiplier * 0.5;
-                  // selectedObj.position.z = targetWorldPosition.z; // Directly set the world Z
-              }
+            { 
+                targetWorldPosition.z += scrollMultiplier * 0.5;
+                selectedObj.parent.worldToLocal(targetWorldPosition);
+                selectedObj.position.copy(targetWorldPosition);
+            } 
+            else 
+            {
+                // If there's no parent or the parent is the scene, the object's position is already in world coordinates.
+                selectedObj.position.z += scrollMultiplier * 0.5;
+                // selectedObj.position.z = targetWorldPosition.z; // Directly set the world Z
+            }
           }
           // if(keyZTrans) selectedObj.position.z += scrollMultiplier*0.5;
           // if(keyXRot) selectedObjData.rotation.x += THREE.MathUtils.degToRad(5);
