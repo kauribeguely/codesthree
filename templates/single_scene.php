@@ -13,7 +13,7 @@ get_header();
             $post_id = get_the_ID();
             // echo "<p>Post ID: $post_id</p>"; // Debugging: See if it prints correctly
 
-            $shortcode = '[codes_scene id="' . $post_id . '"]';
+            $shortcode = '[code_three_3d_scene id="' . $post_id . '"]';
             echo do_shortcode($shortcode); // Execute shortcode
 
         endwhile;

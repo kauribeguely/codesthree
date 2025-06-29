@@ -653,8 +653,10 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
       // rgbeLoader.load('../wp-content/plugins/codesthree/sunset.hdr', function (texture)
       // rgbeLoader.load('../wp-content/plugins/codesthree/'+ url, function (texture)
       // rgbeLoader.load(pluginData.pluginUrl+ url, function (texture)
-      console.log(pluginUrl +'/codesthree/');
-      rgbeLoader.load(pluginUrl +'/codesthree/'+ url, function (texture)
+      // console.log(pluginUrl +'/codesthree/');
+      console.log(pluginUrl +'/'+ url);
+      // rgbeLoader.load(pluginUrl +'/codesthree/'+ url, function (texture)
+      rgbeLoader.load(pluginUrl +'/'+ url, function (texture)
       {
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         texture.mapping = THREE.EquirectangularReflectionMapping;

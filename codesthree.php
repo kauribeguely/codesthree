@@ -18,10 +18,10 @@ function my_shortcode_box_in_publish_meta() {
     global $post;
 
     // Only show for a specific post type if needed
-    if ($post->post_type !== 'codes_scene') return;
+    if ($post->post_type !== 'c33d_scene') return;
 
     // Create the shortcode string using the post ID or other info
-    $shortcode = '[codes_scene id="' . $post->ID . '"]';
+    $shortcode = '[c33d_scene id="' . $post->ID . '"]';
 
     echo '<input type="text" readonly value="' . esc_attr($shortcode) . '" style="width:100%; background:#f9f9f9; cursor:text;" onclick="this.select()" />';
 }
@@ -138,7 +138,7 @@ function code33d_create_scene_shortcode($atts)
     ?>
 
     <!-- <h1>Scene Below</h1> -->
-    <div id="scene-<?php echo esc_attr($post_id); ?>-<?php echo esc_attr(uniqid()); ?>" class="codes_scene" data-scene-id="<?php echo esc_attr($post_id); ?>" style="width: <?php echo esc_attr($atts['width']); ?>; height: <?php echo esc_attr($atts['height']); ?>;">
+    <div id="scene-<?php echo esc_attr($post_id); ?>-<?php echo esc_attr(uniqid()); ?>" class="c33d_scene" data-scene-id="<?php echo esc_attr($post_id); ?>" style="width: <?php echo esc_attr($atts['width']); ?>; height: <?php echo esc_attr($atts['height']); ?>;">
       <div class = "loadScreen">
         <div class = "loadCircle">
           <div class = "loadInnerCircle">
@@ -151,11 +151,10 @@ function code33d_create_scene_shortcode($atts)
     <script type="module">
       import { initializeThreeJsScene } from "<?php echo esc_url(plugins_url('scene.js', __FILE__)); ?>";
       const allSceneData = <?php echo wp_json_encode($scene_data); ?>;
-      const pluginUrl = "<?php echo esc_url(plugins_url(__FILE__))?>";
+      const pluginUrl = "<?php echo esc_url(plugins_url('', __FILE__))?>";
       const containerID = "threejs-scene-container-<?php echo esc_js($post_id); ?>";
       // Get all elements with the same class
-      // const containers = document.querySelectorAll('.codes_scene');
-      const containers = document.querySelectorAll('[data-scene-id="<?php echo esc_js($post_id); ?>"]');  // Replace 287 with the desired scene ID
+      const containers = document.querySelectorAll('[data-scene-id="<?php echo esc_js($post_id); ?>"]');
 
       containers.forEach((container) => {
           const containerID = container.id;
@@ -179,7 +178,7 @@ function code33d_create_scene_shortcode($atts)
     <?php
     return ob_get_clean();
 }
-add_shortcode('codes_scene', 'code33d_create_scene_shortcode');
+add_shortcode('c33d_scene', 'code33d_create_scene_shortcode');
 
 // Add support for .glb and .gltf files in the Media Library
 function code33d_allow_3d_file_uploads($mime_types) {
@@ -240,9 +239,9 @@ add_action('wp_enqueue_scripts', 'code33d_frontend_enqueue_assets');
 
 
 // Hook to initialize the custom post type
-add_action('init', 'codesthree_register_scenes_post_type');
+add_action('init', 'code33d_register_scenes_post_type');
 
-function codesthree_register_scenes_post_type() {
+function code33d_register_scenes_post_type() {
     // Labels for the post type
     $labels = array(
         'name'               => __('Scenes', 'code-three-3d-interactive'), // Use 'Scenes' as the translatable part
@@ -266,21 +265,21 @@ function codesthree_register_scenes_post_type() {
         'show_in_menu'       => true,
         'menu_icon'          => 'dashicons-visibility',
         'supports'           => array('title', 'editor', 'thumbnail'),
-        'rewrite'           => ['slug' => 'codes_scene', 'with_front' => false],
+        'rewrite'           => ['slug' => 'c33d_scene', 'with_front' => false],
         'has_archive'       => true,
         'query_var'         => true,
         'show_in_rest'       => true, // Enable Gutenberg editor
     );
 
     // Register the post type
-    register_post_type('codes_scene', $args);
+    register_post_type('c33d_scene', $args);
 }
 
 
 function code33d_save_scene_metadata($post_id) {
 
-    // Verify this is a "codes_scene" post type
-    if (get_post_type($post_id) !== 'codes_scene') {
+    // Verify this is a "c33d_scene" post type
+    if (get_post_type($post_id) !== 'c33d_scene') {
         return;
     }
 
@@ -330,8 +329,8 @@ function code33d_add_editor_meta_box() {
     add_meta_box(
         'code_three_metabox', // Meta box ID
         'Code Three Scene Editor',    // Meta box title
-        'threejs_editor_page', // Callback function to render the content
-        'codes_scene',                // Post type where the meta box will appear
+        'code33d_editor_page', // Callback function to render the content
+        'c33d_scene',                // Post type where the meta box will appear
         'normal',               // Context (normal, side, or advanced)
         'default'               // Priority
     );
@@ -340,14 +339,14 @@ add_action('add_meta_boxes', 'code33d_add_editor_meta_box');
 
 
 function code33d_remove_post_editing_box() {
-    remove_post_type_support('codes_scene', 'editor');
+    remove_post_type_support('c33d_scene', 'editor');
 }
 add_action('init', 'code33d_remove_post_editing_box');
 
 
 function code33d_custom_template_redirect($template) {
 
-	if (is_singular('codes_scene')) {
+	if (is_singular('c33d_scene')) {
 		return plugin_dir_path(__FILE__) . 'templates/single_scene.php';
     }
     return $template;
@@ -356,33 +355,33 @@ add_filter('template_include', 'code33d_custom_template_redirect');
 
 
 function code33d_add_shortcode_column($columns) {
-    $columns['codes_scene_shortcode'] = 'Shortcode';
+    $columns['c33d_scene_shortcode'] = 'Shortcode';
     return $columns;
 }
-add_filter('manage_codes_scene_posts_columns', 'code33d_add_shortcode_column'); // Replace 'your_custom_post_type'
+add_filter('manage_c33d_scene_posts_columns', 'code33d_add_shortcode_column'); // Replace 'your_custom_post_type'
 
 function code33d_populate_shortcode_column($column, $post_id) {
-    if ($column === 'codes_scene_shortcode') {
-        echo '[codes_scene id="' . absint($post_id) . '"]';
+    if ($column === 'c33d_scene_shortcode') {
+        echo '[c33d_scene id="' . absint($post_id) . '"]';
     }
 }
-add_action('manage_codes_scene_posts_custom_column', 'code33d_populate_shortcode_column', 10, 2); // Replace 'your_custom_post_type'
+add_action('manage_c33d_scene_posts_custom_column', 'code33d_populate_shortcode_column', 10, 2); // Replace 'your_custom_post_type'
 
 
 function code33d_set_default_one_column_layout($default, $option, $value) {
     $screen = get_current_screen();
 
-    if ($screen && $screen->id === 'codes_scene') {
+    if ($screen && $screen->id === 'c33d_scene') {
         return 1; // Set to 1 column
     }
 
     return $default;
 }
-add_filter('default_option_screen_layout_codes_scene', 'code33d_set_default_one_column_layout', 10, 3); // Replace your_custom_post_type
+add_filter('default_option_screen_layout_c33d_scene', 'code33d_set_default_one_column_layout', 10, 3); // Replace your_custom_post_type
 
 
 // Admin page content
-function threejs_editor_page($post) {
+function code33d_editor_page($post) {
 
   // Assuming $post->ID is available here
     $full_meta = code33d_get_scene_data($post->ID);
@@ -444,7 +443,7 @@ function threejs_editor_page($post) {
     $model_name = isset($current_model_data['modelName']) ? $current_model_data['modelName'] : '';
     
     // --- Shortcode (if you're using it to display the scene) ---
-    $shortcode = '[codes_scene id="' . $post->ID . '"]'; // Still uses the current post ID
+    $shortcode = '[c33d_scene id="' . $post->ID . '"]'; // Still uses the current post ID
 
   // Output the form
     ?>
