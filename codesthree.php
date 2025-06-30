@@ -211,16 +211,63 @@ add_filter('wp_check_filetype_and_ext', function($data, $file, $filename, $mime_
 
 function code33d_admin_enqueue_assets() {
 
+
+    global $post; 
+    $screen = get_current_screen(); 
+    $is_our_target_screen = false;
+
+    if (
+        ( 'post' === $screen->base || 'post-new' === $screen->base ) && // Check if it's a post edit/new screen
+        isset( $post->post_type ) &&                                  // Ensure post_type is set (not always true on new post screen initially)
+        'c33d_scene' === $post->post_type                            // Check if the post type is YOUR custom post type slug
+    ) {
+        $is_our_target_screen = true;
+    }
+    // Add more conditions if also needed on other custom admin pages:
+    // For a top-level admin page created with add_menu_page():
+    // else if ( 'toplevel_page_your_custom_admin_page_slug' === $hook ) {
+    //     $is_our_target_screen = true;
+    // }
+    // For a sub-menu admin page created with add_submenu_page():
+    // else if ( 'parent_menu_slug_page_your_sub_menu_page_slug' === $hook ) {
+    //     $is_our_target_screen = true;
+    // }
+
+
+    if ( ! $is_our_target_screen ) {
+        return; 
+    }
+
+
     // Enqueue CSS
     wp_enqueue_style(
         'coedes-admin-styles',
         plugins_url('styles.css', __FILE__),
     );
 
+
+    wp_enqueue_script(
+        'codesthree-local-script', 
+        plugins_url('local.js', __FILE__), 
+        true 
+    );
+
+    wp_localize_script(
+        'codesthree-local-script',
+        'localisedData',     
+        array(
+            'ajax_url' => admin_url('admin-ajax.php'), 
+            'nonce'    => wp_create_nonce('codesthree_local_ajax_nonce'), 
+            'allSceneData' => wp_json_encode(code33d_get_scene_data($post->ID)),
+        )
+    );
+
     // Enqueue JS
     wp_enqueue_script_module(
         'codes-admin-script',
-        plugins_url('admin.js', __FILE__)
+        plugins_url('admin.js', __FILE__),
+        array( 'codesthree-local-script' ) // Your main module depends on the data script
+        
     );
 }
 add_action('admin_enqueue_scripts', 'code33d_admin_enqueue_assets');
@@ -734,11 +781,70 @@ function code33d_editor_page($post) {
               <?php endif; ?>
           </p>
 
-      <script>
+        <div id="modelImportModal" class="modal-overlay hidden-modal">
+            <div class="modal-content">
+                <!-- Close Button -->
+                <button id="closeModalBtn" type="button" aria-label="Close modal">
+                    &times;
+                </button>
+
+                <!-- Open/Upload Model Section -->
+                <section style="
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;">
+                    <h2>Open/Upload Model</h2>
+                    <div class="text-center">
+                        <button type="button" id="mediaLibraryBtn">
+                            Media Library
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Demo Objects Section -->
+                <section>
+                    <h2>Download Demo Objects</h2>
+                    <div class="grid-container">
+                        <!-- Demo Object 1: Phone -->
+                        <div class="grid-item">
+                            <img src="https://kaurib.com/c33d/phone.jpg" alt="Demo Phone">
+                            <h3>Phone</h3>
+                            <div class="download-button-overlay">
+                                <button class="download-button" data-demo-object="phone">Download</button>
+                                <span class="overlay-text">~5 MB</span>
+                            </div>
+                        </div>
+
+                        <!-- Demo Object 2: Laptop -->
+                        <div class="grid-item">
+                            <img src="https://kaurib.com/c33d/laptop.jpg" alt="Demo Laptop">
+                            <h3>Laptop</h3>
+                            <div class="download-button-overlay">
+                                <button class="download-button" data-demo-object="laptop" data-file-type="glb" data-file-url="https://c33d.kaurib.com/models/laptop.glb">Download</button>
+                                <span class="overlay-text">26 KB</span>
+                            </div>
+                        </div>
+
+                        <!-- Demo Object 3: Star -->
+                        <div class="grid-item">
+                            <img src="https://kaurib.com/c33d/star.jpg" alt="Demo Star">
+                            <h3>Star</h3>
+                            <div class="download-button-overlay">
+                                <button class="download-button" data-demo-object="star">Download</button>
+                                <span class="overlay-text">10 KB</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+        <!-- end media popup -->
+
+      <!-- <script>
         // Pass PHP data to JavaScript
         const allSceneData = <?php echo wp_json_encode($full_meta); ?>;
         console.log('Three.js Transform Data:', allSceneData);
-      </script>
+      </script> -->
 
     </div>
     <?php

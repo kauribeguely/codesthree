@@ -5,6 +5,10 @@ import { TransformControls } from 'three/addons/TransformControls.js';
 import { RGBELoader } from 'three/addons/RGBELoader.js';
 
 
+const localisedData = window.localisedData;
+const allSceneData = JSON.parse(localisedData.allSceneData);
+console.log('Three.js Transform Data:', allSceneData);
+
 class ModelConfig {
     constructor(data = {}) {
         this.modelId = data.modelId || crypto.randomUUID(); // Assign a new ID if not provided
@@ -1231,6 +1235,10 @@ function transformDragEnd(){
     const popup = document.getElementById('newScenePopup');
     const modelUrlField = document.getElementById('threejs_model_url');
     const preview = document.getElementById('threejs_model_url_preview');
+
+    
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const mediaLibraryBtn = document.getElementById('mediaLibraryBtn');
     
     const parentInput = document.getElementById('parentSelector');
     const currentGroupLabel = document.getElementById('current-group-label');
@@ -1242,16 +1250,22 @@ function transformDragEnd(){
 
 
     popupMediaButton.addEventListener('click', function (e) {
-        openMediaUploader(e);
+        // openMediaUploader(e);
+        toggleMediaModal();
     });
 
     mediaButton.addEventListener('click', function (e) {
-        openMediaUploader(e);
+        // openMediaUploader(e);
+        toggleMediaModal();
     });
 
     addModelButton.addEventListener('click', function (e) {
-        openMediaUploader(e);
+        // openMediaUploader(e);
+        toggleMediaModal();
     });
+
+    closeModalBtn.addEventListener('click', toggleMediaModal);
+    mediaLibraryBtn.addEventListener('click', openMediaUploader);
 
     addGroupButton.addEventListener('click', function (e) {
         createObject('group');
@@ -1285,6 +1299,9 @@ function transformDragEnd(){
         {
           loadModel(attachment.url, false, isMobileView);
         }
+
+
+        toggleMediaModal();
 
         if(popupOpen)
         {
@@ -1668,7 +1685,8 @@ function transformDragEnd(){
                 }
                 if(event.shiftKey)
                 {
-                  openMediaUploader(event);
+                  // openMediaUploader(event);
+                  toggleMediaModal();
                 }                
                 break;  
           case 'A':
@@ -2490,6 +2508,10 @@ function getThreeJsObjectByUuid(modelId)
             shortcodeTextarea.value = shortCodeText;
         }, 1000);
       }
+
+        function toggleMediaModal() {
+            modelImportModal.classList.toggle('hidden-modal');
+        }
 
 }
 
