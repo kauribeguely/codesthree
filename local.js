@@ -6,7 +6,7 @@
 // }
 
 // const ajaxUrl = localisedData.ajax_url;
-// const nonce = localisedData.nonce;
+// const nonce = localisedData.ajax_nonce;
 
 // function initAddModelPopup()
 // {

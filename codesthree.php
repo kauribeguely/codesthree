@@ -257,7 +257,7 @@ function code33d_admin_enqueue_assets() {
         'localisedData',     
         array(
             'ajax_url' => admin_url('admin-ajax.php'), 
-            'nonce'    => wp_create_nonce('codesthree_local_ajax_nonce'), 
+            'ajax_nonce'    => wp_create_nonce('codesthree_local_ajax_nonce'), 
             'allSceneData' => wp_json_encode(code33d_get_scene_data($post->ID)),
         )
     );
@@ -426,6 +426,123 @@ function code33d_set_default_one_column_layout($default, $option, $value) {
 }
 add_filter('default_option_screen_layout_c33d_scene', 'code33d_set_default_one_column_layout', 10, 3); // Replace your_custom_post_type
 
+
+add_action( 'wp_ajax_codesthree_import_demo', 'codesthree_handle_demo_import_ajax' );
+
+
+/**
+ * Handles the AJAX request to download an external 3D model (or other file)
+ * and import it into the WordPress Media Library.
+ *
+ * This function performs security checks, downloads the file from the provided URL,
+ * and then uses WordPress's media handling functions to save it.
+ */
+function codesthree_handle_demo_import_ajax() {
+    if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'codesthree_local_ajax_nonce' ) ) {
+        wp_send_json_error( array( 'message' => 'Security check failed. Invalid nonce.' ) );
+        wp_die(); // Always exit after sending JSON response in AJAX handlers
+    }
+
+    if ( ! current_user_can( 'upload_files' ) ) {
+        wp_send_json_error( array( 'message' => 'You do not have permission to import files.' ) );
+        wp_die();
+    }
+
+    // 3. Retrieve and Sanitize Input from the AJAX request
+    $demo_id   = isset( $_POST['demo_id'] ) ? sanitize_text_field( wp_unslash( $_POST['demo_id'] ) ) : '';
+    $file_url  = isset( $_POST['file_url'] ) ? esc_url_raw( wp_unslash( $_POST['file_url'] ) ) : ''; // esc_url_raw is important for external URLs
+    $file_type = isset( $_POST['file_type'] ) ? sanitize_text_field( wp_unslash( $_POST['file_type'] ) ) : ''; // Optional: for more precise MIME detection
+
+    // Basic validation of inputs
+    if ( empty( $demo_id ) || empty( $file_url ) ) {
+        wp_send_json_error( array( 'message' => 'Missing demo ID or file URL in request.' ) );
+        wp_die();
+    }
+
+    // Optional but Recommended: Whitelist the domain(s) from which you allow downloads.
+    // This prevents your server from being used to download files from arbitrary URLs.
+    $allowed_domains = array( 'c33d.kaurib.com' ); // Add all domains your demos are hosted on.
+    $parsed_url = wp_parse_url( $file_url );
+    if ( ! isset( $parsed_url['host'] ) || ! in_array( $parsed_url['host'], $allowed_domains, true ) ) {
+        wp_send_json_error( array( 'message' => 'File URL is not from an allowed source.' ) );
+        wp_die();
+    }
+
+    // 4. Include WordPress core media handling functions
+    // These are crucial for download_url() and media_handle_sideload().
+    require_once( ABSPATH . 'wp-admin/includes/file.php' );
+    require_once( ABSPATH . 'wp-admin/includes/image.php' );
+    require_once( ABSPATH . 'wp-admin/includes/media.php' );
+
+    // 5. Download the file to a temporary location on your WordPress server.
+    $tmp_file = download_url( $file_url );
+
+    // Check for errors during download
+    if ( is_wp_error( $tmp_file ) ) {
+        wp_send_json_error( array(
+            'message' => 'Failed to download file from external source.',
+            'errors'  => $tmp_file->get_error_message()
+        ) );
+        wp_die();
+    }
+
+    // 6. Prepare the file array for media_handle_sideload()
+    $file_array = array(
+        'name'     => basename( $file_url ), // Use original filename from URL
+        'tmp_name' => $tmp_file, // The path to the downloaded temporary file
+    );
+
+    // If you have a specific file type hint from frontend, you can use it.
+    // Otherwise, WordPress will try to determine the MIME type.
+    if ( ! empty( $file_type ) ) {
+        // Map common 3D file types to their MIME types if needed for accuracy.
+        $known_mime_types = array(
+            'glb'  => 'model/gltf-binary',
+            'gltf' => 'model/gltf+json',
+            'hdr'  => 'image/vnd.radiance', // Common for HDR environments
+            'obj'  => 'model/obj',
+            // Add more as needed
+        );
+        if ( isset( $known_mime_types[ $file_type ] ) ) {
+            $file_array['type'] = $known_mime_types[ $file_type ];
+        }
+    }
+
+
+    // 7. Sideload the file into the WordPress Media Library.
+    // $post_id = 0 means it won't be attached to a specific post.
+    // The description can be used for the attachment title.
+    $attachment_id = media_handle_sideload( $file_array, 0, sprintf( 'Imported %s demo model', $demo_id ) );
+
+    // 8. Clean up the temporary file, regardless of sideload success/failure.
+    @unlink( $file_array['tmp_name'] );
+
+    // 9. Check for errors during sideloading
+    if ( is_wp_error( $attachment_id ) ) {
+        wp_send_json_error( array(
+            'message' => 'Failed to import file to Media Library.',
+            'errors'  => $attachment_id->get_error_message()
+        ) );
+        wp_die();
+    }
+
+    // 10. Success! Return details of the newly created attachment.
+    $attachment_url  = wp_get_attachment_url( $attachment_id );
+    // You might also want to get other meta, e.g., for Three.js configuration.
+    // $attachment_meta = wp_get_attachment_metadata( $attachment_id );
+
+    wp_send_json_success( array(
+        'message'          => sprintf( 'Model "%s" imported successfully!', $demo_id ),
+        'attachment_id'    => $attachment_id,
+        'attachment_url'   => $attachment_url,
+        'demo_id_requested' => $demo_id,
+        // Optional: Increment your download counter here
+        // $current_downloads = (int) get_option( 'codesthree_demo_downloads_' . $demo_id, 0 );
+        // update_option( 'codesthree_demo_downloads_' . $demo_id, $current_downloads + 1 );
+    ) );
+
+    wp_die(); // Essential: terminate script execution properly after AJAX response
+}
 
 // Admin page content
 function code33d_editor_page($post) {
@@ -810,7 +927,7 @@ function code33d_editor_page($post) {
                             <img src="https://kaurib.com/c33d/phone.jpg" alt="Demo Phone">
                             <h3>Phone</h3>
                             <div class="download-button-overlay">
-                                <button class="download-button" data-demo-object="phone">Download</button>
+                                <button class="download-button" data-demo-object="laptop" data-file-type="glb" data-file-url="https://c33d.kaurib.com/models/phone.glb">Download</button>
                                 <span class="overlay-text">~5 MB</span>
                             </div>
                         </div>
@@ -830,7 +947,7 @@ function code33d_editor_page($post) {
                             <img src="https://kaurib.com/c33d/star.jpg" alt="Demo Star">
                             <h3>Star</h3>
                             <div class="download-button-overlay">
-                                <button class="download-button" data-demo-object="star">Download</button>
+                                <button class="download-button" data-demo-object="laptop" data-file-type="glb" data-file-url="https://c33d.kaurib.com/models/star.glb">Download</button>
                                 <span class="overlay-text">10 KB</span>
                             </div>
                         </div>

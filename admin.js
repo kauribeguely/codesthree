@@ -7,6 +7,8 @@ import { RGBELoader } from 'three/addons/RGBELoader.js';
 
 const localisedData = window.localisedData;
 const allSceneData = JSON.parse(localisedData.allSceneData);
+const ajaxUrl = localisedData.ajax_url;
+const ajaxNonce = localisedData.ajax_nonce;
 console.log('Three.js Transform Data:', allSceneData);
 
 class ModelConfig {
@@ -200,6 +202,8 @@ window.onload = () =>
       }
       
   });
+
+  setupDemoModal();
 
   let isMobileView = false;
   const toggleMobileButton = document.getElementById('mobileMode');
@@ -1310,6 +1314,112 @@ function transformDragEnd(){
         }
 
     });
+
+    function setupDemoModal()
+    {
+        // Get references to modal elements (assuming your modal HTML is in the DOM)
+        const modelImportModal = document.getElementById('modelImportModal');
+        const downloadButtons = document.querySelectorAll('.download-button'); // Select all download buttons
+
+        // Close modal if user clicks outside the modal content
+        modelImportModal.addEventListener('click', (event) => {
+            if (event.target === modelImportModal) {
+                modelImportModal.classList.add('hidden-modal');
+            }
+        });
+
+        // Add event listeners to all download buttons
+        downloadButtons.forEach(button => {
+            button.addEventListener('click', async (event) => {
+                const demoObject = event.target.dataset.demoObject;
+                const fileType = event.target.dataset.fileType;
+                const fileUrl = event.target.dataset.fileUrl;
+
+                if (!demoObject || !fileUrl) {
+                    // alert('Error: Missing demo object or file URL for download.');
+                    return;
+                }
+
+                try {
+                    const downloadResult = await initiateAjaxDownload(fileUrl, demoObject, fileType, event.target);
+                    // Handle successful download result (e.g., show message, update UI, close modal)
+                    // alert(`"${demoObject}" imported successfully! Attachment ID: ${downloadResult.attachment_id}`);
+                    modelImportModal.classList.add('hidden-modal'); // Hide modal on success
+                } catch (error) {
+                    // initiateAjaxDownload already alerts/logs, but you can add more specific handling here
+                    console.error('Demo download failed in setupDemoModal:', error);
+                    // alert(`Failed to import "${demoObject}". Please try again.`);
+                }
+            });
+        });
+
+        console.log('Demo modal listeners setup complete.');
+    }
+
+    async function initiateAjaxDownload(fileUrl, demoId, fileType = '', buttonElement = null) {
+        if (!ajaxUrl || !ajaxNonce) {
+            console.error('AJAX URL or Nonce is missing from localized data. Cannot initiate download.');
+            alert('Configuration error: Cannot initiate download. Missing AJAX URL or security token.');
+            throw new Error('Missing AJAX URL or nonce.');
+        }
+
+        const originalButtonText = buttonElement ? buttonElement.textContent : '';
+        if (buttonElement) {
+            buttonElement.textContent = 'Downloading...';
+            buttonElement.disabled = true;
+        }
+
+        try {
+            const response = await fetch(ajaxUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    action: 'codesthree_import_demo', // This action matches your PHP AJAX hook
+                    nonce: ajaxNonce,
+                    demo_id: demoId,
+                    file_url: fileUrl,
+                    file_type: fileType
+                })
+            });
+
+            const result = await response.json(); // Parse the JSON response
+
+            if (result.success) {
+              console.log('Download successful:', result.data);
+
+              // Get the attachment URL from the successful AJAX response
+              const importedModelUrl = result.data.attachment_url;
+
+              if (importedModelUrl) {
+                    // Call your loadModel function with the URL
+                    loadModel(importedModelUrl);
+                    console.log('loadModel() called with:', importedModelUrl);
+                } else {
+                    console.warn('Import successful, but no attachment URL received from backend.');
+                }
+
+                // Optionally, alert the user and hide the modal
+                // alert(`"${demoObject}" imported successfully!`);
+                // Assuming hideModal is accessible in this scope (e.g., passed as an argument or global)
+                // hideModal();
+
+                  return result.data; // Return data for further processing if needed by the caller
+              } else {
+                  console.error('Download failed:', result.data.errors || result.data.message);
+                  throw new Error(result.data.message || 'Unknown download error');
+            }
+        } catch (error) {
+            console.error('Network or parsing error during download:', error);
+            throw error; // Re-throw to be caught by the caller
+        } finally {
+            if (buttonElement) {
+                buttonElement.textContent = originalButtonText; // Restore button text
+                buttonElement.disabled = false; // Re-enable button
+            }
+        }
+    }
 
 
       let initialRotationX = 0;
