@@ -14,6 +14,9 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+// global $pluginUrl;
+// $pluginUrl = plugins_url('', __FILE__);
+
 function my_shortcode_box_in_publish_meta() {
     global $post;
 
@@ -107,8 +110,8 @@ function code33d_inject_threejs_assets()
 <script type="importmap">
     {
         "imports": {
-            "three": "<?php echo esc_url(plugins_url('js/threemin.module.js', __FILE__)); ?>",
-            "three/addons/": "<?php echo esc_url(plugins_url('js/threeaddons/', __FILE__)); ?>"
+            "three": "<?php echo esc_url(plugins_url('/assets/js/threemin.module.js', __FILE__)); ?>",
+            "three/addons/": "<?php echo esc_url(plugins_url('/assets/js/threeaddons/', __FILE__)); ?>"
         }
     }
 </script>
@@ -149,7 +152,7 @@ function code33d_create_scene_shortcode($atts)
     </div>
 
     <script type="module">
-      import { initializeThreeJsScene } from "<?php echo esc_url(plugins_url('scene.js', __FILE__)); ?>";
+      import { initializeThreeJsScene } from "<?php echo esc_url(plugins_url('/assets/js/scene.js', __FILE__)); ?>";
       const allSceneData = <?php echo wp_json_encode($scene_data); ?>;
       const pluginUrl = "<?php echo esc_url(plugins_url('', __FILE__))?>";
       const containerID = "threejs-scene-container-<?php echo esc_js($post_id); ?>";
@@ -242,13 +245,13 @@ function code33d_admin_enqueue_assets() {
     // Enqueue CSS
     wp_enqueue_style(
         'coedes-admin-styles',
-        plugins_url('styles.css', __FILE__),
+        plugins_url('/assets/css/styles.css', __FILE__),
     );
 
 
     wp_enqueue_script(
         'codesthree-local-script', 
-        plugins_url('local.js', __FILE__), 
+        plugins_url('/assets/js/local.js', __FILE__), 
         true 
     );
 
@@ -259,13 +262,14 @@ function code33d_admin_enqueue_assets() {
             'ajax_url' => admin_url('admin-ajax.php'), 
             'ajax_nonce'    => wp_create_nonce('codesthree_local_ajax_nonce'), 
             'allSceneData' => wp_json_encode(code33d_get_scene_data($post->ID)),
+            'pluginUrl' => esc_url(plugins_url('', __FILE__)),
         )
     );
 
     // Enqueue JS
     wp_enqueue_script_module(
         'codes-admin-script',
-        plugins_url('admin.js', __FILE__),
+        plugins_url('/assets/js/admin.js', __FILE__),
         array( 'codesthree-local-script' ) // Your main module depends on the data script
         
     );
@@ -276,7 +280,7 @@ function code33d_frontend_enqueue_assets() {
     // Enqueue CSS
     wp_enqueue_style(
         'coedes-styles',
-        plugins_url('styles.css', __FILE__),
+        plugins_url('/assets/css/styles.css', __FILE__),
     );
 }
 add_action('wp_enqueue_scripts', 'code33d_frontend_enqueue_assets');
@@ -405,14 +409,14 @@ function code33d_add_shortcode_column($columns) {
     $columns['c33d_scene_shortcode'] = 'Shortcode';
     return $columns;
 }
-add_filter('manage_c33d_scene_posts_columns', 'code33d_add_shortcode_column'); // Replace 'your_custom_post_type'
+add_filter('manage_c33d_scene_posts_columns', 'code33d_add_shortcode_column'); 
 
 function code33d_populate_shortcode_column($column, $post_id) {
     if ($column === 'c33d_scene_shortcode') {
         echo '[c33d_scene id="' . absint($post_id) . '"]';
     }
 }
-add_action('manage_c33d_scene_posts_custom_column', 'code33d_populate_shortcode_column', 10, 2); // Replace 'your_custom_post_type'
+add_action('manage_c33d_scene_posts_custom_column', 'code33d_populate_shortcode_column', 10, 2); 
 
 
 function code33d_set_default_one_column_layout($default, $option, $value) {
@@ -424,7 +428,7 @@ function code33d_set_default_one_column_layout($default, $option, $value) {
 
     return $default;
 }
-add_filter('default_option_screen_layout_c33d_scene', 'code33d_set_default_one_column_layout', 10, 3); // Replace your_custom_post_type
+add_filter('default_option_screen_layout_c33d_scene', 'code33d_set_default_one_column_layout', 10, 3); 
 
 
 add_action( 'wp_ajax_codesthree_import_demo', 'codesthree_handle_demo_import_ajax' );
@@ -515,7 +519,8 @@ function codesthree_handle_demo_import_ajax() {
     $attachment_id = media_handle_sideload( $file_array, 0, sprintf( 'Imported %s demo model', $demo_id ) );
 
     // 8. Clean up the temporary file, regardless of sideload success/failure.
-    @unlink( $file_array['tmp_name'] );
+    // @unlink( $file_array['tmp_name'] );
+    wp_delete_file( $file_array['tmp_name'] );
 
     // 9. Check for errors during sideloading
     if ( is_wp_error( $attachment_id ) ) {
@@ -609,6 +614,8 @@ function code33d_editor_page($post) {
     // --- Shortcode (if you're using it to display the scene) ---
     $shortcode = '[c33d_scene id="' . $post->ID . '"]'; // Still uses the current post ID
 
+    $pluginUrl = plugins_url('', __FILE__);
+
   // Output the form
     ?>
     <!-- start HTMLs -->
@@ -616,8 +623,8 @@ function code33d_editor_page($post) {
         <script type="importmap">
             {
                 "imports": {
-                    "three": "<?php echo esc_url(plugins_url('/js/threemin.module.js', __FILE__)); ?>",
-                    "three/addons/": "<?php echo esc_url(plugins_url('/js/threeaddons/', __FILE__)); ?>"
+                    "three": "<?php echo esc_url(plugins_url('/assets/js/threemin.module.js', __FILE__)); ?>",
+                    "three/addons/": "<?php echo esc_url(plugins_url('/assets//js/threeaddons/', __FILE__)); ?>"
                 }
             }
         </script>
@@ -924,7 +931,7 @@ function code33d_editor_page($post) {
                     <div class="grid-container">
                         <!-- Demo Object 1: Phone -->
                         <div class="grid-item">
-                            <img src="https://kaurib.com/c33d/phone.jpg" alt="Demo Phone">
+                            <img src="<?php echo esc_url($pluginUrl . '/assets/img/phone.jpg'); ?>" alt="Demo Phone">
                             <h3>Phone</h3>
                             <div class="download-button-overlay">
                                 <button class="download-button" data-demo-object="laptop" data-file-type="glb" data-file-url="https://c33d.kaurib.com/models/phone.glb">Download</button>
@@ -934,7 +941,7 @@ function code33d_editor_page($post) {
 
                         <!-- Demo Object 2: Laptop -->
                         <div class="grid-item">
-                            <img src="https://kaurib.com/c33d/laptop.jpg" alt="Demo Laptop">
+                            <img src="<?php echo esc_url($pluginUrl . '/assets/img/laptop.jpg'); ?>" alt="Demo Laptop">
                             <h3>Laptop</h3>
                             <div class="download-button-overlay">
                                 <button class="download-button" data-demo-object="laptop" data-file-type="glb" data-file-url="https://c33d.kaurib.com/models/laptop.glb">Download</button>
@@ -944,7 +951,7 @@ function code33d_editor_page($post) {
 
                         <!-- Demo Object 3: Star -->
                         <div class="grid-item">
-                            <img src="https://kaurib.com/c33d/star.jpg" alt="Demo Star">
+                            <img src="<?php echo esc_url($pluginUrl . '/assets/img/star.jpg'); ?>" alt="Demo Star">
                             <h3>Star</h3>
                             <div class="download-button-overlay">
                                 <button class="download-button" data-demo-object="laptop" data-file-type="glb" data-file-url="https://c33d.kaurib.com/models/star.glb">Download</button>
