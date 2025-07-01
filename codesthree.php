@@ -130,53 +130,23 @@ function code33d_create_scene_shortcode($atts)
     ), $atts);
     $post_id = intval($atts['id']);
     $scene_data = code33d_get_scene_data($post_id);
-    ob_start();
-
-    // Enqueue JS
-    // wp_enqueue_script_module(
-    //     'codes-script',
-    //     plugins_url('scene.js', __FILE__),
-    // );
-
+    ob_start(); 
     ?>
 
     <!-- <h1>Scene Below</h1> -->
-    <div id="scene-<?php echo esc_attr($post_id); ?>-<?php echo esc_attr(uniqid()); ?>" class="c33d_scene" data-scene-id="<?php echo esc_attr($post_id); ?>" style="width: <?php echo esc_attr($atts['width']); ?>; height: <?php echo esc_attr($atts['height']); ?>;">
+    <div id="scene-<?php echo esc_attr($post_id); ?>-<?php echo esc_attr(uniqid()); ?>" 
+    class="c33d_scene" 
+    data-scene-id="<?php echo esc_attr($post_id); ?>" 
+    data-scene-data='<?php echo wp_json_encode($scene_data); ?>'
+    data-plugin-url='<?php echo esc_url(plugins_url('', __FILE__))?>'
+    style="width: <?php echo esc_attr($atts['width']); ?>; height: <?php echo esc_attr($atts['height']); ?>;">
       <div class = "loadScreen">
         <div class = "loadCircle">
           <div class = "loadInnerCircle">
           </div>
         </div>
       </div>
-
     </div>
-
-    <script type="module">
-      import { initializeThreeJsScene } from "<?php echo esc_url(plugins_url('/assets/js/scene.js', __FILE__)); ?>";
-      const allSceneData = <?php echo wp_json_encode($scene_data); ?>;
-      const pluginUrl = "<?php echo esc_url(plugins_url('', __FILE__))?>";
-      const containerID = "threejs-scene-container-<?php echo esc_js($post_id); ?>";
-      // Get all elements with the same class
-      const containers = document.querySelectorAll('[data-scene-id="<?php echo esc_js($post_id); ?>"]');
-
-      containers.forEach((container) => {
-          const containerID = container.id;
-
-          // Check if the scene has already been initialized for this container
-          if (!container.hasAttribute('data-scene-initialized')) {
-              container.setAttribute('data-scene-initialized', 'true');
-
-              // Initialize the Three.js scene
-            //   console.log(sceneData);
-              if (typeof initializeThreeJsScene === "function") {
-                  initializeThreeJsScene(allSceneData, containerID, pluginUrl);
-              }
-          } else {
-              console.log(`Scene for ${containerID} has already been initialized.`);
-          }
-      });
-    </script>
-
 
     <?php
     return ob_get_clean();
@@ -281,6 +251,12 @@ function code33d_frontend_enqueue_assets() {
     wp_enqueue_style(
         'coedes-styles',
         plugins_url('/assets/css/styles.css', __FILE__),
+    );
+    // Enqueue JS
+    wp_enqueue_script_module(
+        'codes-admin-script',
+        plugins_url('/assets/js/scene.js', __FILE__)
+        
     );
 }
 add_action('wp_enqueue_scripts', 'code33d_frontend_enqueue_assets');

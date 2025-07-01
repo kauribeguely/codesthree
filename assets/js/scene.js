@@ -11,7 +11,35 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 import { RGBELoader } from 'three/addons/RGBELoader.js';
 
+initializeAllScenes();
+function initializeAllScenes()
+{
+  const allShortCodeContainers = document.querySelectorAll('.c33d_scene');
+  allShortCodeContainers.forEach((shortCodeContainer) => 
+  {
+    const shortCodePostId = shortCodeContainer.dataset.sceneId;
+    // Get all containers with same shortcode id (sometimes they get added multiple times)
+    const duplicateContainers = document.querySelectorAll('[data-scene-id="'+shortCodePostId+'"]');
 
+    duplicateContainers.forEach((container) => {
+        const containerID = container.id;
+        const allSceneData = JSON.parse(container.dataset.sceneData);
+        const pluginUrl = container.dataset.pluginUrl;
+        // Check if the scene has already been initialized for this container
+        if (!container.hasAttribute('data-scene-initialized')) {
+            container.setAttribute('data-scene-initialized', 'true');
+
+            // Initialize the Three.js scene
+          //   console.log(sceneData);
+            if (typeof initializeThreeJsScene === "function") {
+                initializeThreeJsScene(allSceneData, containerID, pluginUrl);
+            }
+        } else {
+            console.log(`Scene for ${containerID} has already been initialized.`);
+        }
+    });
+  });
+}
 
 export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
 {
