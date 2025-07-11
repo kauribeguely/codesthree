@@ -6,7 +6,7 @@ import { RGBELoader } from 'three/addons/RGBELoader.js';
 
 
 const localisedData = window.localisedData;
-const allSceneData = JSON.parse(localisedData.allSceneData);
+let allSceneData = JSON.parse(localisedData.allSceneData);
 const ajaxUrl = localisedData.ajax_url;
 const ajaxNonce = localisedData.ajax_nonce;
 console.log('Three.js Transform Data:', allSceneData);
@@ -726,7 +726,7 @@ function toggleCamera()
       else
       {
         //when intiate new scene, show the open popup
-        showUploadPopup()
+        showUploadPopup();
       }
 
       scene.add(groupControls);
@@ -770,6 +770,31 @@ function toggleCamera()
         // loadModel(model.modelUrl, model, false, index);
       });    
       updateParentList();  
+    }
+    
+    // function initFromImport(importString)
+    function initFromImport(importJson)
+    {
+      // let importString = '{"globalSettings":{"ambientLightIntensity":0.5,"directionalLightIntensity":1,"lightPosX":5,"lightPosY":10,"lightPosZ":7.5,"useEnvLight":true,"isOrthoCamera":false,"mouseAnimationLink":true,"mouseRotationX":6,"mouseRotationY":6,"mouseRotationZ":0,"scrollAnimationLink":false,"scrollMoveX":0,"scrollMoveY":5,"scrollMoveZ":0,"breakpoint":768,"modelUrl":"http://localhost/wpLocalEdge/wp-content/uploads/2025/06/phoneWhite.glb","breakPoint":768},"models":[[{"modelId":"cc842f75-5f2b-4ab3-b3bf-a63c3225c947","modelUrl":"http://localhost/wpLocalEdge/wp-content/uploads/2025/06/laptopCD.glb","modelName":"laptopCD.glb","positionX":-0.5485610472763248,"positionY":-0.6196226712307388,"positionZ":-1.2121505485711381,"rotationX":-4.681889054216438,"rotationY":43.31244929456555,"rotationZ":22.935199701058483,"scale":0.6399999999999997,"loopActive":false,"loopCountX":1,"type":"model","parentUuid":-1},{"modelId":"df6127bc-5aaf-493d-b334-3abaaef5ec1d","modelUrl":"http://localhost/wpLocalEdge/wp-content/uploads/2025/06/phoneWhite.glb","modelName":"phoneWhite.glb","positionX":1.7804044468391422,"positionY":1.204533054386354,"positionZ":-1.070533463623571,"rotationX":-148.2209293940659,"rotationY":-53.28320057979277,"rotationZ":-157.0488743547062,"scale":0.8,"loopActive":false,"loopCountX":1,"type":"model","parentUuid":-1}],[{"modelId":"84ad05fa-4094-494a-920b-b9f78754323e","modelUrl":"http://localhost/wpLocalEdge/wp-content/uploads/2025/06/laptopCD.glb","modelName":"laptopCD.glb","positionX":0,"positionY":0,"positionZ":0,"rotationX":0,"rotationY":0,"rotationZ":0,"scale":1,"loopActive":false,"loopCountX":1,"parentUuid":-1},{"modelId":"0af3addb-4fa6-4a51-aa57-7f9297415463","modelUrl":"http://localhost/wpLocalEdge/wp-content/uploads/2025/06/phoneWhite.glb","modelName":"phoneWhite.glb","positionX":0,"positionY":0,"positionZ":0,"rotationX":0,"rotationY":0,"rotationZ":0,"scale":1,"loopActive":false,"loopCountX":1,"parentUuid":-1}]]}';
+      // allSceneData = JSON.parse(importString);
+      // const importedSceneData = JSON.parse(importJson.scene_data);
+      // const importedSceneData = importJson.scene_data;
+      // const importedSceneData = importJson;
+      allSceneData = importJson; // Reassign the entire root object
+      sceneData = allSceneData.globalSettings;
+      allModels = allSceneData.models[0];
+      allMobileModels = allSceneData.models[1];
+
+      // Call other setup functions to apply global settings, lights, etc., from allSceneData
+      // applyGlobalSettings(allSceneData.globalSettings);
+      // setupLights(allSceneData.lights);
+      // ... and so on for other parts of your scene
+
+      // Finally, ensure the UI reflects any changes, like updating the save field if auto-save is on.
+      updateSaveField(); // Now this will save the *imported* scene data
+      isInitialLoad = true; 
+      itemsLoaded = 0;
+      loadAllModels();
     }
 
     function loadAllMobileData()
@@ -1331,20 +1356,26 @@ function transformDragEnd(){
         // Add event listeners to all download buttons
         downloadButtons.forEach(button => {
             button.addEventListener('click', async (event) => {
-                const demoObject = event.target.dataset.demoObject;
-                const fileType = event.target.dataset.fileType;
-                const fileUrl = event.target.dataset.fileUrl;
+                const assetName = event.target.dataset.assetName;
+                const downloadType = event.target.dataset.downloadType;
 
-                if (!demoObject || !fileUrl) {
-                    // alert('Error: Missing demo object or file URL for download.');
+                if (!assetName) {
                     return;
                 }
 
                 try {
-                    const downloadResult = await initiateAjaxDownload(fileUrl, demoObject, fileType, event.target);
+                    // const downloadResult = await initiateAjaxDownload(fileUrl, demoObject, fileType, event.target);
+                    const downloadResult = await downloadAsset(assetName, downloadType);
+                        alert(`"${assetIdForDisplay}" (${downloadType}) imported to Media Library successfully!`);
+                        if (downloadResult.attachment_url) {
+                            loadModel(downloadResult.attachment_url); // Call your model loader with the URL
+                            console.log('loadModel() called with:', downloadResult.attachment_url); // Specific log
+                        } else {
+                            console.warn('Import successful, but no attachment URL received for individual asset.');
+                        }
                     // Handle successful download result (e.g., show message, update UI, close modal)
                     // alert(`"${demoObject}" imported successfully! Attachment ID: ${downloadResult.attachment_id}`);
-                    modelImportModal.classList.add('hidden-modal'); // Hide modal on success
+                    // modelImportModal.classList.add('hidden-modal'); // Hide modal on success
                 } catch (error) {
                     // initiateAjaxDownload already alerts/logs, but you can add more specific handling here
                     console.error('Demo download failed in setupDemoModal:', error);
@@ -1356,68 +1387,48 @@ function transformDragEnd(){
         console.log('Demo modal listeners setup complete.');
     }
 
-    async function initiateAjaxDownload(fileUrl, demoId, fileType = '', buttonElement = null) {
+    // async function initiateAjaxDownload(fileUrl, demoId, fileType = '', buttonElement = null) {
+    async function downloadAsset(assetName, downloadType) 
+    {
         if (!ajaxUrl || !ajaxNonce) {
             console.error('AJAX URL or Nonce is missing from localized data. Cannot initiate download.');
             alert('Configuration error: Cannot initiate download. Missing AJAX URL or security token.');
             throw new Error('Missing AJAX URL or nonce.');
         }
 
-        const originalButtonText = buttonElement ? buttonElement.textContent : '';
-        if (buttonElement) {
-            buttonElement.textContent = 'Downloading...';
-            buttonElement.disabled = true;
-        }
+        // const originalButtonText = buttonElement ? buttonElement.textContent : '';
+        // if (buttonElement) {
+        //     buttonElement.textContent = 'Downloading...';
+        //     buttonElement.disabled = true;
+        // }
 
         try {
-            const response = await fetch(ajaxUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: new URLSearchParams({
-                    action: 'codesthree_import_demo', // This action matches your PHP AJAX hook
-                    nonce: ajaxNonce,
-                    demo_id: demoId,
-                    file_url: fileUrl,
-                    file_type: fileType
-                })
-            });
+              const response = await fetch(ajaxUrl, 
+              {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/x-www-form-urlencoded',
+                  },
+                  body: new URLSearchParams({
+                      action: 'c33d_download_asset', // This action matches your PHP AJAX hook
+                      nonce: ajaxNonce,
+                      download_type: downloadType,
+                      asset_name: assetName,
+                  })
+              });
 
-            const result = await response.json(); // Parse the JSON response
+              const result = await response.json();
 
             if (result.success) {
-              console.log('Download successful:', result.data);
-
-              // Get the attachment URL from the successful AJAX response
-              const importedModelUrl = result.data.attachment_url;
-
-              if (importedModelUrl) {
-                    // Call your loadModel function with the URL
-                    loadModel(importedModelUrl);
-                    console.log('loadModel() called with:', importedModelUrl);
-                } else {
-                    console.warn('Import successful, but no attachment URL received from backend.');
-                }
-
-                // Optionally, alert the user and hide the modal
-                // alert(`"${demoObject}" imported successfully!`);
-                // Assuming hideModal is accessible in this scope (e.g., passed as an argument or global)
-                // hideModal();
-
-                  return result.data; // Return data for further processing if needed by the caller
-              } else {
-                  console.error('Download failed:', result.data.errors || result.data.message);
-                  throw new Error(result.data.message || 'Unknown download error');
+                console.log('Download successful:', result.data);
+                return result.data; // Return the 'data' part of the successful response
+            } else {
+                console.error('Download failed:', result.data.errors || result.data.message);
+                throw new Error(result.data.message || 'Unknown download error');
             }
         } catch (error) {
             console.error('Network or parsing error during download:', error);
-            throw error; // Re-throw to be caught by the caller
-        } finally {
-            if (buttonElement) {
-                buttonElement.textContent = originalButtonText; // Restore button text
-                buttonElement.disabled = false; // Re-enable button
-            }
+            throw error;
         }
     }
 
@@ -1869,6 +1880,14 @@ function transformDragEnd(){
                 loopActive = !loopActive;
                 loopActiveInput.checked = loopActive;
                 toggleLoop();
+                break;
+            case 'p':
+                copySceneDataToClipboard();
+                break;
+            case 'm':
+              downloadInitFullScene('scene1', ['star', 'laptop']);
+              // initiateSceneConfigImport('https://c33d.kaurib.com/scenes/scene1.json', 'scene1');  
+              // initFromImport();
                 break;
         }
     });
@@ -2619,9 +2638,115 @@ function getThreeJsObjectByUuid(modelId)
         }, 1000);
       }
 
-        function toggleMediaModal() {
-            modelImportModal.classList.toggle('hidden-modal');
+      function copySceneDataToClipboard()
+      {
+        navigator.clipboard.writeText(JSON.stringify(allSceneData));
+        // navigator.clipboard.writeText("'"+JSON.stringify(allSceneData)+"'");
+        // navigator.clipboard.writeText('"'+JSON.stringify(allSceneData)+'"');
+
+      }
+
+      function toggleMediaModal() 
+      {
+          modelImportModal.classList.toggle('hidden-modal');
+      }
+
+      // async function initiateSceneConfigImport(sceneUrl, sceneId, buttonElement = null) {
+      async function downloadInitFullScene(sceneName, modelList) 
+      {
+
+        // initiateSceneConfigImport('https://c33d.kaurib.com/scenes/scene1.json', 'scene1');  
+        
+        // let modelList = ['star', 'laptop'];  
+
+        let sceneConfig = null;
+
+        try {
+            // 1. Download the scene JSON configuration
+            const sceneResult = await downloadAsset(sceneName, 'scene');
+            sceneConfig = sceneResult.scene_data;
+
+            if (!sceneConfig) {
+                throw new Error('Failed to retrieve scene configuration data.');
+            }
+
+            console.log('Scene config downloaded:', sceneConfig);
+
+            // 2. Download all required models concurrently based on the 'requiredModels' array
+            // if (modelList.length > 0) {
+            //     console.log('Models to download:', modelList);
+            //     // if (buttonElement) buttonElement.textContent = `Downloading ${requiredModels.length} Models...`;
+
+            //     const downloadPromises = modelList.map(modelName =>
+            //         downloadAsset(modelName, 'model') // Assuming all are 'model' type for simplicity here
+            //     );
+            //     const downloadedModelResults = await Promise.all(downloadPromises);
+            //     console.log('All models downloaded:', downloadedModelResults);
+
+            // }
+            initFromImport(sceneConfig);
+          }
+          catch (error) {
+            console.error('Failed to download or initialize full scene:', error);
+            alert(`Failed to import full scene "${sceneName}". Please try again. Error: ${error.message}`);
+          } 
+          // finally {
+          //     if (buttonElement) {
+          //         buttonElement.textContent = originalButtonText; // Reset text
+          //         buttonElement.disabled = false;
+          //     }
+          // }
         }
+            
+
+
+
+        // if (!ajaxUrl || !ajaxNonce) {
+        //     console.error('AJAX URL or Scene Import Nonce is missing. Cannot import scene config.');
+        //     alert('Configuration error: Cannot import scene. Missing AJAX URL or security token.');
+        //     throw new Error('Missing AJAX URL or nonce.');
+        // }
+
+        // const originalButtonText = buttonElement ? buttonElement.textContent : '';
+        // if (buttonElement) {
+        //     buttonElement.textContent = 'Importing...';
+        //     buttonElement.disabled = true;
+        // }
+
+        // try {
+        //     const response = await fetch(ajaxUrl, {
+        //         method: 'POST',
+        //         headers: {
+        //             'Content-Type': 'application/x-www-form-urlencoded',
+        //         },
+        //         body: new URLSearchParams({
+        //             action: 'codesthree_import_scene_config',
+        //             nonce: ajaxNonce,
+        //             scene_id: sceneId,
+        //             scene_url: sceneUrl
+        //         })
+        //     });
+
+        //     const result = await response.json();
+
+        //     if (result.success) {
+        //         console.log('Scene import successful:', result.data);
+        //         initFromImport(result.data);
+        //         return result.data; // Return the entire data object from PHP, including scene_data
+        //     } else {
+        //         console.error('Scene import failed:', result.data.errors || result.data.message);
+        //         throw new Error(result.data.message || 'Unknown scene import error');
+        //     }
+        // } catch (error) {
+        //     console.error('Network or parsing error during scene import:', error);
+        //     throw error;
+        // } finally {
+        //     if (buttonElement) {
+        //         buttonElement.textContent = originalButtonText;
+        //         buttonElement.disabled = false;
+        //     }
+        // }
+    // }
 
 }
 

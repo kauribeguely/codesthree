@@ -407,9 +407,189 @@ function code33d_set_default_one_column_layout($default, $option, $value) {
 add_filter('default_option_screen_layout_c33d_scene', 'code33d_set_default_one_column_layout', 10, 3); 
 
 
+add_action( 'wp_ajax_c33d_download_asset', 'c33d_download_asset' );
+
+
+// function codesthree_handle_demo_import_ajax() {
+function c33d_download_asset() 
+{
+    if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'codesthree_local_ajax_nonce' ) ) {
+        wp_send_json_error( array( 'message' => 'Security check failed. Invalid nonce.' ) );
+        wp_die(); // Always exit after sending JSON response in AJAX handlers
+    }
+
+    //TODO: if downloading to media library run upload permission check
+    // if ( ! current_user_can( 'upload_files' ) ) {
+    //     wp_send_json_error( array( 'message' => 'You do not have permission to import files.' ) );
+    //     wp_die();
+    // }
+
+    $asset_name    = isset( $_POST['asset_name'] ) ? sanitize_text_field( wp_unslash( $_POST['asset_name'] ) ) : ''; 
+    $download_type = isset( $_POST['download_type'] ) ? sanitize_text_field( wp_unslash( $_POST['download_type'] ) ) : '';
+
+    // Basic validation of inputs
+    if (empty( $asset_name ) ) {
+        wp_send_json_error( array( 'message' => 'Missing Asset Name' ) );
+        wp_die();
+    }
+
+    $base_url = '';
+    $file_extension = '';
+
+    // Determine the base URL and file extension based on download type and asset name
+    switch ( $download_type ) {
+        case 'model':
+            $base_url = 'https://c33d.kaurib.com/models/';
+            $file_extension = '.glb'; // Assuming all models are GLB for now
+            // You could have a more complex mapping here if different models have different extensions:
+            // $model_extensions = ['phone' => '.glb', 'laptop' => '.glb', 'car' => '.fbx'];
+            // $file_extension = $model_extensions[$asset_name] ?? '.glb';
+            break;
+        case 'envtexture':
+            $base_url = 'https://c33d.kaurib.com/envtextures/'; // Assuming a separate folder for env textures
+            $file_extension = '.hdr'; // Assuming all environment textures are HDR
+            break;
+        case 'scene':
+            $base_url = 'https://c33d.kaurib.com/scenes/';
+            $file_extension = '.json'; // Scene configurations are JSON
+            break;
+        default:
+            wp_send_json_error( array( 'message' => 'Invalid download type specified.' ) );
+            wp_die();
+    }
+
+    // Construct the full external URL
+    $file_url = esc_url_raw( $base_url . $asset_name . $file_extension ); 
+    // This prevents your server from being used to download files from arbitrary URLs.
+    // $allowed_domains = array( 'c33d.kaurib.com' ); // Add all domains your demos are hosted on.
+    // $parsed_url = wp_parse_url( $file_url );
+    // if ( ! isset( $parsed_url['host'] ) || ! in_array( $parsed_url['host'], $allowed_domains, true ) ) {
+    //     wp_send_json_error( array( 'message' => 'File URL is not from an allowed source.' ) );
+    //     wp_die();
+    // }
+
+    // Dispatch based on download type
+    switch ( $download_type ) {
+        case 'model':
+        case 'envtexture':
+            // Handle importing to Media Library
+            $result = c33d_handle_media_sideload( $file_url, $asset_name, $download_type );
+            if ( is_wp_error( $result ) ) {
+                wp_send_json_error( array( 'message' => $result->get_error_message(), 'errors' => $result->get_error_data() ) );
+            } else {
+                wp_send_json_success( array(
+                    'message'          => sprintf( '%s "%s" imported successfully!', ucwords($download_type), $asset_name ),
+                    'attachment_id'    => $result['attachment_id'],
+                    'attachment_url'   => $result['attachment_url'],
+                    'asset_name_requested' => $asset_name,
+                ) );
+            }
+            break;
+
+        case 'scene':
+            // Handle fetching and returning JSON content
+            $result = c33d_handle_scene_json_fetch( $file_url, $asset_name );
+            if ( is_wp_error( $result ) ) {
+                wp_send_json_error( array( 'message' => $result->get_error_message(), 'errors' => $result->get_error_data() ) );
+            } else {
+                wp_send_json_success( array(
+                    'message'          => sprintf( 'Scene "%s" configuration fetched successfully!', $asset_name ),
+                    'scene_data'       => $result['scene_data'],
+                    'asset_name_requested' => $asset_name,
+                ) );
+            }
+            break;
+
+        default:
+            // This case should ideally not be reached due to earlier switch, but as a fallback
+            wp_send_json_error( array( 'message' => 'Unhandled download type.' ) );
+            break;
+    }
+
+    wp_die(); // Always terminate script execution
+}
+
+function c33d_handle_media_sideload( $file_url, $asset_id, $download_type ) {
+    // Include WordPress core media handling functions
+    require_once( ABSPATH . 'wp-admin/includes/file.php' );
+    require_once( ABSPATH . 'wp-admin/includes/image.php' );
+    require_once( ABSPATH . 'wp-admin/includes/media.php' );
+
+    // Download the file to a temporary location
+    $tmp_file = download_url( $file_url );
+
+    if ( is_wp_error( $tmp_file ) ) {
+        return new WP_Error( 'download_failed', 'Failed to download file from external source.', $tmp_file->get_error_message() );
+    }
+
+    // Prepare the file array for media_handle_sideload()
+    $file_array = array(
+        'name'     => basename( $file_url ),
+        'tmp_name' => $tmp_file,
+    );
+
+    // Attempt to determine MIME type more accurately based on asset_type or extension
+    $mime_type = '';
+    $extension = pathinfo( $file_array['name'], PATHINFO_EXTENSION );
+    switch ( strtolower( $extension ) ) {
+        case 'glb':
+        case 'gltf':
+            $mime_type = 'model/gltf-binary'; // GLB is binary, GLTF might be JSON, but this is common for both
+            break;
+        case 'hdr':
+            $mime_type = 'image/vnd.radiance';
+            break;
+        case 'obj':
+            $mime_type = 'model/obj';
+            break;
+        // Add other specific MIME types as needed
+        default:
+            // Let WordPress try to determine, or default to application/octet-stream
+            $mime_type = '';
+            break;
+    }
+    if ( ! empty( $mime_type ) ) {
+        $file_array['type'] = $mime_type;
+    }
+
+    // Sideload the file into the Media Library
+    $attachment_id = media_handle_sideload( $file_array, 0, sprintf( 'Imported %s: %s', ucwords($download_type), $asset_id ) );
+
+    // Clean up the temporary file
+    @unlink( $file_array['tmp_name'] );
+
+    if ( is_wp_error( $attachment_id ) ) {
+        return new WP_Error( 'sideload_failed', 'Failed to import file to Media Library.', $attachment_id->get_error_message() );
+    }
+
+    return array(
+        'attachment_id'  => $attachment_id,
+        'attachment_url' => wp_get_attachment_url( $attachment_id ),
+    );
+}
+
+
+function c33d_handle_scene_json_fetch( $scene_url, $asset_id ) {
+    $response = wp_remote_get( $scene_url );
+
+    if ( is_wp_error( $response ) ) {
+        return new WP_Error( 'fetch_failed', 'Failed to fetch scene configuration from external URL.', $response->get_error_message() );
+    }
+
+    $json_string = wp_remote_retrieve_body( $response );
+    $decoded_scene_data = json_decode( $json_string, true );
+
+    if ( json_last_error() !== JSON_ERROR_NONE ) {
+        return new WP_Error( 'json_decode_failed', 'Failed to decode scene configuration JSON.', json_last_error_msg() );
+    }
+
+    return array(
+        'scene_data' => $decoded_scene_data,
+    );
+}
+
+
 add_action( 'wp_ajax_codesthree_import_demo', 'codesthree_handle_demo_import_ajax' );
-
-
 /**
  * Handles the AJAX request to download an external 3D model (or other file)
  * and import it into the WordPress Media Library.
@@ -525,6 +705,79 @@ function codesthree_handle_demo_import_ajax() {
     wp_die(); // Essential: terminate script execution properly after AJAX response
 }
 
+
+add_action( 'wp_ajax_codesthree_import_scene_config', 'codesthree_handle_scene_config_import_ajax' );
+
+/**
+ * Handles the AJAX request to download an external scene configuration (JSON)
+ * and return its content to the frontend.
+ */
+function codesthree_handle_scene_config_import_ajax() {
+    // 1. Security Check: Verify Nonce
+    if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'codesthree_local_ajax_nonce' ) ) {
+        wp_send_json_error( array( 'message' => 'Security check failed. Invalid nonce.' ) );
+        wp_die();
+    }
+
+    // 2. Capability Check: Ensure user has permission to access this admin functionality.
+    // 'edit_posts' is a good general capability for admin actions.
+    if ( ! current_user_can( 'edit_posts' ) ) {
+        wp_send_json_error( array( 'message' => 'You do not have permission to import scene configurations.' ) );
+        wp_die();
+    }
+
+    // 3. Retrieve and Sanitize Input from the AJAX request
+    $scene_id  = isset( $_POST['scene_id'] ) ? sanitize_text_field( wp_unslash( $_POST['scene_id'] ) ) : '';
+    $scene_url = isset( $_POST['scene_url'] ) ? esc_url_raw( wp_unslash( $_POST['scene_url'] ) ) : '';
+
+    if ( empty( $scene_id ) || empty( $scene_url ) ) {
+        wp_send_json_error( array( 'message' => 'Missing scene ID or URL in request.' ) );
+        wp_die();
+    }
+
+    // Optional but Recommended: Whitelist the domain(s) from which you allow scene config downloads.
+    $allowed_config_domains = array( 'c33d.kaurib.com' ); // Your external server
+    $parsed_url = wp_parse_url( $scene_url );
+    if ( ! isset( $parsed_url['host'] ) || ! in_array( $parsed_url['host'], $allowed_config_domains, true ) ) {
+        wp_send_json_error( array( 'message' => 'Scene URL is not from an allowed source.' ) );
+        wp_die();
+    }
+
+    // 4. Fetch the JSON content from the external URL
+    $response = wp_remote_get( $scene_url );
+
+    if ( is_wp_error( $response ) ) {
+        wp_send_json_error( array(
+            'message' => 'Failed to fetch scene configuration from external URL.',
+            'errors'  => $response->get_error_message()
+        ) );
+        wp_die();
+    }
+
+    $json_string = wp_remote_retrieve_body( $response );
+
+    // 5. Decode the JSON string into a PHP array
+    $decoded_scene_data = json_decode( $json_string, true ); // 'true' for associative array
+
+    if ( json_last_error() !== JSON_ERROR_NONE ) {
+        wp_send_json_error( array(
+            'message' => 'Failed to decode scene configuration JSON.',
+            'errors'  => json_last_error_msg()
+        ) );
+        wp_die();
+    }
+
+    // 6. Success! Return the decoded scene data to the frontend.
+    // The frontend JS will then use this data to update the editor.
+    wp_send_json_success( array(
+        'message'   => sprintf( 'Scene configuration for "%s" fetched successfully!', $scene_id ),
+        'scene_data' => $decoded_scene_data, // Send the actual decoded data
+        'scene_id_requested' => $scene_id
+    ) );
+
+    wp_die(); // Always terminate script execution properly
+}
+
 // Admin page content
 function code33d_editor_page($post) {
 
@@ -618,8 +871,133 @@ function code33d_editor_page($post) {
         <div id="mobileOutline"></div>
 
         <div id="newScenePopup">
-            Upload/open a model to get started
-            <button type="button" class="button" id="popup_media_button">Select Model</button>
+            <!-- Left Side: Upload/Open Model Section -->
+            <div class="left-side">
+                <!-- <div class="modal-content"> -->
+
+
+
+                        <!-- Demo Objects Section -->
+                        <section id='demo-models'>
+                            <h2>Add a model</h2>
+                            <h3>Demos</h3>
+                            <div class="demo-grid demo-three-column">
+                                <!-- Demo Object 1: Phone -->
+                                <div class="demo-grid-item download-button"
+                                    data-asset-name="phone" 
+                                    data-download-type="model">
+                                    <img src="<?php echo esc_url($pluginUrl . '/assets/img/phone.jpg'); ?>" alt="Demo Phone">
+                                    
+                                    <div class='c3_button_with_text'>
+                                        <h4>Phone</h4>
+                                        <!-- <button class="download-button" type="button"
+                                        data-asset-name="phone" 
+                                        data-download-type="model">+</button> -->
+                                    </div>
+                                    <div class="download-button-overlay">
+                                        <p>Add to scene</p>
+                                    </div>
+                                </div>
+
+                                <!-- Demo Object 2: Laptop -->
+                                <div class="demo-grid-item download-button"
+                                    data-asset-name="laptop" 
+                                    data-download-type="model">
+                                    <img src="<?php echo esc_url($pluginUrl . '/assets/img/laptop.jpg'); ?>" alt="Demo Laptop">
+                                    
+                                    <div class='c3_button_with_text'>
+                                        <h4>Laptop</h4>
+                                        <!-- <button class="download-button" type="button"
+                                        data-asset-name="phone" 
+                                        data-download-type="model">+</button> -->
+                                    </div>
+                                    <div class="download-button-overlay">
+                                        <p>Add to scene</p>
+                                    </div>
+                                </div>
+
+                                <!-- Demo Object 3: Star -->
+                                <div class="demo-grid-item download-button"
+                                    data-asset-name="star" 
+                                    data-download-type="model">
+                                    <img src="<?php echo esc_url($pluginUrl . '/assets/img/star.jpg'); ?>" alt="Demo Star">
+                                    <div class='c3_button_with_text'>
+                                        <h4>Star</h4>
+                                        <!-- <button class="download-button" type="button"
+                                        data-asset-name="phone" 
+                                        data-download-type="model">+</button> -->
+                                    </div>
+                                    <div class="download-button-overlay">
+                                        <p>Add to scene</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                                                <!-- Open/Upload Model Section -->
+                        <section id="upload-existing">
+                            <h3>Upload/Existing</h3>
+                                <button type="button" id="mediaLibraryBtn">
+                                    Media Library
+                                </button>
+                        </section>
+                <!-- </div> -->
+            </div>
+
+            <!-- Right Side: Import Demo Scene Grid -->
+            <div class="right-side">
+                <h2>Import Demo Scene</h2>
+                <div class="demo-grid">
+                    <!-- Demo Object 1: Phone -->
+                    <div class="demo-grid-item download-button"
+                        data-asset-name="phone" 
+                        data-download-type="scene">
+                        <img src="<?php echo esc_url($pluginUrl . '/assets/img/phone.jpg'); ?>" alt="Demo Phone">
+                        
+                        <div class='c3_button_with_text'>
+                            <h4>Phone</h4>
+                            <!-- <button class="download-button" type="button"
+                            data-asset-name="phone" 
+                            data-download-type="model">+</button> -->
+                        </div>
+                        <div class="download-button-overlay">
+                            <p>Add to scene</p>
+                        </div>
+                    </div>
+
+                    <!-- Demo Object 2: Laptop -->
+                    <div class="demo-grid-item download-button"
+                        data-asset-name="phone" 
+                        data-download-type="scene">
+                        <img src="<?php echo esc_url($pluginUrl . '/assets/img/laptop.jpg'); ?>" alt="Demo Laptop">
+                        
+                        <div class='c3_button_with_text'>
+                            <h4>Laptop</h4>
+                            <!-- <button class="download-button" type="button"
+                            data-asset-name="phone" 
+                            data-download-type="model">+</button> -->
+                        </div>
+                        <div class="download-button-overlay">
+                            <p>Add to scene</p>
+                        </div>
+                    </div>
+
+                    <!-- Demo Object 3: Star -->
+                    <div class="demo-grid-item download-button"
+                        data-asset-name="phone" 
+                        data-download-type="scene">
+                        <img src="<?php echo esc_url($pluginUrl . '/assets/img/star.jpg'); ?>" alt="Demo Star">
+                        <div class='c3_button_with_text'>
+                            <h4>Star</h4>
+                            <!-- <button class="download-button" type="button"
+                            data-asset-name="phone" 
+                            data-download-type="model">+</button> -->
+                        </div>
+                        <div class="download-button-overlay">
+                            <p>Add to scene</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         <div style="display: flex; justify-content: center; background: black; padding: 10px;">
             <button id="toggleControls" type="button">Toggle Controls</button>
@@ -904,33 +1282,39 @@ function code33d_editor_page($post) {
                 <!-- Demo Objects Section -->
                 <section>
                     <h2>Download Demo Objects</h2>
-                    <div class="grid-container">
+                    <div class="demo-grid">
                         <!-- Demo Object 1: Phone -->
-                        <div class="grid-item">
+                        <div class="demo-grid-item">
                             <img src="<?php echo esc_url($pluginUrl . '/assets/img/phone.jpg'); ?>" alt="Demo Phone">
-                            <h3>Phone</h3>
+                            <h4>Phone</h3>
                             <div class="download-button-overlay">
-                                <button class="download-button" data-demo-object="laptop" data-file-type="glb" data-file-url="https://c33d.kaurib.com/models/phone.glb">Download</button>
+                                <button class="download-button" type="button"
+                                data-asset-name="phone" 
+                                data-download-type="model">Download</button>
                                 <span class="overlay-text">~5 MB</span>
                             </div>
                         </div>
 
                         <!-- Demo Object 2: Laptop -->
-                        <div class="grid-item">
+                        <div class="demo-grid-item">
                             <img src="<?php echo esc_url($pluginUrl . '/assets/img/laptop.jpg'); ?>" alt="Demo Laptop">
                             <h3>Laptop</h3>
                             <div class="download-button-overlay">
-                                <button class="download-button" data-demo-object="laptop" data-file-type="glb" data-file-url="https://c33d.kaurib.com/models/laptop.glb">Download</button>
+                                <button class="download-button" type="button"
+                                data-asset-name="laptop" 
+                                data-download-type="model">Download</button>
                                 <span class="overlay-text">26 KB</span>
                             </div>
                         </div>
 
                         <!-- Demo Object 3: Star -->
-                        <div class="grid-item">
+                        <div class="demo-grid-item">
                             <img src="<?php echo esc_url($pluginUrl . '/assets/img/star.jpg'); ?>" alt="Demo Star">
                             <h3>Star</h3>
                             <div class="download-button-overlay">
-                                <button class="download-button" data-demo-object="laptop" data-file-type="glb" data-file-url="https://c33d.kaurib.com/models/star.glb">Download</button>
+                                <button class="download-button" type="button"
+                                data-asset-name="star" 
+                                data-download-type="model">Download</button>
                                 <span class="overlay-text">10 KB</span>
                             </div>
                         </div>
