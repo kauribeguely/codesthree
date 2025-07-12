@@ -1019,13 +1019,7 @@ function code33d_editor_page($post) {
 
           <div class='leftControls'>
             <div class='leftContInner'>
-                <!-- <h2> Scene Objects</h2> -->
-                <div id="objectListContainer" style="">   
-                    <ul id="sceneObjectList" style="list-style: none; padding: 0; margin: 0;">
-                    </ul>
-                </div>
-
-                <label>Add Object</label>
+                <!-- <label>Add Object</label> -->
             
                 <label>3D Models 🧊</label>
                 <!-- <div class="transform-group"> -->
@@ -1033,10 +1027,17 @@ function code33d_editor_page($post) {
                     <button style="" type="button" class="button" id="add_model_button" >Demos <span class="dashicons dashicons-download"></span></button>
                 <!-- </div> -->
                 <label>Others</label>
-                <div class="transform-group">
+                <!-- <div class="transform-group"> -->
                     <!-- <button style="width: 50%;" type="button" class="button" id="add_model_button" >Model 🧊</button> -->
-                    <button style="width: 50%;" type="button" class="button" id="add_group_button" >Group 📁</button>
+                    <button style="" type="button" class="button" id="add_group_button" >Group <span class="dashicons dashicons-open-folder"></span></button>
+                <!-- </div> -->
+                <hr>
+                <!-- <h2> Scene Objects</h2> -->
+                <div id="objectListContainer" style="">   
+                    <ul id="sceneObjectList" style="list-style: none; padding: 0; margin: 0;">
+                    </ul>
                 </div>
+
             </div>
 
 
@@ -1331,13 +1332,6 @@ function code33d_editor_page($post) {
                     </div>
             </div>
         </div>
-        <!-- end media popup -->
-
-      <!-- <script>
-        // Pass PHP data to JavaScript
-        const allSceneData = <?php echo wp_json_encode($full_meta); ?>;
-        console.log('Three.js Transform Data:', allSceneData);
-      </script> -->
 
     </div>
     <?php
