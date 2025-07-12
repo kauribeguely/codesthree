@@ -807,9 +807,6 @@ function toggleCamera()
     {
       allMobileModels.forEach(function(model, index)
       {
-        //only add their data to the relative model config
-          //
-        // loadModel(model.modelUrl, model, true);
         addMobDataToConfigRef(model, index);
       });
     }
@@ -858,12 +855,6 @@ function toggleCamera()
         }
       });
 
-      
-      // loadModel(objData.modelUrl, objData, function()
-      // {
-      //   addMobDataToConfigRef(objDataMob, allThreeJsObj.length-1);
-      // });
-
 
     }
 
@@ -872,10 +863,6 @@ function toggleCamera()
       duplicateObject(selectedObj);
     }
 
-    // loadModel('http://localhost/wPpractice/wp-content/uploads/2025/01/first-room.glb', sceneData);
-
-    //isNew checks if current url/model to be updated
-    // function loadModel(url, sceneData, isNew)
     function loadModel(url, objData, callback, index)
     {
       loader.load(url, (gltf) =>
@@ -1363,12 +1350,13 @@ function transformDragEnd(){
           loadModel(attachment.url, false, isMobileView);
         }
 
-
-        toggleMediaModal();
-
         if(popupOpen)
         {
           hideIntroPopup();
+        }
+        if(demoModelPopupOpen)
+        {
+          toggleMediaModal();
         }
 
     });
@@ -2686,6 +2674,7 @@ function getThreeJsObjectByUuid(modelId)
       function toggleMediaModal() 
       {
           modelImportModal.classList.toggle('hidden-modal');
+          demoModelPopupOpen = !modelImportModal.classList.contains('hidden-modal');
       }
 
       // async function initiateSceneConfigImport(sceneUrl, sceneId, buttonElement = null) {
