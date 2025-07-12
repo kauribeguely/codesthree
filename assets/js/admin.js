@@ -10,6 +10,9 @@ let allSceneData = JSON.parse(localisedData.allSceneData);
 const ajaxUrl = localisedData.ajax_url;
 const ajaxNonce = localisedData.ajax_nonce;
 console.log('Three.js Transform Data:', allSceneData);
+const importedDemoAssets = JSON.parse(localisedData.importedDemoAssets);
+            
+
 
 class ModelConfig {
     constructor(data = {}) {
@@ -1384,28 +1387,57 @@ function transformDragEnd(){
                     return;
                 }
 
-                try {
-                    // const downloadResult = await initiateAjaxDownload(fileUrl, demoObject, fileType, event.target);
-                    const downloadResult = await downloadAsset(assetName, downloadType);
-                        // alert(`"${assetName}" (${downloadType}) imported to Media Library successfully!`);
-                        if (downloadResult.attachment_url) {
-                            loadModel(downloadResult.attachment_url); // Call your model loader with the URL
-                            if(popupOpen)
-                            {
-                              hideIntroPopup();
-                            }
-                            console.log('loadModel() called with:', downloadResult.attachment_url); // Specific log
-                        } else {
-                            console.warn('Import successful, but no attachment URL received for individual asset.');
-                        }
-                    // Handle successful download result (e.g., show message, update UI, close modal)
-                    // alert(`"${demoObject}" imported successfully! Attachment ID: ${downloadResult.attachment_id}`);
-                    // modelImportModal.classList.add('hidden-modal'); // Hide modal on success
-                } catch (error) {
-                    // initiateAjaxDownload already alerts/logs, but you can add more specific handling here
-                    console.error('Demo download failed in setupDemoModal:', error);
-                    // alert(`Failed to import "${demoObject}". Please try again.`);
+                
+
+                  // importedDemoAssets['star'].attachment_url
+                if(importedDemoAssets[assetName])
+                {
+                    loadModel(importedDemoAssets[assetName].attachment_url);
+                    if(popupOpen)
+                    {
+                      hideIntroPopup();
+                    }
+                    if(demoModelPopupOpen)
+                    {
+                      toggleMediaModal();
+                    }
                 }
+                else
+                {
+                  try {
+                      // const downloadResult = await initiateAjaxDownload(fileUrl, demoObject, fileType, event.target);
+                      const downloadResult = await downloadAsset(assetName, downloadType);
+                          // alert(`"${assetName}" (${downloadType}) imported to Media Library successfully!`);
+                          if (downloadResult.attachment_url) {
+                              loadModel(downloadResult.attachment_url); // Call your model loader with the URL
+                              importedDemoAssets[assetName] = {
+                                imported_at: new Date().toISOString(), // Record current time
+                                type: downloadType,
+                                attachment_id: downloadResult.attachment_id || null,
+                                attachment_url: downloadResult.attachment_url || null
+                            };
+                              if(popupOpen)
+                              {
+                                hideIntroPopup();
+                              }
+                              if(demoModelPopupOpen)
+                              {
+                                toggleMediaModal();
+                              }
+                              console.log('loadModel() called with:', downloadResult.attachment_url); // Specific log
+                          } else {
+                              console.warn('Import successful, but no attachment URL received for individual asset.');
+                          }
+                      // Handle successful download result (e.g., show message, update UI, close modal)
+                      // alert(`"${demoObject}" imported successfully! Attachment ID: ${downloadResult.attachment_id}`);
+                      // modelImportModal.classList.add('hidden-modal'); // Hide modal on success
+                  } catch (error) {
+                      // initiateAjaxDownload already alerts/logs, but you can add more specific handling here
+                      console.error('Demo download failed in setupDemoModal:', error);
+                      // alert(`Failed to import "${demoObject}". Please try again.`);
+                  }
+                }
+
             });
         });
 
@@ -2667,7 +2699,6 @@ function getThreeJsObjectByUuid(modelId)
       {
         navigator.clipboard.writeText(JSON.stringify(allSceneData));
         // navigator.clipboard.writeText("'"+JSON.stringify(allSceneData)+"'");
-        // navigator.clipboard.writeText('"'+JSON.stringify(allSceneData)+'"');
 
       }
 

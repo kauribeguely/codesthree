@@ -233,6 +233,7 @@ function code33d_admin_enqueue_assets() {
             'ajax_nonce'    => wp_create_nonce('codesthree_local_ajax_nonce'), 
             'allSceneData' => wp_json_encode(code33d_get_scene_data($post->ID)),
             'pluginUrl' => esc_url(plugins_url('', __FILE__)),
+            'importedDemoAssets'  => wp_json_encode( get_option( 'c33d_imported_assets', array() ) ),
         )
     );
 
@@ -411,8 +412,7 @@ add_action( 'wp_ajax_c33d_download_asset', 'c33d_download_asset' );
 
 
 // function codesthree_handle_demo_import_ajax() {
-function c33d_download_asset() 
-{
+function c33d_download_asset() {
     if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'codesthree_local_ajax_nonce' ) ) {
         wp_send_json_error( array( 'message' => 'Security check failed. Invalid nonce.' ) );
         wp_die(); // Always exit after sending JSON response in AJAX handlers
@@ -477,6 +477,15 @@ function c33d_download_asset()
             if ( is_wp_error( $result ) ) {
                 wp_send_json_error( array( 'message' => $result->get_error_message(), 'errors' => $result->get_error_data() ) );
             } else {
+
+                $imported_assets = get_option( 'c33d_imported_assets', array() );
+                $imported_assets[ $asset_name ] = array(
+                    'attachment_id'  => $result['attachment_id'],
+                    'attachment_url' => $result['attachment_url'],
+                    'type'           => $download_type,
+                );
+                update_option( 'c33d_imported_assets', $imported_assets );
+
                 wp_send_json_success( array(
                     'message'          => sprintf( '%s "%s" imported successfully!', ucwords($download_type), $asset_name ),
                     'attachment_id'    => $result['attachment_id'],
@@ -586,196 +595,6 @@ function c33d_handle_scene_json_fetch( $scene_url, $asset_id ) {
     return array(
         'scene_data' => $decoded_scene_data,
     );
-}
-
-
-add_action( 'wp_ajax_codesthree_import_demo', 'codesthree_handle_demo_import_ajax' );
-/**
- * Handles the AJAX request to download an external 3D model (or other file)
- * and import it into the WordPress Media Library.
- *
- * This function performs security checks, downloads the file from the provided URL,
- * and then uses WordPress's media handling functions to save it.
- */
-function codesthree_handle_demo_import_ajax() {
-    if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'codesthree_local_ajax_nonce' ) ) {
-        wp_send_json_error( array( 'message' => 'Security check failed. Invalid nonce.' ) );
-        wp_die(); // Always exit after sending JSON response in AJAX handlers
-    }
-
-    if ( ! current_user_can( 'upload_files' ) ) {
-        wp_send_json_error( array( 'message' => 'You do not have permission to import files.' ) );
-        wp_die();
-    }
-
-    // 3. Retrieve and Sanitize Input from the AJAX request
-    $demo_id   = isset( $_POST['demo_id'] ) ? sanitize_text_field( wp_unslash( $_POST['demo_id'] ) ) : '';
-    $file_url  = isset( $_POST['file_url'] ) ? esc_url_raw( wp_unslash( $_POST['file_url'] ) ) : ''; // esc_url_raw is important for external URLs
-    $file_type = isset( $_POST['file_type'] ) ? sanitize_text_field( wp_unslash( $_POST['file_type'] ) ) : ''; // Optional: for more precise MIME detection
-
-    // Basic validation of inputs
-    if ( empty( $demo_id ) || empty( $file_url ) ) {
-        wp_send_json_error( array( 'message' => 'Missing demo ID or file URL in request.' ) );
-        wp_die();
-    }
-
-    // Optional but Recommended: Whitelist the domain(s) from which you allow downloads.
-    // This prevents your server from being used to download files from arbitrary URLs.
-    $allowed_domains = array( 'c33d.kaurib.com' ); // Add all domains your demos are hosted on.
-    $parsed_url = wp_parse_url( $file_url );
-    if ( ! isset( $parsed_url['host'] ) || ! in_array( $parsed_url['host'], $allowed_domains, true ) ) {
-        wp_send_json_error( array( 'message' => 'File URL is not from an allowed source.' ) );
-        wp_die();
-    }
-
-    // 4. Include WordPress core media handling functions
-    // These are crucial for download_url() and media_handle_sideload().
-    require_once( ABSPATH . 'wp-admin/includes/file.php' );
-    require_once( ABSPATH . 'wp-admin/includes/image.php' );
-    require_once( ABSPATH . 'wp-admin/includes/media.php' );
-
-    // 5. Download the file to a temporary location on your WordPress server.
-    $tmp_file = download_url( $file_url );
-
-    // Check for errors during download
-    if ( is_wp_error( $tmp_file ) ) {
-        wp_send_json_error( array(
-            'message' => 'Failed to download file from external source.',
-            'errors'  => $tmp_file->get_error_message()
-        ) );
-        wp_die();
-    }
-
-    // 6. Prepare the file array for media_handle_sideload()
-    $file_array = array(
-        'name'     => basename( $file_url ), // Use original filename from URL
-        'tmp_name' => $tmp_file, // The path to the downloaded temporary file
-    );
-
-    // If you have a specific file type hint from frontend, you can use it.
-    // Otherwise, WordPress will try to determine the MIME type.
-    if ( ! empty( $file_type ) ) {
-        // Map common 3D file types to their MIME types if needed for accuracy.
-        $known_mime_types = array(
-            'glb'  => 'model/gltf-binary',
-            'gltf' => 'model/gltf+json',
-            'hdr'  => 'image/vnd.radiance', // Common for HDR environments
-            'obj'  => 'model/obj',
-            // Add more as needed
-        );
-        if ( isset( $known_mime_types[ $file_type ] ) ) {
-            $file_array['type'] = $known_mime_types[ $file_type ];
-        }
-    }
-
-
-    // 7. Sideload the file into the WordPress Media Library.
-    // $post_id = 0 means it won't be attached to a specific post.
-    // The description can be used for the attachment title.
-    $attachment_id = media_handle_sideload( $file_array, 0, sprintf( 'Imported %s demo model', $demo_id ) );
-
-    // 8. Clean up the temporary file, regardless of sideload success/failure.
-    // @unlink( $file_array['tmp_name'] );
-    wp_delete_file( $file_array['tmp_name'] );
-
-    // 9. Check for errors during sideloading
-    if ( is_wp_error( $attachment_id ) ) {
-        wp_send_json_error( array(
-            'message' => 'Failed to import file to Media Library.',
-            'errors'  => $attachment_id->get_error_message()
-        ) );
-        wp_die();
-    }
-
-    // 10. Success! Return details of the newly created attachment.
-    $attachment_url  = wp_get_attachment_url( $attachment_id );
-    // You might also want to get other meta, e.g., for Three.js configuration.
-    // $attachment_meta = wp_get_attachment_metadata( $attachment_id );
-
-    wp_send_json_success( array(
-        'message'          => sprintf( 'Model "%s" imported successfully!', $demo_id ),
-        'attachment_id'    => $attachment_id,
-        'attachment_url'   => $attachment_url,
-        'demo_id_requested' => $demo_id,
-        // Optional: Increment your download counter here
-        // $current_downloads = (int) get_option( 'codesthree_demo_downloads_' . $demo_id, 0 );
-        // update_option( 'codesthree_demo_downloads_' . $demo_id, $current_downloads + 1 );
-    ) );
-
-    wp_die(); // Essential: terminate script execution properly after AJAX response
-}
-
-
-add_action( 'wp_ajax_codesthree_import_scene_config', 'codesthree_handle_scene_config_import_ajax' );
-
-/**
- * Handles the AJAX request to download an external scene configuration (JSON)
- * and return its content to the frontend.
- */
-function codesthree_handle_scene_config_import_ajax() {
-    // 1. Security Check: Verify Nonce
-    if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'codesthree_local_ajax_nonce' ) ) {
-        wp_send_json_error( array( 'message' => 'Security check failed. Invalid nonce.' ) );
-        wp_die();
-    }
-
-    // 2. Capability Check: Ensure user has permission to access this admin functionality.
-    // 'edit_posts' is a good general capability for admin actions.
-    if ( ! current_user_can( 'edit_posts' ) ) {
-        wp_send_json_error( array( 'message' => 'You do not have permission to import scene configurations.' ) );
-        wp_die();
-    }
-
-    // 3. Retrieve and Sanitize Input from the AJAX request
-    $scene_id  = isset( $_POST['scene_id'] ) ? sanitize_text_field( wp_unslash( $_POST['scene_id'] ) ) : '';
-    $scene_url = isset( $_POST['scene_url'] ) ? esc_url_raw( wp_unslash( $_POST['scene_url'] ) ) : '';
-
-    if ( empty( $scene_id ) || empty( $scene_url ) ) {
-        wp_send_json_error( array( 'message' => 'Missing scene ID or URL in request.' ) );
-        wp_die();
-    }
-
-    // Optional but Recommended: Whitelist the domain(s) from which you allow scene config downloads.
-    $allowed_config_domains = array( 'c33d.kaurib.com' ); // Your external server
-    $parsed_url = wp_parse_url( $scene_url );
-    if ( ! isset( $parsed_url['host'] ) || ! in_array( $parsed_url['host'], $allowed_config_domains, true ) ) {
-        wp_send_json_error( array( 'message' => 'Scene URL is not from an allowed source.' ) );
-        wp_die();
-    }
-
-    // 4. Fetch the JSON content from the external URL
-    $response = wp_remote_get( $scene_url );
-
-    if ( is_wp_error( $response ) ) {
-        wp_send_json_error( array(
-            'message' => 'Failed to fetch scene configuration from external URL.',
-            'errors'  => $response->get_error_message()
-        ) );
-        wp_die();
-    }
-
-    $json_string = wp_remote_retrieve_body( $response );
-
-    // 5. Decode the JSON string into a PHP array
-    $decoded_scene_data = json_decode( $json_string, true ); // 'true' for associative array
-
-    if ( json_last_error() !== JSON_ERROR_NONE ) {
-        wp_send_json_error( array(
-            'message' => 'Failed to decode scene configuration JSON.',
-            'errors'  => json_last_error_msg()
-        ) );
-        wp_die();
-    }
-
-    // 6. Success! Return the decoded scene data to the frontend.
-    // The frontend JS will then use this data to update the editor.
-    wp_send_json_success( array(
-        'message'   => sprintf( 'Scene configuration for "%s" fetched successfully!', $scene_id ),
-        'scene_data' => $decoded_scene_data, // Send the actual decoded data
-        'scene_id_requested' => $scene_id
-    ) );
-
-    wp_die(); // Always terminate script execution properly
 }
 
 // Admin page content
