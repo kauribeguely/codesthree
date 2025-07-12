@@ -848,7 +848,7 @@ function code33d_editor_page($post) {
   // Output the form
     ?>
     <!-- start HTMLs -->
-    <div id="threejs-editor-container">
+    <div id="c33d-editor">
         <script type="importmap">
             {
                 "imports": {
@@ -878,56 +878,56 @@ function code33d_editor_page($post) {
 
 
                         <!-- Demo Objects Section -->
-                        <section id='demo-models'>
+                        <section class='demo-models'>
                             <h2>Add a model</h2>
                             <h3>Demos</h3>
                             <div class="demo-grid demo-three-column">
                                 <!-- Demo Object 1: Phone -->
-                                <div class="demo-grid-item download-button"
+                                <div class="demo-grid-item c33-download"
                                     data-asset-name="phone" 
                                     data-download-type="model">
                                     <img src="<?php echo esc_url($pluginUrl . '/assets/img/phone.jpg'); ?>" alt="Demo Phone">
                                     
                                     <div class='c3_button_with_text'>
                                         <h4>Phone</h4>
-                                        <!-- <button class="download-button" type="button"
+                                        <!-- <button class="c33-download" type="button"
                                         data-asset-name="phone" 
                                         data-download-type="model">+</button> -->
                                     </div>
-                                    <div class="download-button-overlay">
+                                    <div class="c33-download-overlay">
                                         <p>Add to scene</p>
                                     </div>
                                 </div>
 
                                 <!-- Demo Object 2: Laptop -->
-                                <div class="demo-grid-item download-button"
+                                <div class="demo-grid-item c33-download"
                                     data-asset-name="laptop" 
                                     data-download-type="model">
                                     <img src="<?php echo esc_url($pluginUrl . '/assets/img/laptop.jpg'); ?>" alt="Demo Laptop">
                                     
                                     <div class='c3_button_with_text'>
                                         <h4>Laptop</h4>
-                                        <!-- <button class="download-button" type="button"
+                                        <!-- <button class="c33-download" type="button"
                                         data-asset-name="phone" 
                                         data-download-type="model">+</button> -->
                                     </div>
-                                    <div class="download-button-overlay">
+                                    <div class="c33-download-overlay">
                                         <p>Add to scene</p>
                                     </div>
                                 </div>
 
                                 <!-- Demo Object 3: Star -->
-                                <div class="demo-grid-item download-button"
+                                <div class="demo-grid-item c33-download"
                                     data-asset-name="star" 
                                     data-download-type="model">
                                     <img src="<?php echo esc_url($pluginUrl . '/assets/img/star.jpg'); ?>" alt="Demo Star">
                                     <div class='c3_button_with_text'>
                                         <h4>Star</h4>
-                                        <!-- <button class="download-button" type="button"
+                                        <!-- <button class="c33-download" type="button"
                                         data-asset-name="phone" 
                                         data-download-type="model">+</button> -->
                                     </div>
-                                    <div class="download-button-overlay">
+                                    <div class="c33-download-overlay">
                                         <p>Add to scene</p>
                                     </div>
                                 </div>
@@ -936,7 +936,7 @@ function code33d_editor_page($post) {
                                                 <!-- Open/Upload Model Section -->
                         <section id="upload-existing">
                             <h3>Upload/Existing</h3>
-                                <button type="button" id="mediaLibraryBtn">
+                                <button type="button" class="c33d_media_library">
                                     Media Library
                                 </button>
                         </section>
@@ -948,62 +948,62 @@ function code33d_editor_page($post) {
                 <h2>Import Demo Scene</h2>
                 <div class="demo-grid">
                     <!-- Demo Object 1: Phone -->
-                    <div class="demo-grid-item download-button"
+                    <div class="demo-grid-item c33-download"
                         data-asset-name="phone" 
                         data-download-type="scene">
                         <img src="<?php echo esc_url($pluginUrl . '/assets/img/phone.jpg'); ?>" alt="Demo Phone">
                         
                         <div class='c3_button_with_text'>
                             <h4>Phone</h4>
-                            <!-- <button class="download-button" type="button"
+                            <!-- <button class="c33-download" type="button"
                             data-asset-name="phone" 
                             data-download-type="model">+</button> -->
                         </div>
-                        <div class="download-button-overlay">
+                        <div class="c33-download-overlay">
                             <p>Add to scene</p>
                         </div>
                     </div>
 
                     <!-- Demo Object 2: Laptop -->
-                    <div class="demo-grid-item download-button"
+                    <div class="demo-grid-item c33-download"
                         data-asset-name="phone" 
                         data-download-type="scene">
                         <img src="<?php echo esc_url($pluginUrl . '/assets/img/laptop.jpg'); ?>" alt="Demo Laptop">
                         
                         <div class='c3_button_with_text'>
                             <h4>Laptop</h4>
-                            <!-- <button class="download-button" type="button"
+                            <!-- <button class="c33-download" type="button"
                             data-asset-name="phone" 
                             data-download-type="model">+</button> -->
                         </div>
-                        <div class="download-button-overlay">
+                        <div class="c33-download-overlay">
                             <p>Add to scene</p>
                         </div>
                     </div>
 
                     <!-- Demo Object 3: Star -->
-                    <div class="demo-grid-item download-button"
+                    <div class="demo-grid-item c33-download"
                         data-asset-name="phone" 
                         data-download-type="scene">
                         <img src="<?php echo esc_url($pluginUrl . '/assets/img/star.jpg'); ?>" alt="Demo Star">
                         <div class='c3_button_with_text'>
                             <h4>Star</h4>
-                            <!-- <button class="download-button" type="button"
+                            <!-- <button class="c33-download" type="button"
                             data-asset-name="phone" 
                             data-download-type="model">+</button> -->
                         </div>
-                        <div class="download-button-overlay">
+                        <div class="c33-download-overlay">
                             <p>Add to scene</p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div style="display: flex; justify-content: center; background: black; padding: 10px;">
+        <div style="display: flex; justify-content: center; background: var(--c33d-bg-dark-blue); padding: 10px;">
             <button id="toggleControls" type="button">Toggle Controls</button>
         </div>
         <div id = "canvasAndControls">
-            <div id="threejs-canvas" style="width: 100%; height: var(--canvas-height);"></div>
+            <div id="threejs-canvas" style="width: 100%; height: var(--c33d-canvas-height);"></div>
             <!-- <div id="codes_controls"> -->
                 <div class='topTransforms'>
 
@@ -1019,15 +1019,22 @@ function code33d_editor_page($post) {
 
           <div class='leftControls'>
             <div class='leftContInner'>
-                <div id="objectListContainer" style="">    <strong>Scene Objects</strong>
+                <!-- <h2> Scene Objects</h2> -->
+                <div id="objectListContainer" style="">   
                     <ul id="sceneObjectList" style="list-style: none; padding: 0; margin: 0;">
                     </ul>
                 </div>
 
                 <label>Add Object</label>
             
+                <label>3D Models 🧊</label>
+                <!-- <div class="transform-group"> -->
+                    <button style="" type="button" class="button c33d_media_library" >Upload/Library <span class="dashicons dashicons-admin-media"></span></button>
+                    <button style="" type="button" class="button" id="add_model_button" >Demos <span class="dashicons dashicons-download"></span></button>
+                <!-- </div> -->
+                <label>Others</label>
                 <div class="transform-group">
-                    <button style="width: 50%;" type="button" class="button" id="add_model_button" >Model 🧊</button>
+                    <!-- <button style="width: 50%;" type="button" class="button" id="add_model_button" >Model 🧊</button> -->
                     <button style="width: 50%;" type="button" class="button" id="add_group_button" >Group 📁</button>
                 </div>
             </div>
@@ -1060,7 +1067,7 @@ function code33d_editor_page($post) {
             </div>
             <div class='tabContent cobject'>
                 <fieldset>
-                    <strong>Position</strong>
+                    <label>Position</label>
                     <div class="transform-group">
                     <div class="transform-field">
                         <label for="threejs_position_x">X</label>
@@ -1078,7 +1085,7 @@ function code33d_editor_page($post) {
                 </fieldset>
 
                 <fieldset>
-                    <strong>Rotation</strong>
+                    <label>Rotation</label>
                     <div class="transform-group">
                     <div class="transform-field">
                         <label for="threejs_rotation_x">X</label>
@@ -1095,15 +1102,17 @@ function code33d_editor_page($post) {
                     </div>
                 </fieldset>
 
-                <p>
-                <strong>Scale (model): </strong><input type="number" name="scale" id="codes_scale" value="<?php echo esc_attr($scale); ?>" step="0.01" />
-                </p>
-
+                <label>
+                Scale (model):<input type="number" name="scale" class="w-full" id="codes_scale" value="<?php echo esc_attr($scale); ?>" step="0.01" />
+                </label>
+                <hr>
                 <div style="">
                     <label for="parentSelector">Move to group:</label>
                     <select id="parentSelector" style="width: 100%; padding: 5px;"></select>
-                <p>Current group: <span id='current-group-label'></span></p>
+                <label>Current group: <span id='current-group-label'></span></label>
                 </div>
+
+                <hr>
 
                 <div class="transform-group">
                     <button style="width: 50%;" type="button" class="button" id="delete_model_button">Delete</button>
@@ -1113,7 +1122,7 @@ function code33d_editor_page($post) {
             
             <div class='tabContent csettings'>
                 <label>Breakpoint (px)
-                    <input id="breakPoint" type="number" value="<?php echo esc_attr($breakpoint); ?>">
+                    <input id="breakPoint" class="w-full" type="number" value="<?php echo esc_attr($breakpoint); ?>">
                 </label>
                 <button id="mobileMode" type="button">Mobile View</button>
             </div>
@@ -1186,18 +1195,18 @@ function code33d_editor_page($post) {
                 <!-- Directional Light Position -->
                 <label>Directional Light Position</label>
                 <div class="transform-group">
-                <div class="transform-field">
-                    <label for="lightPosX">X</label>
-                    <input type="number" name="lightPosX" id="lightPosX" step="0.1" value="<?php echo esc_attr($light_pos_x); ?>">
-                </div>
-                <div class="transform-field">
-                    <label for="lightPosY">Y</label>
-                    <input type="number" name="lightPosY" id="lightPosY" step="0.1" value="<?php echo esc_attr($light_pos_y); ?>">
-                </div>
-                <div class="transform-field">
-                    <label for="lightPosZ">Z</label>
-                    <input type="number" name="lightPosZ" id="lightPosZ" step="0.1" value="<?php echo esc_attr($light_pos_z); ?>">
-                </div>
+                    <div class="transform-field">
+                        <label for="lightPosX">X</label>
+                        <input type="number" name="lightPosX" id="lightPosX" step="0.1" value="<?php echo esc_attr($light_pos_x); ?>">
+                    </div>
+                    <div class="transform-field">
+                        <label for="lightPosY">Y</label>
+                        <input type="number" name="lightPosY" id="lightPosY" step="0.1" value="<?php echo esc_attr($light_pos_y); ?>">
+                    </div>
+                    <div class="transform-field">
+                        <label for="lightPosZ">Z</label>
+                        <input type="number" name="lightPosZ" id="lightPosZ" step="0.1" value="<?php echo esc_attr($light_pos_z); ?>">
+                    </div>
                 </div>
 
                 <label>
@@ -1266,60 +1275,60 @@ function code33d_editor_page($post) {
                     &times;
                 </button>
 
-                <!-- Open/Upload Model Section -->
-                <section style="
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;">
-                    <h2>Open/Upload Model</h2>
-                    <div class="text-center">
-                        <button type="button" id="mediaLibraryBtn">
-                            Media Library
-                        </button>
-                    </div>
-                </section>
-
                 <!-- Demo Objects Section -->
-                <section>
-                    <h2>Download Demo Objects</h2>
-                    <div class="demo-grid">
+                    <!-- <h2>Download Demo Objects</h2> -->
+                    <h2>Demo Objects</h2>
+                    <div class="demo-grid demo-three-column">
                         <!-- Demo Object 1: Phone -->
-                        <div class="demo-grid-item">
+                        <div class="demo-grid-item c33-download"
+                            data-asset-name="phone" 
+                            data-download-type="model">
                             <img src="<?php echo esc_url($pluginUrl . '/assets/img/phone.jpg'); ?>" alt="Demo Phone">
-                            <h4>Phone</h3>
-                            <div class="download-button-overlay">
-                                <button class="download-button" type="button"
+                            
+                            <div class='c3_button_with_text'>
+                                <h4>Phone</h4>
+                                <!-- <button class="c33-download" type="button"
                                 data-asset-name="phone" 
-                                data-download-type="model">Download</button>
-                                <span class="overlay-text">~5 MB</span>
+                                data-download-type="model">+</button> -->
+                            </div>
+                            <div class="c33-download-overlay">
+                                <p>Add to scene</p>
                             </div>
                         </div>
 
                         <!-- Demo Object 2: Laptop -->
-                        <div class="demo-grid-item">
+                        <div class="demo-grid-item c33-download"
+                            data-asset-name="laptop" 
+                            data-download-type="model">
                             <img src="<?php echo esc_url($pluginUrl . '/assets/img/laptop.jpg'); ?>" alt="Demo Laptop">
-                            <h3>Laptop</h3>
-                            <div class="download-button-overlay">
-                                <button class="download-button" type="button"
-                                data-asset-name="laptop" 
-                                data-download-type="model">Download</button>
-                                <span class="overlay-text">26 KB</span>
+                            
+                            <div class='c3_button_with_text'>
+                                <h4>Laptop</h4>
+                                <!-- <button class="c33-download" type="button"
+                                data-asset-name="phone" 
+                                data-download-type="model">+</button> -->
+                            </div>
+                            <div class="c33-download-overlay">
+                                <p>Add to scene</p>
                             </div>
                         </div>
 
                         <!-- Demo Object 3: Star -->
-                        <div class="demo-grid-item">
+                        <div class="demo-grid-item c33-download"
+                            data-asset-name="star" 
+                            data-download-type="model">
                             <img src="<?php echo esc_url($pluginUrl . '/assets/img/star.jpg'); ?>" alt="Demo Star">
-                            <h3>Star</h3>
-                            <div class="download-button-overlay">
-                                <button class="download-button" type="button"
-                                data-asset-name="star" 
-                                data-download-type="model">Download</button>
-                                <span class="overlay-text">10 KB</span>
+                            <div class='c3_button_with_text'>
+                                <h4>Star</h4>
+                                <!-- <button class="c33-download" type="button"
+                                data-asset-name="phone" 
+                                data-download-type="model">+</button> -->
+                            </div>
+                            <div class="c33-download-overlay">
+                                <p>Add to scene</p>
                             </div>
                         </div>
                     </div>
-                </section>
             </div>
         </div>
         <!-- end media popup -->

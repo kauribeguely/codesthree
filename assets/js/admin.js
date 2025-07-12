@@ -726,7 +726,7 @@ function toggleCamera()
       else
       {
         //when intiate new scene, show the open popup
-        showUploadPopup();
+        showIntroPopup();
       }
 
       scene.add(groupControls);
@@ -744,10 +744,16 @@ function toggleCamera()
       updateSaveField();
     }
 
-    function showUploadPopup()
+    function showIntroPopup()
     {      
         popup.style.display = 'flex';
         popupOpen = true;
+    }
+
+    function hideIntroPopup()
+    {      
+        popup.style.display = 'none';
+        popupOpen = false;
     }
 
     function loadEnvTexture(url)
@@ -1257,7 +1263,8 @@ function transformDragEnd(){
 
     // Handle WordPress Media Library for Model URL
     const mediaButton = document.getElementById('threejs_model_url_button');
-    const popupMediaButton = document.getElementById('popup_media_button');
+    // const popupMediaButton = document.getElementById('popup_media_button');
+    // const popupMediaButton = document.getElementById('mediaLibraryBtn');
     const addModelButton = document.getElementById('add_model_button');
     const addGroupButton = document.getElementById('add_group_button');
     const deleteModelButton = document.getElementById('delete_model_button');
@@ -1267,26 +1274,57 @@ function transformDragEnd(){
 
     
     const closeModalBtn = document.getElementById('closeModalBtn');
-    const mediaLibraryBtn = document.getElementById('mediaLibraryBtn');
+    const mediaLibraryButtons = document.querySelectorAll('.c33d_media_library');
     
     const parentInput = document.getElementById('parentSelector');
     const currentGroupLabel = document.getElementById('current-group-label');
 
 
     let popupOpen = false;
+    let demoModelPopupOpen = false;
     //TODO: check whether it's replace selected url or add new model
     deleteModelButton.addEventListener('click', deleteObject);
 
 
-    popupMediaButton.addEventListener('click', function (e) {
-        // openMediaUploader(e);
-        toggleMediaModal();
+    mediaLibraryButtons.forEach(button => {
+        button.addEventListener('click', handleMediaButtonClick);
     });
 
-    mediaButton.addEventListener('click', function (e) {
-        // openMediaUploader(e);
+    function handleMediaButtonClick(e)
+    {
+      if(popupOpen)
+      {
+        hideIntroPopup();
+      }
+      if(demoModelPopupOpen)
+      {
         toggleMediaModal();
-    });
+      }
+      openMediaUploader(e);
+    }
+
+    function openMediaUploader(e)
+    {
+      e.preventDefault();
+      mediaUploader.open();
+    }
+
+    // popupMediaButton.addEventListener('click', function (e) {
+    //     // openMediaUploader(e);
+    //     if(popupOpen)
+    //     {
+    //       hideIntroPopup();
+    //     }
+    //     if(demoModelPopupOpen)
+    //     {
+    //     }
+    //     toggleMediaModal();
+    // });
+
+    // mediaButton.addEventListener('click', function (e) {
+    //     // openMediaUploader(e);
+    //     toggleMediaModal();
+    // });
 
     addModelButton.addEventListener('click', function (e) {
         // openMediaUploader(e);
@@ -1294,17 +1332,13 @@ function transformDragEnd(){
     });
 
     closeModalBtn.addEventListener('click', toggleMediaModal);
-    mediaLibraryBtn.addEventListener('click', openMediaUploader);
+    // mediaLibraryBtn.addEventListener('click', openMediaUploader);
 
     addGroupButton.addEventListener('click', function (e) {
         createObject('group');
     });
 
-    function openMediaUploader(e)
-    {
-      e.preventDefault();
-      mediaUploader.open();
-    }
+  
 
 
     const mediaUploader = wp.media({
@@ -1334,8 +1368,7 @@ function transformDragEnd(){
 
         if(popupOpen)
         {
-          popupOpen = false;
-          popup.style.display = 'none';
+          hideIntroPopup();
         }
 
     });
@@ -1344,7 +1377,7 @@ function transformDragEnd(){
     {
         // Get references to modal elements (assuming your modal HTML is in the DOM)
         const modelImportModal = document.getElementById('modelImportModal');
-        const downloadButtons = document.querySelectorAll('.download-button'); // Select all download buttons
+        const downloadButtons = document.querySelectorAll('.c33-download'); // Select all download buttons
 
         // Close modal if user clicks outside the modal content
         modelImportModal.addEventListener('click', (event) => {
@@ -1356,8 +1389,8 @@ function transformDragEnd(){
         // Add event listeners to all download buttons
         downloadButtons.forEach(button => {
             button.addEventListener('click', async (event) => {
-                const assetName = event.target.dataset.assetName;
-                const downloadType = event.target.dataset.downloadType;
+                const assetName = event.currentTarget.dataset.assetName;
+                const downloadType = event.currentTarget.dataset.downloadType;
 
                 if (!assetName) {
                     return;
@@ -1366,9 +1399,13 @@ function transformDragEnd(){
                 try {
                     // const downloadResult = await initiateAjaxDownload(fileUrl, demoObject, fileType, event.target);
                     const downloadResult = await downloadAsset(assetName, downloadType);
-                        alert(`"${assetIdForDisplay}" (${downloadType}) imported to Media Library successfully!`);
+                        // alert(`"${assetName}" (${downloadType}) imported to Media Library successfully!`);
                         if (downloadResult.attachment_url) {
                             loadModel(downloadResult.attachment_url); // Call your model loader with the URL
+                            if(popupOpen)
+                            {
+                              hideIntroPopup();
+                            }
                             console.log('loadModel() called with:', downloadResult.attachment_url); // Specific log
                         } else {
                             console.warn('Import successful, but no attachment URL received for individual asset.');
@@ -1606,9 +1643,9 @@ function transformDragEnd(){
       // window.addEventListener('scroll', (event) => {
       // document.querySelector('.edit-post-layout__metaboxes').addEventListener('scroll', (event) => {
       let scrollElement;
-      if(document.querySelector('#threejs-editor-container').closest('.edit-post-layout__metaboxes'))
+      if(document.querySelector('#c33d-editor').closest('.edit-post-layout__metaboxes'))
       {
-        scrollElement = document.querySelector('#threejs-editor-container').closest('.edit-post-layout__metaboxes');
+        scrollElement = document.querySelector('#c33d-editor').closest('.edit-post-layout__metaboxes');
       }
       else
       {
@@ -2416,7 +2453,7 @@ function getThreeJsObjectByUuid(modelId)
       const selectedItem = sceneObjectList.querySelector(`[data-object-id="${uuid}"]`).parentNode;
       if (selectedItem) {
           selectedItem.style.fontWeight = 'bold';
-          selectedItem.style.backgroundColor = 'rgba(255,255,255,0.2)';
+          selectedItem.style.backgroundColor = 'var(--c33d-v-light-blue)';
       }
   }
 
@@ -2533,7 +2570,7 @@ function getThreeJsObjectByUuid(modelId)
       if(allThreeJsObj.length == 0)
       {
         controls.attach(rotateGroup);
-        showUploadPopup();
+        showIntroPopup();
       }
       else
       {
