@@ -709,6 +709,7 @@ function code33d_editor_page($post) {
                                     
                                     <div class='c3_button_with_text'>
                                         <h4>Phone</h4>
+                                        <span class="dashicons dashicons-image-rotate c3-loading-icon"></span>
                                         <!-- <button class="c33-download" type="button"
                                         data-asset-name="phone" 
                                         data-download-type="model">+</button> -->
@@ -726,6 +727,7 @@ function code33d_editor_page($post) {
                                     
                                     <div class='c3_button_with_text'>
                                         <h4>Laptop</h4>
+                                        <span class="dashicons dashicons-image-rotate c3-loading-icon"></span>
                                         <!-- <button class="c33-download" type="button"
                                         data-asset-name="phone" 
                                         data-download-type="model">+</button> -->
@@ -742,6 +744,7 @@ function code33d_editor_page($post) {
                                     <img src="<?php echo esc_url($pluginUrl . '/assets/img/star.jpg'); ?>" alt="Demo Star">
                                     <div class='c3_button_with_text'>
                                         <h4>Star</h4>
+                                        <span class="dashicons dashicons-image-rotate c3-loading-icon"></span>
                                         <!-- <button class="c33-download" type="button"
                                         data-asset-name="phone" 
                                         data-download-type="model">+</button> -->
@@ -774,6 +777,7 @@ function code33d_editor_page($post) {
                         
                         <div class='c3_button_with_text'>
                             <h4>Laptop and Phone</h4>
+                            <span class="dashicons dashicons-image-rotate c3-loading-icon"></span>
                             <!-- <button class="c33-download" type="button"
                             data-asset-name="phone" 
                             data-download-type="model">+</button> -->
@@ -791,6 +795,7 @@ function code33d_editor_page($post) {
                         
                         <div class='c3_button_with_text'>
                             <h4>Phone Stars</h4>
+                            <span class="dashicons dashicons-image-rotate c3-loading-icon"></span>
                             <!-- <button class="c33-download" type="button"
                             data-asset-name="phone" 
                             data-download-type="model">+</button> -->
@@ -807,6 +812,7 @@ function code33d_editor_page($post) {
                         <img src="<?php echo esc_url($pluginUrl . '/assets/img/star.jpg'); ?>" alt="Demo Star">
                         <div class='c3_button_with_text'>
                             <h4>Star</h4>
+                            <span class="dashicons dashicons-image-rotate c3-loading-icon"></span>
                             <!-- <button class="c33-download" type="button"
                             data-asset-name="phone" 
                             data-download-type="model">+</button> -->

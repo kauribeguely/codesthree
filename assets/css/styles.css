@@ -57,6 +57,15 @@
         padding-inline: 20px;
     }
 
+    .c3-loading-icon
+    {
+        animation: load-icon-rotate infinite 2s linear;
+        color: #E29519;
+        display: none;
+        z-index: 2;
+    }
+
+
     button:hover
     {
         background-color: var(--c33d-v-light-blue);
@@ -666,4 +675,17 @@
   }
 
 
+
+
+
+  
+    @keyframes load-icon-rotate {
+        from {
+            rotate: 0deg;
+        }
+
+        to {
+            rotate: -360deg;
+        }
+    }
 

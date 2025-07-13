@@ -11,7 +11,7 @@ const ajaxUrl = localisedData.ajax_url;
 const ajaxNonce = localisedData.ajax_nonce;
 console.log('Three.js Transform Data:', allSceneData);
 const importedDemoAssets = JSON.parse(localisedData.importedDemoAssets);
-            
+let downloadInProgress = false;            
 
 
 class ModelConfig {
@@ -1445,17 +1445,21 @@ function transformDragEnd(){
         // Add event listeners to all download buttons
         downloadButtons.forEach(button => {
             button.addEventListener('click', async (event) => {
+              if(!downloadInProgress)
+              {
+                downloadInProgress = true;
+                button.querySelector('.c3-loading-icon').style.display = 'block';
                 const assetName = event.currentTarget.dataset.assetName;
-                const downloadType = event.currentTarget.dataset.downloadType;                
-                const modelsNeeded = event.currentTarget.dataset.modelList;
+                const downloadType = event.currentTarget.dataset.downloadType;
                 if(downloadType == 'scene')
                 {
-                  downloadInitFullScene(assetName);
+                  downloadInitFullScene(assetName, button);
                 }
                 else
                 {
-                  downloadOrAddAsset(assetName, downloadType);
+                  downloadOrAddAsset(assetName, downloadType, button);
                 }
+              }
             });
           console.log('Demo modal listeners setup complete.');
       });
@@ -1476,6 +1480,8 @@ function transformDragEnd(){
           {
             toggleMediaModal();
           }
+          downloadInProgress = false;
+          button.querySelector('.c3-loading-icon').style.display = 'none';
       }
       else
       {
@@ -1500,6 +1506,8 @@ function transformDragEnd(){
                     {
                       toggleMediaModal();
                     }
+                    downloadInProgress = false;
+                    button.querySelector('.c3-loading-icon').style.display = 'none';
                     console.log('loadModel() called with:', downloadResult.attachment_url); // Specific log
                 } else {
                     console.warn('Import successful, but no attachment URL received for individual asset.');
@@ -2764,7 +2772,7 @@ function getThreeJsObjectByUuid(modelId)
 
       // async function initiateSceneConfigImport(sceneUrl, sceneId, buttonElement = null) {
       // async function downloadInitFullScene(sceneName, modelList) 
-      async function downloadInitFullScene(sceneName) 
+      async function downloadInitFullScene(sceneName, button) 
       {
 
         // initiateSceneConfigImport('https://c33d.kaurib.com/scenes/scene1.json', 'scene1');  
@@ -2814,6 +2822,8 @@ function getThreeJsObjectByUuid(modelId)
                 {
                   toggleMediaModal();
                 }
+                downloadInProgress = false;
+                button.querySelector('.c3-loading-icon').style.display = 'none';
             }
             // initGlobalSettings(sceneConfig.globalSettings);
             updateSaveField(); // Now this will save the *imported* scene data
