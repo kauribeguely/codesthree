@@ -768,12 +768,12 @@ function code33d_editor_page($post) {
                 <div class="demo-grid">
                     <!-- Demo Object 1: Phone -->
                     <div class="demo-grid-item c33-download"
-                        data-asset-name="phone" 
+                        data-asset-name="scene1" 
                         data-download-type="scene">
                         <img src="<?php echo esc_url($pluginUrl . '/assets/img/phone.jpg'); ?>" alt="Demo Phone">
                         
                         <div class='c3_button_with_text'>
-                            <h4>Phone</h4>
+                            <h4>Scene 1</h4>
                             <!-- <button class="c33-download" type="button"
                             data-asset-name="phone" 
                             data-download-type="model">+</button> -->
@@ -785,7 +785,7 @@ function code33d_editor_page($post) {
 
                     <!-- Demo Object 2: Laptop -->
                     <div class="demo-grid-item c33-download"
-                        data-asset-name="phone" 
+                        data-asset-name="phonestars" 
                         data-download-type="scene">
                         <img src="<?php echo esc_url($pluginUrl . '/assets/img/laptop.jpg'); ?>" alt="Demo Laptop">
                         
@@ -802,7 +802,7 @@ function code33d_editor_page($post) {
 
                     <!-- Demo Object 3: Star -->
                     <div class="demo-grid-item c33-download"
-                        data-asset-name="phone" 
+                        data-asset-name="scene1" 
                         data-download-type="scene">
                         <img src="<?php echo esc_url($pluginUrl . '/assets/img/star.jpg'); ?>" alt="Demo Star">
                         <div class='c3_button_with_text'>

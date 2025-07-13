@@ -781,8 +781,7 @@ function toggleCamera()
       updateParentList();  
     }
     
-    // function initFromImport(importString)
-    function initFromImport(importJson)
+    function initFromJson(importJson)
     {
       // let importString = '{"globalSettings":{"ambientLightIntensity":0.5,"directionalLightIntensity":1,"lightPosX":5,"lightPosY":10,"lightPosZ":7.5,"useEnvLight":true,"isOrthoCamera":false,"mouseAnimationLink":true,"mouseRotationX":6,"mouseRotationY":6,"mouseRotationZ":0,"scrollAnimationLink":false,"scrollMoveX":0,"scrollMoveY":5,"scrollMoveZ":0,"breakpoint":768,"modelUrl":"http://localhost/wpLocalEdge/wp-content/uploads/2025/06/phoneWhite.glb","breakPoint":768},"models":[[{"modelId":"cc842f75-5f2b-4ab3-b3bf-a63c3225c947","modelUrl":"http://localhost/wpLocalEdge/wp-content/uploads/2025/06/laptopCD.glb","modelName":"laptopCD.glb","positionX":-0.5485610472763248,"positionY":-0.6196226712307388,"positionZ":-1.2121505485711381,"rotationX":-4.681889054216438,"rotationY":43.31244929456555,"rotationZ":22.935199701058483,"scale":0.6399999999999997,"loopActive":false,"loopCountX":1,"type":"model","parentUuid":-1},{"modelId":"df6127bc-5aaf-493d-b334-3abaaef5ec1d","modelUrl":"http://localhost/wpLocalEdge/wp-content/uploads/2025/06/phoneWhite.glb","modelName":"phoneWhite.glb","positionX":1.7804044468391422,"positionY":1.204533054386354,"positionZ":-1.070533463623571,"rotationX":-148.2209293940659,"rotationY":-53.28320057979277,"rotationZ":-157.0488743547062,"scale":0.8,"loopActive":false,"loopCountX":1,"type":"model","parentUuid":-1}],[{"modelId":"84ad05fa-4094-494a-920b-b9f78754323e","modelUrl":"http://localhost/wpLocalEdge/wp-content/uploads/2025/06/laptopCD.glb","modelName":"laptopCD.glb","positionX":0,"positionY":0,"positionZ":0,"rotationX":0,"rotationY":0,"rotationZ":0,"scale":1,"loopActive":false,"loopCountX":1,"parentUuid":-1},{"modelId":"0af3addb-4fa6-4a51-aa57-7f9297415463","modelUrl":"http://localhost/wpLocalEdge/wp-content/uploads/2025/06/phoneWhite.glb","modelName":"phoneWhite.glb","positionX":0,"positionY":0,"positionZ":0,"rotationX":0,"rotationY":0,"rotationZ":0,"scale":1,"loopActive":false,"loopCountX":1,"parentUuid":-1}]]}';
       // allSceneData = JSON.parse(importString);
@@ -1381,18 +1380,52 @@ function transformDragEnd(){
         downloadButtons.forEach(button => {
             button.addEventListener('click', async (event) => {
                 const assetName = event.currentTarget.dataset.assetName;
-                const downloadType = event.currentTarget.dataset.downloadType;
-
-                if (!assetName) {
-                    return;
-                }
-
-                
-
-                  // importedDemoAssets['star'].attachment_url
-                if(importedDemoAssets[assetName])
+                const downloadType = event.currentTarget.dataset.downloadType;                
+                const modelsNeeded = event.currentTarget.dataset.modelList;
+                if(downloadType == 'scene')
                 {
-                    loadModel(importedDemoAssets[assetName].attachment_url);
+                  downloadInitFullScene(assetName);
+                }
+                else
+                {
+                  downloadOrAddAsset(assetName, downloadType);
+                }
+            });
+          console.log('Demo modal listeners setup complete.');
+      });
+    }
+
+    //checks whether already downloaded
+    async function downloadOrAddAsset(assetName, downloadType)
+    {
+      if(importedDemoAssets[assetName])
+      {
+          console.log(assetName + ' already downloaded, loading');
+          loadModel(importedDemoAssets[assetName].attachment_url);
+          if(popupOpen)
+          {
+            hideIntroPopup();
+          }
+          if(demoModelPopupOpen)
+          {
+            toggleMediaModal();
+          }
+      }
+      else
+      {
+        console.log(assetName + ' not downloaded, initiating download');
+        try {
+            // const downloadResult = await initiateAjaxDownload(fileUrl, demoObject, fileType, event.target);
+            const downloadResult = await downloadAsset(assetName, downloadType);
+                // alert(`"${assetName}" (${downloadType}) imported to Media Library successfully!`);
+                if (downloadResult.attachment_url) {
+                    loadModel(downloadResult.attachment_url); // Call your model loader with the URL
+                    importedDemoAssets[assetName] = {
+                      imported_at: new Date().toISOString(), // Record current time
+                      type: downloadType,
+                      attachment_id: downloadResult.attachment_id || null,
+                      attachment_url: downloadResult.attachment_url || null
+                  };
                     if(popupOpen)
                     {
                       hideIntroPopup();
@@ -1401,47 +1434,19 @@ function transformDragEnd(){
                     {
                       toggleMediaModal();
                     }
+                    console.log('loadModel() called with:', downloadResult.attachment_url); // Specific log
+                } else {
+                    console.warn('Import successful, but no attachment URL received for individual asset.');
                 }
-                else
-                {
-                  try {
-                      // const downloadResult = await initiateAjaxDownload(fileUrl, demoObject, fileType, event.target);
-                      const downloadResult = await downloadAsset(assetName, downloadType);
-                          // alert(`"${assetName}" (${downloadType}) imported to Media Library successfully!`);
-                          if (downloadResult.attachment_url) {
-                              loadModel(downloadResult.attachment_url); // Call your model loader with the URL
-                              importedDemoAssets[assetName] = {
-                                imported_at: new Date().toISOString(), // Record current time
-                                type: downloadType,
-                                attachment_id: downloadResult.attachment_id || null,
-                                attachment_url: downloadResult.attachment_url || null
-                            };
-                              if(popupOpen)
-                              {
-                                hideIntroPopup();
-                              }
-                              if(demoModelPopupOpen)
-                              {
-                                toggleMediaModal();
-                              }
-                              console.log('loadModel() called with:', downloadResult.attachment_url); // Specific log
-                          } else {
-                              console.warn('Import successful, but no attachment URL received for individual asset.');
-                          }
-                      // Handle successful download result (e.g., show message, update UI, close modal)
-                      // alert(`"${demoObject}" imported successfully! Attachment ID: ${downloadResult.attachment_id}`);
-                      // modelImportModal.classList.add('hidden-modal'); // Hide modal on success
-                  } catch (error) {
-                      // initiateAjaxDownload already alerts/logs, but you can add more specific handling here
-                      console.error('Demo download failed in setupDemoModal:', error);
-                      // alert(`Failed to import "${demoObject}". Please try again.`);
-                  }
-                }
-
-            });
-        });
-
-        console.log('Demo modal listeners setup complete.');
+            // Handle successful download result (e.g., show message, update UI, close modal)
+            // alert(`"${demoObject}" imported successfully! Attachment ID: ${downloadResult.attachment_id}`);
+            // modelImportModal.classList.add('hidden-modal'); // Hide modal on success
+        } catch (error) {
+            // initiateAjaxDownload already alerts/logs, but you can add more specific handling here
+            console.error('Demo download failed in setupDemoModal:', error);
+            // alert(`Failed to import "${demoObject}". Please try again.`);
+        }
+      }
     }
 
     // async function initiateAjaxDownload(fileUrl, demoId, fileType = '', buttonElement = null) {
@@ -1944,7 +1949,7 @@ function transformDragEnd(){
             case 'm':
               downloadInitFullScene('scene1', ['star', 'laptop']);
               // initiateSceneConfigImport('https://c33d.kaurib.com/scenes/scene1.json', 'scene1');  
-              // initFromImport();
+              // initFromJson();
                 break;
         }
     });
@@ -2695,6 +2700,7 @@ function getThreeJsObjectByUuid(modelId)
         }, 1000);
       }
 
+      //export scene data
       function copySceneDataToClipboard()
       {
         navigator.clipboard.writeText(JSON.stringify(allSceneData));
@@ -2709,7 +2715,8 @@ function getThreeJsObjectByUuid(modelId)
       }
 
       // async function initiateSceneConfigImport(sceneUrl, sceneId, buttonElement = null) {
-      async function downloadInitFullScene(sceneName, modelList) 
+      // async function downloadInitFullScene(sceneName, modelList) 
+      async function downloadInitFullScene(sceneName) 
       {
 
         // initiateSceneConfigImport('https://c33d.kaurib.com/scenes/scene1.json', 'scene1');  
@@ -2728,20 +2735,43 @@ function getThreeJsObjectByUuid(modelId)
             }
 
             console.log('Scene config downloaded:', sceneConfig);
-
+            // const modelList = sceneConfig.models[0];
             // 2. Download all required models concurrently based on the 'requiredModels' array
+            const modelsToProcess = sceneConfig.globalSettings.downloadModels
+                                    .split(' ')
+                                    .filter(name => name.trim() !== '');
             // if (modelList.length > 0) {
-            //     console.log('Models to download:', modelList);
-            //     // if (buttonElement) buttonElement.textContent = `Downloading ${requiredModels.length} Models...`;
+            if (modelsToProcess.length > 0) {
+                console.log('Models to download:', modelsToProcess);
+                // if (buttonElement) buttonElement.textContent = `Downloading ${requiredModels.length} Models...`;
 
-            //     const downloadPromises = modelList.map(modelName =>
-            //         downloadAsset(modelName, 'model') // Assuming all are 'model' type for simplicity here
-            //     );
-            //     const downloadedModelResults = await Promise.all(downloadPromises);
-            //     console.log('All models downloaded:', downloadedModelResults);
-
-            // }
-            initFromImport(sceneConfig);
+                //check if downloaded, if yes, do nothing, if no, wait till downloaded then run init
+                const downloadPromises = modelsToProcess.map(modelName => 
+                  {
+                    // downloadAsset(modelName, 'model')
+                    if(!importedDemoAssets[modelName])
+                    {
+                      // downloadOrAddAsset(modelName, 'model')
+                      downloadAsset(modelName, downloadType);
+                    }
+                  }
+                );
+                const downloadedModelResults = await Promise.all(downloadPromises);
+                console.log('All models downloaded:', downloadedModelResults);
+                if(popupOpen)
+                {
+                  hideIntroPopup();
+                }
+                if(demoModelPopupOpen)
+                {
+                  toggleMediaModal();
+                }
+            }
+            // initGlobalSettings(sceneConfig.globalSettings);
+            updateSaveField(); // Now this will save the *imported* scene data
+            isInitialLoad = true; 
+            itemsLoaded = 0;
+            initFromJson(sceneConfig);
           }
           catch (error) {
             console.error('Failed to download or initialize full scene:', error);
@@ -2788,7 +2818,7 @@ function getThreeJsObjectByUuid(modelId)
 
         //     if (result.success) {
         //         console.log('Scene import successful:', result.data);
-        //         initFromImport(result.data);
+        //         initFromJson(result.data);
         //         return result.data; // Return the entire data object from PHP, including scene_data
         //     } else {
         //         console.error('Scene import failed:', result.data.errors || result.data.message);
@@ -2804,7 +2834,6 @@ function getThreeJsObjectByUuid(modelId)
         //     }
         // }
     // }
-
 }
 
 
