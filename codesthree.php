@@ -773,7 +773,7 @@ function code33d_editor_page($post) {
                         <img src="<?php echo esc_url($pluginUrl . '/assets/img/phone.jpg'); ?>" alt="Demo Phone">
                         
                         <div class='c3_button_with_text'>
-                            <h4>Scene 1</h4>
+                            <h4>Laptop and Phone</h4>
                             <!-- <button class="c33-download" type="button"
                             data-asset-name="phone" 
                             data-download-type="model">+</button> -->
@@ -790,7 +790,7 @@ function code33d_editor_page($post) {
                         <img src="<?php echo esc_url($pluginUrl . '/assets/img/laptop.jpg'); ?>" alt="Demo Laptop">
                         
                         <div class='c3_button_with_text'>
-                            <h4>Laptop</h4>
+                            <h4>Phone Stars</h4>
                             <!-- <button class="c33-download" type="button"
                             data-asset-name="phone" 
                             data-download-type="model">+</button> -->

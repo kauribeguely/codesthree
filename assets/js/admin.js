@@ -139,6 +139,7 @@ window.onload = () =>
   // Get the toggle elements (checkboxes)
   const mouseAnimationLinkInput = document.getElementById('mouseAnimationLink');
   const scrollAnimationLinkInput = document.getElementById('scrollAnimationLink');
+  
   // Mousemove listener
   const targetRotation = new THREE.Vector3(); // Store the target rotation
   const currentRotation = new THREE.Vector3(); // Store the current rotation
@@ -148,9 +149,9 @@ window.onload = () =>
   const scrollYInput = document.getElementById('scrollMoveY');
   const scrollZInput = document.getElementById('scrollMoveZ');
   // Get the camera's initial position and the scroll movement values from sceneData
-  let scrollMoveX = sceneData.scrollMoveX;
-  let scrollMoveY = sceneData.scrollMoveY;
-  let scrollMoveZ = sceneData.scrollMoveZ;
+  let scrollMoveX;
+  let scrollMoveY;
+  let scrollMoveZ;
 
   // Get the mouse rotation inputs
   const mouseRotXInput = document.getElementById('mouseRotationX');
@@ -158,21 +159,223 @@ window.onload = () =>
   const mouseRotZInput = document.getElementById('mouseRotationZ');
 
 
-  let mouseRotationX = sceneData.mouseRotationX || 0; // Maximum rotation range in degrees
-  let mouseRotationY = sceneData.mouseRotationY || 0; // Maximum rotation range in degrees
-  let mouseRotationZ = sceneData.mouseRotationZ || 0; // Maximum rotation range in degrees
+  let mouseRotationX; 
+  let mouseRotationY; 
+  let mouseRotationZ; 
 
-  let mouseAnimationLink = sceneData.mouseAnimationLink;
-  mouseAnimationLinkInput.checked = mouseAnimationLink;
-  let scrollAnimationLink = sceneData.scrollAnimationLink;
-  scrollAnimationLinkInput.checked = scrollAnimationLink;
+  let mouseAnimationLink;
+  let scrollAnimationLink;
 
-  const lightIntensityInput = document.getElementById('lightIntensity');
-  const lightPosXInput = document.getElementById('lightPosX');
-  const lightPosYInput = document.getElementById('lightPosY');
-  const lightPosZInput = document.getElementById('lightPosZ');
-  const useEnvLightInput = document.getElementById('useEnvLight');
+  let useEnvLight;
 
+  let loopActive = sceneData.loopActive || false;
+  let loopCountX = sceneData.loopCountX || 3;
+  let loopCountY = sceneData.loopCountY || 3;
+  let loopCountZ = sceneData.loopCountZ || 3;
+  let itemSpacing = sceneData.itemSpacing || 1.0;
+  let isOrthoCamera;
+
+  const loopActiveInput = document.getElementById('loopActive');
+  const loopCountXInput = document.getElementById('loopCountX');
+  const loopCountYInput = document.getElementById('loopCountY');
+  const loopCountZInput = document.getElementById('loopCountZ');
+  const itemSpacingInput = document.getElementById('itemSpacing');
+  const isOrthoCameraInput = document.getElementById('isOrthoCamera');
+  
+
+  const container = document.getElementById('threejs-canvas');
+  const labelContainer = document.getElementById('label'); // Label container for displaying object details
+
+  let isoZoom = 250;
+  const scene = new THREE.Scene();
+  let rotateGroup = new THREE.Group();
+  scene.add(rotateGroup);
+  let camera;
+  const perspectiveCamera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
+  const orthoCamera = new THREE.OrthographicCamera( container.clientWidth / - isoZoom, container.clientWidth / isoZoom, container.clientHeight / isoZoom, container.clientHeight / - isoZoom, 1, 1000 );
+
+  
+// scene.add( camera );
+
+    const rgbeLoader = new RGBELoader();
+
+    updateEnvTexture();
+
+
+    let cameraPos = [0, 0, 5];
+
+
+    const renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    container.appendChild(renderer.domElement);
+    renderer.outputEncoding = THREE.sRGBEncoding;
+
+    const dlight = new THREE.DirectionalLight(0xffffff, 1);    
+    scene.add(dlight);
+
+    const alight = new THREE.AmbientLight(0xffffff, 1);
+    scene.add(alight);
+
+    // Get the sliders by their IDs
+    const ambientLightSlider = document.getElementById('ambient_light_intensity');
+    const lightValue = document.getElementById('light_intensity_value');
+
+
+    const directionalLightSlider = document.getElementById('directionalLightIntensity');
+    const dirLightValue = document.getElementById('directional_intensity_value');
+
+    // Event listener to change the intensity of the ambient light
+    ambientLightSlider.addEventListener('input', function() {
+        alight.intensity = parseFloat(ambientLightSlider.value);
+        setLightIntensity(alight, ambientLightSlider.value);
+        lightValue.textContent = ambientLightSlider.value;
+    });
+
+    directionalLightSlider.addEventListener('input', function() {
+        dlight.intensity = parseFloat(directionalLightSlider.value);
+        setLightIntensity(dlight, directionalLightSlider.value);
+        dirLightValue.textContent = directionalLightSlider.value;
+    });
+
+    function setLightIntensity(light, intensity)
+    {
+      light.intensity = parseFloat(intensity);
+    }
+
+    let controls, groupControls;
+    let gizmoVisible = true;
+
+ 
+      
+
+    let selectedObj, selectedObjData; //override model
+    // let allModels = [];
+    let model, loopGroup;
+
+
+    // Load 3D Model
+    // const loader = new THREE.GLTFLoader();
+    const loader = new GLTFLoader();
+
+
+    let loopable;
+    // let spacing = 1.1;
+    let spacing = sceneData.itemSpacing;
+    let fullLoopGroup = new THREE.Group();
+    let objGroup = new THREE.Group();
+    let orbitActive = false;
+      // 6. Add Helpers for Visualization (NEW ADDITION)
+    // Axes Helper: Red = X, Green = Y, Blue = Z
+    const axesHelper = new THREE.AxesHelper(5); // Size 5 units
+    // scene.add(axesHelper);
+
+    // Grid Helper: Grid on XZ plane
+    const gridHelper = new THREE.GridHelper(10, 10); // 10x10 units, 10 divisions
+    // scene.add(gridHelper);
+
+    // Directional Light Helper (already there, just ensuring its log is here for context)
+    const lightHelper = new THREE.DirectionalLightHelper(dlight, 2); // Helper size 2
+    scene.add(lightHelper);
+
+    // Load Environment Map (HDR)
+    
+    const lightIntensityInput = document.getElementById('lightIntensity');
+    const lightPosXInput = document.getElementById('lightPosX');
+    const lightPosYInput = document.getElementById('lightPosY');
+    const lightPosZInput = document.getElementById('lightPosZ');
+
+    const useEnvLightInput = document.getElementById('useEnvLight');
+
+    
+    const breakPoint = document.getElementById('breakPoint');
+
+    let orbit;
+    // orbit = new OrbitControls(camera, renderer.domElement);
+
+  applyGlobalSettings();
+  function applyGlobalSettings()
+  {
+    scrollMoveX = sceneData.scrollMoveX;
+    scrollMoveY = sceneData.scrollMoveY;
+    scrollMoveZ = sceneData.scrollMoveZ;
+
+    mouseRotationX = sceneData.mouseRotationX || 0; 
+    mouseRotationY = sceneData.mouseRotationY || 0; 
+    mouseRotationZ = sceneData.mouseRotationZ || 0; 
+
+    mouseAnimationLink = sceneData.mouseAnimationLink;
+    scrollAnimationLink = sceneData.scrollAnimationLink;
+
+    useEnvLight = sceneData.useEnvLight;
+
+    isOrthoCamera = sceneData.isOrthoCamera;
+
+    if(sceneData.isOrthoCamera)
+    {
+      camera = orthoCamera;
+    }
+    else
+    {
+      camera = perspectiveCamera;
+    }
+    camera.position.set(cameraPos[0], cameraPos[1], cameraPos[2]);
+
+    dlight.position.set(sceneData.lightPosX, sceneData.lightPosY, sceneData.lightPosZ);
+    dlight.intensity = sceneData.directionalLightIntensity;
+
+    alight.intensity = sceneData.ambientLightIntensity;
+
+    setLightIntensity(alight, sceneData.ambientLightIntensity);
+    updateDLightPos(); //uses sceneData object values
+    updateUiToFromData();
+  }
+
+  function updateUiToFromData()
+  {
+    scrollXInput.value = scrollMoveX;
+    scrollYInput.value = scrollMoveY;
+    scrollZInput.value = scrollMoveZ;
+    mouseRotXInput.value = mouseRotationX;
+    mouseRotYInput.value = mouseRotationY;
+    mouseRotZInput.value = mouseRotationZ;
+    mouseAnimationLinkInput.checked = mouseAnimationLink;
+    scrollAnimationLinkInput.checked = scrollAnimationLink;
+    useEnvLightInput.checked = useEnvLight;
+    isOrthoCameraInput.checked = isOrthoCamera;
+    ambientLightSlider.value = sceneData.ambientLightIntensity;
+    directionalLightSlider.value = sceneData.directionalLightIntensity;
+    lightPosXInput.value = sceneData.lightPosX;
+    lightPosYInput.value = sceneData.lightPosY;
+    lightPosZInput.value = sceneData.lightPosZ;    
+    breakPoint.value = sceneData.breakPoint;
+  }
+
+  function updateDataFromUi()
+  {
+    console.log('saving');
+    sceneData.scrollMoveX = parseFloat(scrollXInput.value);
+    sceneData.scrollMoveY = parseFloat(scrollYInput.value);
+    sceneData.scrollMoveZ = parseFloat(scrollZInput.value);
+    sceneData.mouseRotationX = parseFloat(mouseRotXInput.value);
+    sceneData.mouseRotationY = parseFloat(mouseRotYInput.value);
+    sceneData.mouseRotationZ = parseFloat(mouseRotZInput.value);
+    sceneData.mouseAnimationLink = mouseAnimationLinkInput.checked;
+    sceneData.scrollAnimationLink = scrollAnimationLinkInput.checked;
+    sceneData.useEnvLight = useEnvLightInput.checked;
+    sceneData.isOrthoCamera = isOrthoCameraInput.checked;
+    sceneData.ambientLightIntensity = parseFloat(ambientLightSlider.value);
+    sceneData.directionalLightIntensity = parseFloat(directionalLightSlider.value);
+    sceneData.lightPosX = parseFloat(lightPosXInput.value);
+    sceneData.lightPosY = parseFloat(lightPosYInput.value);
+    sceneData.lightPosZ = parseFloat(lightPosZInput.value);  
+    sceneData.breakPoint = parseFloat(breakPoint.value);
+    updateSaveField();
+  }
+
+
+  controls = new TransformControls(camera, renderer.domElement);
+  scene.add(controls);
+  controls.visible = gizmoVisible;
 
   const toggleButton = document.getElementById('toggleControls');
   let isControlsVisible = true;
@@ -188,7 +391,6 @@ window.onload = () =>
       axesHelper.visible = isControlsVisible;
       gridHelper.visible = isControlsVisible;
       lightHelper.visible = isControlsVisible;
-
 
       if(isControlsVisible)
       {
@@ -210,7 +412,6 @@ window.onload = () =>
 
   let isMobileView = false;
   const toggleMobileButton = document.getElementById('mobileMode');
-  const breakPoint = document.getElementById('breakPoint');
   breakPoint.oninput = () =>
   {
     sceneData.breakpoint = parseFloat(breakPoint.value);
@@ -297,8 +498,7 @@ window.onload = () =>
     fullLoopGroup.scale.set(loopGroupScaleInput.value, loopGroupScaleInput.value, loopGroupScaleInput.value);
   };
 
-  let useEnvLight = sceneData.useEnvLight;
-  useEnvLightInput.checked = useEnvLight;
+
   // let loopGroupScale = sceneData.loopGroupScale || 1.0;
 
   lightPosXInput.oninput = () => {
@@ -466,21 +666,6 @@ window.onload = () =>
   };
 
 
-  let loopActive = sceneData.loopActive || false;
-  let loopCountX = sceneData.loopCountX || 3;
-  let loopCountY = sceneData.loopCountY || 3;
-  let loopCountZ = sceneData.loopCountZ || 3;
-  let itemSpacing = sceneData.itemSpacing || 1.0;
-  let isOrthoCamera = sceneData.isOrthoCamera;
-
-  const loopActiveInput = document.getElementById('loopActive');
-  const loopCountXInput = document.getElementById('loopCountX');
-  const loopCountYInput = document.getElementById('loopCountY');
-  const loopCountZInput = document.getElementById('loopCountZ');
-  const itemSpacingInput = document.getElementById('itemSpacing');
-  const isOrthoCameraInput = document.getElementById('isOrthoCamera');
-  isOrthoCameraInput.checked = isOrthoCamera;
-
 
 loopActiveInput.oninput = () =>
 {
@@ -581,126 +766,7 @@ function toggleCamera()
 }
 
 
-    const container = document.getElementById('threejs-canvas');
-    const labelContainer = document.getElementById('label'); // Label container for displaying object details
-
-    let isoZoom = 250;
-    const scene = new THREE.Scene();
-    let rotateGroup = new THREE.Group();
-    scene.add(rotateGroup);
-    let camera;
-    const perspectiveCamera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
-    const orthoCamera = new THREE.OrthographicCamera( container.clientWidth / - isoZoom, container.clientWidth / isoZoom, container.clientHeight / isoZoom, container.clientHeight / - isoZoom, 1, 1000 );
-
-    if(sceneData.isOrthoCamera)
-    {
-      camera = orthoCamera;
-    }
-    else
-    {
-      camera = perspectiveCamera;
-    }
-// scene.add( camera );
-
-    const rgbeLoader = new RGBELoader();
-
-    updateEnvTexture();
-
-
-    let cameraPos = [0, 0, 5];
-
-    camera.position.set(cameraPos[0], cameraPos[1], cameraPos[2]);
-
-    const renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
-    renderer.setSize(container.clientWidth, container.clientHeight);
-    container.appendChild(renderer.domElement);
-    renderer.outputEncoding = THREE.sRGBEncoding;
-
-
-    const dlight = new THREE.DirectionalLight(0xffffff, 1);
-    let dlightIntensity = sceneData.directionalLightIntensity;
-    dlight.position.set(sceneData.lightPosX, sceneData.lightPosY, sceneData.lightPosZ);
-    dlight.intensity = dlightIntensity;
-    scene.add(dlight);
-
-    const alight = new THREE.AmbientLight(0xffffff, 1);
-    let alightIntensity = sceneData.ambientLightIntensity;
-    alight.intensity = alightIntensity;
-
-    // alight.position.set(5, 5, 5);
-    scene.add(alight);
-
-    // Get the sliders by their IDs
-    const ambientLightSlider = document.getElementById('ambient_light_intensity');
-    const lightValue = document.getElementById('light_intensity_value');
-
-
-    const directionalLightSlider = document.getElementById('directionalLightIntensity');
-    const dirLightValue = document.getElementById('directional_intensity_value');
-
-    // Event listener to change the intensity of the ambient light
-    ambientLightSlider.addEventListener('input', function() {
-        alight.intensity = parseFloat(ambientLightSlider.value);
-        setLightIntensity(alight, ambientLightSlider.value);
-        lightValue.textContent = ambientLightSlider.value;
-    });
-
-    directionalLightSlider.addEventListener('input', function() {
-        dlight.intensity = parseFloat(directionalLightSlider.value);
-        setLightIntensity(dlight, directionalLightSlider.value);
-        dirLightValue.textContent = directionalLightSlider.value;
-    });
-
-    function setLightIntensity(light, intensity)
-    {
-      light.intensity = parseFloat(intensity);
-    }
-
-    setLightIntensity(alight, sceneData.ambientLightIntensity);
-
-    let controls, groupControls;
-
-
-    let gizmoVisible = true;
-
-    controls = new TransformControls(camera, renderer.domElement);
-    scene.add(controls);
-    controls.visible = gizmoVisible;
-      
-
-    let selectedObj, selectedObjData; //override model
-    // let allModels = [];
-    let model, loopGroup;
-
-
-    // Load 3D Model
-    // const loader = new THREE.GLTFLoader();
-    const loader = new GLTFLoader();
-
-
-    let loopable;
-    // let spacing = 1.1;
-    let spacing = sceneData.itemSpacing;
-    let fullLoopGroup = new THREE.Group();
-    let objGroup = new THREE.Group();
-    let orbitActive = false;
-      // 6. Add Helpers for Visualization (NEW ADDITION)
-    // Axes Helper: Red = X, Green = Y, Blue = Z
-    const axesHelper = new THREE.AxesHelper(5); // Size 5 units
-    // scene.add(axesHelper);
-
-    // Grid Helper: Grid on XZ plane
-    const gridHelper = new THREE.GridHelper(10, 10); // 10x10 units, 10 divisions
-    // scene.add(gridHelper);
-
-    // Directional Light Helper (already there, just ensuring its log is here for context)
-    const lightHelper = new THREE.DirectionalLightHelper(dlight, 2); // Helper size 2
-    scene.add(lightHelper);
-
-    // Load Environment Map (HDR)
-
-    let orbit;
-    // orbit = new OrbitControls(camera, renderer.domElement);
+    
     function init()
     {
       fullLoopGroup.add(objGroup);
@@ -794,7 +860,7 @@ function toggleCamera()
       allMobileModels = allSceneData.models[1];
 
       // Call other setup functions to apply global settings, lights, etc., from allSceneData
-      // applyGlobalSettings(allSceneData.globalSettings);
+      applyGlobalSettings();
       // setupLights(allSceneData.lights);
       // ... and so on for other parts of your scene
 
@@ -1106,9 +1172,9 @@ function toggleCamera()
 
  
 
-    //updates values of all inputs based on three object
-    function updateTransforms()
-    {
+  //updates values of all inputs based on three object
+  function updateTransforms()
+  {
       let pos = selectedObj.position;
       let rot = selectedObj.rotation;
       let scale = selectedObj.scale;
@@ -2606,24 +2672,6 @@ function getThreeJsObjectByUuid(modelId)
       }
     }
 
-      function updateDataFromUi()
-      {
-        console.log('saving');
-        sceneData.scrollMoveX = parseFloat(scrollXInput.value);
-        sceneData.scrollMoveY = parseFloat(scrollYInput.value);
-        sceneData.scrollMoveZ = parseFloat(scrollZInput.value);
-        sceneData.mouseRotationX = parseFloat(mouseRotXInput.value);
-        sceneData.mouseRotationY = parseFloat(mouseRotYInput.value);
-        sceneData.mouseRotationZ = parseFloat(mouseRotZInput.value);
-        sceneData.ambientLightIntensity = parseFloat(ambientLightSlider.value);
-        sceneData.directionalLightIntensity = parseFloat(directionalLightSlider.value);
-        sceneData.mouseAnimationLink = mouseAnimationLinkInput.checked;
-        sceneData.scrollAnimationLink = scrollAnimationLinkInput.checked;
-        sceneData.useEnvLight = useEnvLightInput.checked;
-        sceneData.isOrthoCamera = isOrthoCameraInput.checked;
-        sceneData.breakPoint = parseFloat(breakPoint.value);
-        updateSaveField();
-      }
 
       function updateSaveField()
       {
