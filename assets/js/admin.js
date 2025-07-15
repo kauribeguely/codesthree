@@ -1453,11 +1453,11 @@ function transformDragEnd(){
                 const downloadType = event.currentTarget.dataset.downloadType;
                 if(downloadType == 'scene')
                 {
-                  downloadInitFullScene(assetName, button);
+                  await downloadInitFullScene(assetName, button);
                 }
                 else
                 {
-                  downloadOrAddAsset(assetName, downloadType, button);
+                  await downloadOrAddAsset(assetName, downloadType, button);
                 }
               }
             });
@@ -1466,7 +1466,7 @@ function transformDragEnd(){
     }
 
     //checks whether already downloaded
-    async function downloadOrAddAsset(assetName, downloadType)
+    async function downloadOrAddAsset(assetName, downloadType, button)
     {
       if(importedDemoAssets[assetName])
       {

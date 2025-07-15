@@ -3,6 +3,8 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 get_header();
+// wp_enqueue_style('codes-styles');
+// wp_enqueue_script_module('codes-scene-script');
 ?>
 <div class="custom-scene-container">
     <?php

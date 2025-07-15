@@ -17,6 +17,149 @@ if ( ! defined( 'ABSPATH' ) ) {
 // global $pluginUrl;
 // $pluginUrl = plugins_url('', __FILE__);
 
+global $c33d_has_scene_shortcode;
+$c33d_has_scene_shortcode = false; // Initialize to false
+
+global $c33d_scripts_enqueued;
+$c33d_scripts_enqueued = false; // Initialize to false
+
+function code33d_create_scene_shortcode($atts)
+{
+    global $c33d_has_scene_shortcode;
+    $c33d_has_scene_shortcode = true; 
+
+    $atts = shortcode_atts(array(
+        'id' => get_the_ID(),
+        'width' => '100%',  // Default width is 100%
+        'height' => '500px', // Default height is 500px
+    ), $atts);
+    $post_id = intval($atts['id']);
+    $scene_data = code33d_get_scene_data($post_id);
+    ob_start(); 
+    ?>
+
+    <div id="scene-<?php echo esc_attr($post_id); ?>-<?php echo esc_attr(uniqid()); ?>" 
+    class="c33d_scene" 
+    data-scene-id="<?php echo esc_attr($post_id); ?>" 
+    data-scene-data='<?php echo wp_json_encode($scene_data); ?>'
+    data-plugin-url='<?php echo esc_url(plugins_url('', __FILE__))?>'
+    style="width: <?php echo esc_attr($atts['width']); ?>; height: <?php echo esc_attr($atts['height']); ?>;">
+      <div class = "loadScreen">
+        <div class = "loadCircle">
+          <div class = "loadInnerCircle">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <?php
+    return ob_get_clean();
+}
+add_shortcode('c33d_scene', 'code33d_create_scene_shortcode');
+
+function code33d_register_frontend_assets()
+{
+    $plugin_version = 1.0;
+    wp_register_style(
+        'codes-styles',
+        plugins_url('/assets/css/styles.css', __FILE__)
+    );
+
+    wp_register_script_module(
+        'codes-scene-script', 
+        plugins_url('/assets/js/scene.js', __FILE__)
+    );
+}
+add_action('wp_enqueue_scripts', 'code33d_register_frontend_assets', 5);
+
+
+function code33d_frontend_enqueue_assets() {
+    global $c33d_has_scene_shortcode;
+    if ( $c33d_has_scene_shortcode ) {
+        wp_enqueue_style( 'codes-styles' );
+        wp_enqueue_script_module( 'codes-scene-script' );
+    }
+}
+// add_action('wp_enqueue_scripts', 'code33d_frontend_enqueue_assets', 99);
+
+
+add_filter('do_shortcode_tag', function ($output, $tag, $attr) {
+    if ($tag === 'c33d_scene') 
+    {
+        global $c33d_has_scene_shortcode;
+        wp_enqueue_style('codes-styles');
+        wp_enqueue_script_module('codes-scene-script');
+    }
+    return $output;
+}, 10, 3);
+
+function code33d_admin_enqueue_assets() {
+
+
+    global $post; 
+    $screen = get_current_screen(); 
+    $is_our_target_screen = false;
+
+    if (
+        ( 'post' === $screen->base || 'post-new' === $screen->base ) && // Check if it's a post edit/new screen
+        isset( $post->post_type ) &&                                  // Ensure post_type is set (not always true on new post screen initially)
+        'c33d_scene' === $post->post_type                            // Check if the post type is YOUR custom post type slug
+    ) {
+        $is_our_target_screen = true;
+    }
+    // Add more conditions if also needed on other custom admin pages:
+    // For a top-level admin page created with add_menu_page():
+    // else if ( 'toplevel_page_your_custom_admin_page_slug' === $hook ) {
+    //     $is_our_target_screen = true;
+    // }
+    // For a sub-menu admin page created with add_submenu_page():
+    // else if ( 'parent_menu_slug_page_your_sub_menu_page_slug' === $hook ) {
+    //     $is_our_target_screen = true;
+    // }
+
+
+    if ( ! $is_our_target_screen ) {
+        return; 
+    }
+
+
+    // Enqueue CSS
+    wp_enqueue_style(
+        'coedes-admin-styles',
+        plugins_url('/assets/css/styles.css', __FILE__),
+    );
+
+
+    wp_enqueue_script(
+        'codesthree-local-script', 
+        plugins_url('/assets/js/local.js', __FILE__), 
+        true 
+    );
+
+    wp_localize_script(
+        'codesthree-local-script',
+        'localisedData',     
+        array(
+            'ajax_url' => admin_url('admin-ajax.php'), 
+            'ajax_nonce'    => wp_create_nonce('codesthree_local_ajax_nonce'), 
+            'allSceneData' => wp_json_encode(code33d_get_scene_data($post->ID)),
+            'pluginUrl' => esc_url(plugins_url('', __FILE__)),
+            'importedDemoAssets'  => wp_json_encode( get_option( 'c33d_imported_assets', array() ) ),
+        )
+    );
+
+    // Enqueue JS
+    wp_enqueue_script_module(
+        'codes-admin-script',
+        plugins_url('/assets/js/admin.js', __FILE__),
+        array( 'codesthree-local-script' ) // Your main module depends on the data script
+        
+    );
+}
+add_action('admin_enqueue_scripts', 'code33d_admin_enqueue_assets');
+
+
+
 function my_shortcode_box_in_publish_meta() {
     global $post;
 
@@ -121,37 +264,7 @@ function code33d_inject_threejs_assets()
 // Hook into the wp_head to ensure the assets are loaded globally
 add_action('wp_head', 'code33d_inject_threejs_assets', 0);
 
-function code33d_create_scene_shortcode($atts)
-{
-  $atts = shortcode_atts(array(
-        'id' => get_the_ID(),
-        'width' => '100%',  // Default width is 100%
-        'height' => '500px', // Default height is 500px
-    ), $atts);
-    $post_id = intval($atts['id']);
-    $scene_data = code33d_get_scene_data($post_id);
-    ob_start(); 
-    ?>
 
-    <!-- <h1>Scene Below</h1> -->
-    <div id="scene-<?php echo esc_attr($post_id); ?>-<?php echo esc_attr(uniqid()); ?>" 
-    class="c33d_scene" 
-    data-scene-id="<?php echo esc_attr($post_id); ?>" 
-    data-scene-data='<?php echo wp_json_encode($scene_data); ?>'
-    data-plugin-url='<?php echo esc_url(plugins_url('', __FILE__))?>'
-    style="width: <?php echo esc_attr($atts['width']); ?>; height: <?php echo esc_attr($atts['height']); ?>;">
-      <div class = "loadScreen">
-        <div class = "loadCircle">
-          <div class = "loadInnerCircle">
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <?php
-    return ob_get_clean();
-}
-add_shortcode('c33d_scene', 'code33d_create_scene_shortcode');
 
 // Add support for .glb and .gltf files in the Media Library
 function code33d_allow_3d_file_uploads($mime_types) {
@@ -182,85 +295,6 @@ add_filter('wp_check_filetype_and_ext', function($data, $file, $filename, $mime_
     return $data;
 }, 10, 5);
 
-function code33d_admin_enqueue_assets() {
-
-
-    global $post; 
-    $screen = get_current_screen(); 
-    $is_our_target_screen = false;
-
-    if (
-        ( 'post' === $screen->base || 'post-new' === $screen->base ) && // Check if it's a post edit/new screen
-        isset( $post->post_type ) &&                                  // Ensure post_type is set (not always true on new post screen initially)
-        'c33d_scene' === $post->post_type                            // Check if the post type is YOUR custom post type slug
-    ) {
-        $is_our_target_screen = true;
-    }
-    // Add more conditions if also needed on other custom admin pages:
-    // For a top-level admin page created with add_menu_page():
-    // else if ( 'toplevel_page_your_custom_admin_page_slug' === $hook ) {
-    //     $is_our_target_screen = true;
-    // }
-    // For a sub-menu admin page created with add_submenu_page():
-    // else if ( 'parent_menu_slug_page_your_sub_menu_page_slug' === $hook ) {
-    //     $is_our_target_screen = true;
-    // }
-
-
-    if ( ! $is_our_target_screen ) {
-        return; 
-    }
-
-
-    // Enqueue CSS
-    wp_enqueue_style(
-        'coedes-admin-styles',
-        plugins_url('/assets/css/styles.css', __FILE__),
-    );
-
-
-    wp_enqueue_script(
-        'codesthree-local-script', 
-        plugins_url('/assets/js/local.js', __FILE__), 
-        true 
-    );
-
-    wp_localize_script(
-        'codesthree-local-script',
-        'localisedData',     
-        array(
-            'ajax_url' => admin_url('admin-ajax.php'), 
-            'ajax_nonce'    => wp_create_nonce('codesthree_local_ajax_nonce'), 
-            'allSceneData' => wp_json_encode(code33d_get_scene_data($post->ID)),
-            'pluginUrl' => esc_url(plugins_url('', __FILE__)),
-            'importedDemoAssets'  => wp_json_encode( get_option( 'c33d_imported_assets', array() ) ),
-        )
-    );
-
-    // Enqueue JS
-    wp_enqueue_script_module(
-        'codes-admin-script',
-        plugins_url('/assets/js/admin.js', __FILE__),
-        array( 'codesthree-local-script' ) // Your main module depends on the data script
-        
-    );
-}
-add_action('admin_enqueue_scripts', 'code33d_admin_enqueue_assets');
-
-function code33d_frontend_enqueue_assets() {
-    // Enqueue CSS
-    wp_enqueue_style(
-        'coedes-styles',
-        plugins_url('/assets/css/styles.css', __FILE__),
-    );
-    // Enqueue JS
-    wp_enqueue_script_module(
-        'codes-admin-script',
-        plugins_url('/assets/js/scene.js', __FILE__)
-        
-    );
-}
-add_action('wp_enqueue_scripts', 'code33d_frontend_enqueue_assets');
 
 
 
@@ -710,9 +744,6 @@ function code33d_editor_page($post) {
                                     <div class='c3_button_with_text'>
                                         <h4>Phone</h4>
                                         <span class="dashicons dashicons-image-rotate c3-loading-icon"></span>
-                                        <!-- <button class="c33-download" type="button"
-                                        data-asset-name="phone" 
-                                        data-download-type="model">+</button> -->
                                     </div>
                                     <div class="c33-download-overlay">
                                         <p>Add to scene</p>
@@ -728,9 +759,6 @@ function code33d_editor_page($post) {
                                     <div class='c3_button_with_text'>
                                         <h4>Laptop</h4>
                                         <span class="dashicons dashicons-image-rotate c3-loading-icon"></span>
-                                        <!-- <button class="c33-download" type="button"
-                                        data-asset-name="phone" 
-                                        data-download-type="model">+</button> -->
                                     </div>
                                     <div class="c33-download-overlay">
                                         <p>Add to scene</p>
@@ -745,9 +773,6 @@ function code33d_editor_page($post) {
                                     <div class='c3_button_with_text'>
                                         <h4>Star</h4>
                                         <span class="dashicons dashicons-image-rotate c3-loading-icon"></span>
-                                        <!-- <button class="c33-download" type="button"
-                                        data-asset-name="phone" 
-                                        data-download-type="model">+</button> -->
                                     </div>
                                     <div class="c33-download-overlay">
                                         <p>Add to scene</p>
@@ -778,9 +803,6 @@ function code33d_editor_page($post) {
                         <div class='c3_button_with_text'>
                             <h4>Laptop and Phone</h4>
                             <span class="dashicons dashicons-image-rotate c3-loading-icon"></span>
-                            <!-- <button class="c33-download" type="button"
-                            data-asset-name="phone" 
-                            data-download-type="model">+</button> -->
                         </div>
                         <div class="c33-download-overlay">
                             <p>Add to scene</p>
@@ -796,9 +818,6 @@ function code33d_editor_page($post) {
                         <div class='c3_button_with_text'>
                             <h4>Phone Stars</h4>
                             <span class="dashicons dashicons-image-rotate c3-loading-icon"></span>
-                            <!-- <button class="c33-download" type="button"
-                            data-asset-name="phone" 
-                            data-download-type="model">+</button> -->
                         </div>
                         <div class="c33-download-overlay">
                             <p>Add to scene</p>
@@ -813,9 +832,6 @@ function code33d_editor_page($post) {
                         <div class='c3_button_with_text'>
                             <h4>Star</h4>
                             <span class="dashicons dashicons-image-rotate c3-loading-icon"></span>
-                            <!-- <button class="c33-download" type="button"
-                            data-asset-name="phone" 
-                            data-download-type="model">+</button> -->
                         </div>
                         <div class="c33-download-overlay">
                             <p>Add to scene</p>
@@ -1113,9 +1129,7 @@ function code33d_editor_page($post) {
                             
                             <div class='c3_button_with_text'>
                                 <h4>Phone</h4>
-                                <!-- <button class="c33-download" type="button"
-                                data-asset-name="phone" 
-                                data-download-type="model">+</button> -->
+                                <span class="dashicons dashicons-image-rotate c3-loading-icon"></span>
                             </div>
                             <div class="c33-download-overlay">
                                 <p>Add to scene</p>
@@ -1130,9 +1144,7 @@ function code33d_editor_page($post) {
                             
                             <div class='c3_button_with_text'>
                                 <h4>Laptop</h4>
-                                <!-- <button class="c33-download" type="button"
-                                data-asset-name="phone" 
-                                data-download-type="model">+</button> -->
+                                <span class="dashicons dashicons-image-rotate c3-loading-icon"></span>
                             </div>
                             <div class="c33-download-overlay">
                                 <p>Add to scene</p>
@@ -1146,9 +1158,7 @@ function code33d_editor_page($post) {
                             <img src="<?php echo esc_url($pluginUrl . '/assets/img/star.jpg'); ?>" alt="Demo Star">
                             <div class='c3_button_with_text'>
                                 <h4>Star</h4>
-                                <!-- <button class="c33-download" type="button"
-                                data-asset-name="phone" 
-                                data-download-type="model">+</button> -->
+                                <span class="dashicons dashicons-image-rotate c3-loading-icon"></span>
                             </div>
                             <div class="c33-download-overlay">
                                 <p>Add to scene</p>
