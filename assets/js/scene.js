@@ -1,20 +1,22 @@
 
 console.log('scene js loaded');
+let THREE, GLTFLoader, RGBELoader;
 
-import * as THREE from 'three';
-// import { Scene } from 'three';
-// import { PerspectiveCamera } from 'three';
-// import { WebGLRenderer } from 'three';
-// import { MeshBasicMaterial } from 'three';
-// import { Mesh } from 'three';
-// import { AmbientLight } from 'three';
-import { GLTFLoader } from 'three/addons/GLTFLoader.js';
-import { RGBELoader } from 'three/addons/RGBELoader.js';
+
+let allShortCodeContainers = document.querySelectorAll('.c33d_scene');
+let threeJsLoaded = false;
 
 initializeAllScenes();
+
+//may have to add to front end also if implementing lazy load of scenes
+if (document.body.classList.contains('wp-admin')) 
+{
+  addMutationObserverForShortcodes();
+}
+
 function initializeAllScenes()
 {
-  const allShortCodeContainers = document.querySelectorAll('.c33d_scene');
+  // allShortCodeContainers = document.querySelectorAll('.c33d_scene');
   allShortCodeContainers.forEach((shortCodeContainer) => 
   {
     const shortCodePostId = shortCodeContainer.dataset.sceneId;
@@ -22,23 +24,78 @@ function initializeAllScenes()
     const duplicateContainers = document.querySelectorAll('[data-scene-id="'+shortCodePostId+'"]');
 
     duplicateContainers.forEach((container) => {
-        const containerID = container.id;
-        const allSceneData = JSON.parse(container.dataset.sceneData);
-        const pluginUrl = container.dataset.pluginUrl;
-        // Check if the scene has already been initialized for this container
-        if (!container.hasAttribute('data-scene-initialized')) {
-            container.setAttribute('data-scene-initialized', 'true');
-
-            // Initialize the Three.js scene
-          //   console.log(sceneData);
-            if (typeof initializeThreeJsScene === "function") {
-                initializeThreeJsScene(allSceneData, containerID, pluginUrl);
-            }
-        } else {
-            console.log(`Scene for ${containerID} has already been initialized.`);
-        }
+        initializeSceneFromContainer(container);
     });
   });
+}
+
+function addMutationObserverForShortcodes()
+{
+    const observer = new MutationObserver(function(mutationsList) {
+      for (const mutation of mutationsList) {
+          if (mutation.type === 'childList') {
+              mutation.addedNodes.forEach(node => {
+                  // Ensure the node is an element and not just text
+                  if (node.nodeType === 1) {
+                      if (node.classList.contains('c33d_scene')) {
+                          initializeSceneFromContainer(node);
+                      }
+                      // Also check for scene containers within the added node's children
+                      // (e.g., if a whole section containing scenes was added)
+                      node.querySelectorAll('.c33d_scene').forEach(initializeSceneFromContainer);
+                  }
+              });
+          }
+      }
+  });
+  
+  observer.observe(document.body, { childList: true, subtree: true });
+  console.log('MutationObserver for scenes added (admin only).');
+}
+
+async function loadThreeJs()
+{
+  if(!threeJsLoaded)
+  {
+    THREE = await import('three');
+    const gltf = await import('three/addons/GLTFLoader.js');
+    const rgbe = await import('three/addons/RGBELoader.js');
+    GLTFLoader = gltf.GLTFLoader;
+    RGBELoader = rgbe.RGBELoader;
+    threeJsLoaded = true;
+  }
+
+  
+  // import * as THREE from 'three';
+  // // import { Scene } from 'three';
+  // // import { PerspectiveCamera } from 'three';
+  // // import { WebGLRenderer } from 'three';
+  // // import { MeshBasicMaterial } from 'three';
+  // // import { Mesh } from 'three';
+  // // import { AmbientLight } from 'three';
+  // import { GLTFLoader } from 'three/addons/GLTFLoader.js';
+  // import { RGBELoader } from 'three/addons/RGBELoader.js';
+  // return
+}
+
+async function initializeSceneFromContainer(container)
+{
+  await loadThreeJs();
+  const containerID = container.id;
+  const allSceneData = JSON.parse(container.dataset.sceneData);
+  const pluginUrl = container.dataset.pluginUrl;
+  // Check if the scene has already been initialized for this container
+  if (!container.hasAttribute('data-scene-initialized')) {
+      container.setAttribute('data-scene-initialized', 'true');
+
+      // Initialize the Three.js scene
+    //   console.log(sceneData);
+      if (typeof initializeThreeJsScene === "function") {
+          initializeThreeJsScene(allSceneData, containerID, pluginUrl);
+      }
+  } else {
+      console.log(`Scene for ${containerID} has already been initialized.`);
+  }
 }
 
 export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)

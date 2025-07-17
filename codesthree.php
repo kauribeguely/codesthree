@@ -14,20 +14,8 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-// global $pluginUrl;
-// $pluginUrl = plugins_url('', __FILE__);
-
-global $c33d_has_scene_shortcode;
-$c33d_has_scene_shortcode = false; // Initialize to false
-
-global $c33d_scripts_enqueued;
-$c33d_scripts_enqueued = false; // Initialize to false
-
 function code33d_create_scene_shortcode($atts)
 {
-    global $c33d_has_scene_shortcode;
-    $c33d_has_scene_shortcode = true; 
-
     $atts = shortcode_atts(array(
         'id' => get_the_ID(),
         'width' => '100%',  // Default width is 100%
@@ -39,11 +27,12 @@ function code33d_create_scene_shortcode($atts)
     ?>
 
     <div id="scene-<?php echo esc_attr($post_id); ?>-<?php echo esc_attr(uniqid()); ?>" 
-    class="c33d_scene" 
-    data-scene-id="<?php echo esc_attr($post_id); ?>" 
-    data-scene-data='<?php echo wp_json_encode($scene_data); ?>'
-    data-plugin-url='<?php echo esc_url(plugins_url('', __FILE__))?>'
-    style="width: <?php echo esc_attr($atts['width']); ?>; height: <?php echo esc_attr($atts['height']); ?>;">
+        class="c33d_scene" 
+        data-scene-id="<?php echo esc_attr($post_id); ?>" 
+        data-scene-data='<?php echo wp_json_encode($scene_data); ?>'
+        data-plugin-url='<?php echo esc_url(plugins_url('', __FILE__))?>'
+        style="width: <?php echo esc_attr($atts['width']); ?>; height: <?php echo esc_attr($atts['height']); ?>;">
+
       <div class = "loadScreen">
         <div class = "loadCircle">
           <div class = "loadInnerCircle">
@@ -57,6 +46,7 @@ function code33d_create_scene_shortcode($atts)
 }
 add_shortcode('c33d_scene', 'code33d_create_scene_shortcode');
 
+//register to enqueue later, didnt end up working
 function code33d_register_frontend_assets()
 {
     $plugin_version = 1.0;
@@ -74,24 +64,11 @@ add_action('wp_enqueue_scripts', 'code33d_register_frontend_assets', 5);
 
 
 function code33d_frontend_enqueue_assets() {
-    global $c33d_has_scene_shortcode;
-    if ( $c33d_has_scene_shortcode ) {
-        wp_enqueue_style( 'codes-styles' );
-        wp_enqueue_script_module( 'codes-scene-script' );
-    }
-}
-// add_action('wp_enqueue_scripts', 'code33d_frontend_enqueue_assets', 99);
-
-
-add_filter('do_shortcode_tag', function ($output, $tag, $attr) {
-    if ($tag === 'c33d_scene') 
-    {
-        global $c33d_has_scene_shortcode;
         wp_enqueue_style('codes-styles');
         wp_enqueue_script_module('codes-scene-script');
-    }
-    return $output;
-}, 10, 3);
+}
+add_action('wp_enqueue_scripts', 'code33d_frontend_enqueue_assets', 6);
+
 
 function code33d_admin_enqueue_assets() {
 
@@ -101,9 +78,9 @@ function code33d_admin_enqueue_assets() {
     $is_our_target_screen = false;
 
     if (
-        ( 'post' === $screen->base || 'post-new' === $screen->base ) && // Check if it's a post edit/new screen
-        isset( $post->post_type ) &&                                  // Ensure post_type is set (not always true on new post screen initially)
-        'c33d_scene' === $post->post_type                            // Check if the post type is YOUR custom post type slug
+        ( 'post' === $screen->base || 'post-new' === $screen->base ) && 
+        isset( $post->post_type ) &&                                  
+        'c33d_scene' === $post->post_type                            
     ) {
         $is_our_target_screen = true;
     }
