@@ -64,18 +64,6 @@ async function loadThreeJs()
     RGBELoader = rgbe.RGBELoader;
     threeJsLoaded = true;
   }
-
-  
-  // import * as THREE from 'three';
-  // // import { Scene } from 'three';
-  // // import { PerspectiveCamera } from 'three';
-  // // import { WebGLRenderer } from 'three';
-  // // import { MeshBasicMaterial } from 'three';
-  // // import { Mesh } from 'three';
-  // // import { AmbientLight } from 'three';
-  // import { GLTFLoader } from 'three/addons/GLTFLoader.js';
-  // import { RGBELoader } from 'three/addons/RGBELoader.js';
-  // return
 }
 
 async function initializeSceneFromContainer(container)
@@ -100,9 +88,6 @@ async function initializeSceneFromContainer(container)
 
 export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
 {
-
-  
-
   let numLoaded = 0;
   let itemsLoaded = 0;
   let allGroups = [];
@@ -177,29 +162,12 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
       camera = perspectiveCamera;
     }
 
-    // const camera = new THREE.OrthographicCamera( width / - 2, width / 2, height / 2, height / - 2, 1, 1000 );
-
-    // Define frustum size based on container size
-    // const aspectRatio = container.clientWidth / container.clientHeight;
-    // const frustumSize = 5;  // This controls the scale of the scene, adjust as needed
-    //
-    // // Create Orthographic Camera
-    // const camera = new THREE.OrthographicCamera(
-    //     -frustumSize * aspectRatio / 2,   // left
-    //     frustumSize * aspectRatio / 2,     // right
-    //     frustumSize / 2,                  // top
-    //     -frustumSize / 2,                 // bottom
-    //     0.1,                              // near
-    //     1000                               // far
-    // );
-
     let cameraPos = [0, 0, 5];
 
     camera.position.set(cameraPos[0], cameraPos[1], cameraPos[2]);
 
     scene.add( camera );
 
-    // const renderer = new THREE.WebGLRenderer({antialias: true});
     const renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
     renderer.setSize(container.clientWidth, container.clientHeight);
 
@@ -211,19 +179,16 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
     container.appendChild(renderer.domElement);
 
     const alight = new THREE.AmbientLight(0xffffff, sceneData.lightIntensity);
-    // alight.position.set(5, 5, 5);
     scene.add(alight);
 
 
     const dlight = new THREE.DirectionalLight(0xffffff, sceneData.directionalLightIntensity);
     let ddirectionalLightIntes = 1;
-    // dlight.position.set(5, 5, 5);
     dlight.position.set(sceneData.lightPosX, sceneData.lightPosY, sceneData.lightPosZ);
     scene.add(dlight);
 
 
     let model, loopGroup, loopable;
-    // let allModels = [];
     let spacing = sceneData.itemSpacing;
     let fullLoopGroup = new THREE.Group();
     let objGroup = new THREE.Group();
@@ -233,7 +198,6 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
 
 
     // Load 3D Model
-    // const loader = new THREE.GLTFLoader();
     const loader = new GLTFLoader();
     const rgbeLoader = new RGBELoader();
     const sphereGroup = new THREE.Group();
@@ -249,7 +213,6 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
       allModels.forEach(function(model, index)
       {
         createObject(model.type, model, false, index);        
-        // loadModel(model.modelUrl, model, allMobileModels[index]);
       });
     }
 
@@ -291,8 +254,6 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
           
           rotateGroup.add(newThreeJsObject);
 
-          // const modelConfigInstance = ModelConfig.fromPlainObject(objData);
-          // const modelConfigInstanceMob = ModelConfig.fromPlainObject(mobObjData);
           let mobObjData = allMobileModels[index];
           newThreeJsObject.userData.objData = objData; // Crucial for easy access
           newThreeJsObject.userData.mobObjData = mobObjData; // Crucial for easy access
@@ -308,22 +269,8 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
           }
 
           objData.threeJsObject = newThreeJsObject;
-          // lastAddedObject.position.set(
-          //     parseFloat(objData.positionX),
-          //     parseFloat(objData.positionY),
-          //     parseFloat(objData.positionZ)
-          // );
 
-          // lastAddedObject.rotation.set(
-          //     parseFloat(THREE.MathUtils.degToRad(objData.rotationX)),
-          //     parseFloat(THREE.MathUtils.degToRad(objData.rotationY)),
-          //     parseFloat(THREE.MathUtils.degToRad(objData.rotationZ))
-          // );
           currentRotation.copy(lastAddedObject.rotation); // The most direct way
-          
-          // lastAddedObject.scale.set(objData.scale, objData.scale, objData.scale);
-
-          // if(mouseAnimationLink) window.addEventListener('mousemove', onMouseMove);
 
           renderer.render(scene, camera);
 
@@ -340,39 +287,7 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
           //TODO count properly, along with env texture if enabled
           hideLoadScreen();
     }
-    // function loadAllMobileData()
-    // {
-    //   allMobileModels.forEach(function(model, index)
-    //   {
-    //     //only add their data to the relative model config
-    //       //
-    //     // loadModel(model.modelUrl, model, true);
-    //     addMobDataToConfigRef(model, index);
-    //   });
-    //   // applyAllTransformsFromConfigs();
-    // }
-
-    // function addMobDataToConfigRef(data, index)
-    // {
-    //   //find related object 
-    //   // const modelId = allThreeJsObj.findIndex(m => m.modelId === data.modelId);
-    //   // const threeJsObject = selectObjectFromList(data.modelId);
-    //   const threeJsObject = allThreeJsObj[index];
-    //   threeJsObject.userData.modelConfigRefMob = ModelConfig.fromPlainObject(data);
-    // }
-
-    // if(loopActive)
-    // {
-    //   sceneDataLoop();
-    // }
-    // else
-    // {
-    //   loadModel(sceneData.modelUrl, sceneData);
-    // }
-    // loadModel('http://localhost/wPpractice/wp-content/uploads/2025/01/first-room.glb', sceneData);
-
-    // function loadModel(url, sceneData)
-    
+      
     // TODO: change data to dataList = [] - can scale to many screen sizes easier
     // function loadModel(url, objData, mobObjData)
     function loadModel(url, objData, callback, index)
@@ -414,8 +329,6 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
         }
     }
 
-
-
     function applyAllTransformsFromConfigs()
     {
       // console.log(allThreeJsObj.length);
@@ -455,22 +368,14 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
     const animate = function ()
     {
        requestAnimationFrame(animate);
-       renderer.render(scene, camera);
-       
-      // rotateGroup.rotation.y += 0.01;
-      // console.log(rotateGroup.rotation.y);
-
-      //  sphereGroup.rotation.y += 0.02; // Rotate the entire group
+       renderer.render(scene, camera);       
    };
      animate();
 
-   let initialRotationX = 0;
+  let initialRotationX = 0;
   let initialRotationY = 0;
   let initialRotationZ = 0;
-   const rotationRange = 10; // Maximum rotation range in degrees
-    // const initialRotationX = parseFloat(sceneData.rotationX);
-    // const initialRotationY = parseFloat(sceneData.rotationY);
-    // const initialRotationZ = parseFloat(sceneData.rotationZ);
+  const rotationRange = 10; // Maximum rotation range in degrees
     // Mousemove listener
     const onMouseMove = (event) => {
       const mouseX = (event.clientX / window.innerWidth) * 2 - 1; // Normalized between -1 and 1
@@ -574,9 +479,6 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
         const scrollFactor = 0.1; // Adjust this value to change the sensitivity of the scroll
 
         // Calculate new camera position based on scroll distance
-        // camera.position.x += scrollMoveX * scrollPos * scrollFactor;
-        // camera.position.y += scrollMoveY * scrollPos * scrollFactor;
-        // camera.position.z += scrollMoveZ * scrollPos * scrollFactor;
         camera.position.x = cameraPos[0] + scrollMoveX * scrollPos;
         camera.position.y = cameraPos[1] + scrollMoveY * scrollPos;
         camera.position.z = cameraPos[2] + scrollMoveZ * scrollPos;
@@ -588,15 +490,6 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
         if(event) event.preventDefault();
       }
 
-    // Attach the mousemove event listener
-
-
-    // Render loop
-    // function animate() {
-    //     requestAnimationFrame(animate);
-    //     renderer.render(scene, camera);
-    // }
-    // animate();
 
     //LOOP CODE
     function sceneDataLoop()
