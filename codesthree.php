@@ -23,6 +23,7 @@ function code33d_create_scene_shortcode($atts)
     ), $atts);
     $post_id = intval($atts['id']);
     $scene_data = code33d_get_scene_data($post_id);
+    $isadmin = is_admin();
     ob_start(); 
     ?>
 
@@ -31,14 +32,15 @@ function code33d_create_scene_shortcode($atts)
         data-scene-id="<?php echo esc_attr($post_id); ?>" 
         data-scene-data='<?php echo wp_json_encode($scene_data); ?>'
         data-plugin-url='<?php echo esc_url(plugins_url('', __FILE__))?>'
+        data-is-admin="<?php echo esc_attr($isadmin ? 'true' : 'false'); ?>"
         style="width: <?php echo esc_attr($atts['width']); ?>; height: <?php echo esc_attr($atts['height']); ?>;">
 
-      <div class = "loadScreen">
-        <div class = "loadCircle">
-          <div class = "loadInnerCircle">
-          </div>
+        <div class = "loadScreen">
+            <div class = "loadCircle">
+                <div class = "loadInnerCircle">
+                </div>
+            </div>
         </div>
-      </div>
     </div>
 
     <?php
@@ -59,12 +61,32 @@ function code33d_register_frontend_assets()
         'codes-scene-script', 
         plugins_url('/assets/js/scene.js', __FILE__)
     );
+
+
 }
 add_action('wp_enqueue_scripts', 'code33d_register_frontend_assets', 5);
 
 
 function code33d_frontend_enqueue_assets() {
+    
         wp_enqueue_style('codes-styles');
+        
+        wp_enqueue_script(
+            'codesthree-local-script', 
+            plugins_url('/assets/js/local.js', __FILE__), 
+            true 
+        );
+        
+        $is_admin_string = is_admin() ? 'true' : 'false';
+        wp_localize_script(
+            'codesthree-local-script',
+            'sceneLocalisedData',     
+            array(
+                'isAdmin' => $is_admin_string,
+                'pluginUrl' => esc_url(plugins_url('', __FILE__)),
+                )
+            );
+            
         wp_enqueue_script_module('codes-scene-script');
 }
 add_action('wp_enqueue_scripts', 'code33d_frontend_enqueue_assets', 6);
@@ -75,27 +97,27 @@ function code33d_admin_enqueue_assets() {
 
     global $post; 
     $screen = get_current_screen(); 
-    $is_our_target_screen = false;
+    $is_code_scene = false;
 
     if (
         ( 'post' === $screen->base || 'post-new' === $screen->base ) && 
         isset( $post->post_type ) &&                                  
         'c33d_scene' === $post->post_type                            
     ) {
-        $is_our_target_screen = true;
+        $is_code_scene = true;
     }
     // Add more conditions if also needed on other custom admin pages:
     // For a top-level admin page created with add_menu_page():
     // else if ( 'toplevel_page_your_custom_admin_page_slug' === $hook ) {
-    //     $is_our_target_screen = true;
+    //     $is_code_scene = true;
     // }
     // For a sub-menu admin page created with add_submenu_page():
     // else if ( 'parent_menu_slug_page_your_sub_menu_page_slug' === $hook ) {
-    //     $is_our_target_screen = true;
+    //     $is_code_scene = true;
     // }
 
 
-    if ( ! $is_our_target_screen ) {
+    if ( ! $is_code_scene ) {
         return; 
     }
 

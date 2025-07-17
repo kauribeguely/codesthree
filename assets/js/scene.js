@@ -1,17 +1,22 @@
-
 console.log('scene js loaded');
 let THREE, GLTFLoader, RGBELoader;
 
 
 let allShortCodeContainers = document.querySelectorAll('.c33d_scene');
 let threeJsLoaded = false;
+let mutationObs;
 
-initializeAllScenes();
+const localisedData = window.sceneLocalisedData;
+const isAdmin = localisedData.isAdmin === 'true';
 
-//may have to add to front end also if implementing lazy load of scenes
-if (document.body.classList.contains('wp-admin')) 
+if(allShortCodeContainers.length > 0)
+{  
+  initializeAllScenes();document
+}
+
+if(isAdmin)
 {
-  addMutationObserverForShortcodes();
+  if(mutationObs == undefined) addMutationObserverForShortcodes();
 }
 
 function initializeAllScenes()
@@ -31,26 +36,26 @@ function initializeAllScenes()
 
 function addMutationObserverForShortcodes()
 {
-    const observer = new MutationObserver(function(mutationsList) {
-      for (const mutation of mutationsList) {
-          if (mutation.type === 'childList') {
-              mutation.addedNodes.forEach(node => {
-                  // Ensure the node is an element and not just text
-                  if (node.nodeType === 1) {
-                      if (node.classList.contains('c33d_scene')) {
-                          initializeSceneFromContainer(node);
-                      }
-                      // Also check for scene containers within the added node's children
-                      // (e.g., if a whole section containing scenes was added)
-                      node.querySelectorAll('.c33d_scene').forEach(initializeSceneFromContainer);
-                  }
-              });
-          }
-      }
+  console.log('adding observer for admin area');
+  mutationObs = new MutationObserver(function(mutationsList) {
+    for (const mutation of mutationsList) {
+        if (mutation.type === 'childList') {
+            mutation.addedNodes.forEach(node => {
+                // Ensure the node is an element and not just text
+                if (node.nodeType === 1) {
+                    if (node.classList.contains('c33d_scene')) {
+                        initializeSceneFromContainer(node);
+                    }
+                    // Also check for scene containers within the added node's children
+                    // (e.g., if a whole section containing scenes was added)
+                    node.querySelectorAll('.c33d_scene').forEach(initializeSceneFromContainer);
+                }
+            });
+        }
+    }
   });
   
-  observer.observe(document.body, { childList: true, subtree: true });
-  console.log('MutationObserver for scenes added (admin only).');
+  mutationObs.observe(document.body, { childList: true, subtree: true });
 }
 
 async function loadThreeJs()
@@ -68,10 +73,14 @@ async function loadThreeJs()
 
 async function initializeSceneFromContainer(container)
 {
+  console.log('test');
   await loadThreeJs();
   const containerID = container.id;
   const allSceneData = JSON.parse(container.dataset.sceneData);
   const pluginUrl = container.dataset.pluginUrl;
+  //may have to add to front end also if implementing lazy load of scenes
+  // if (document.body.classList.contains('wp-admin')) 
+
   // Check if the scene has already been initialized for this container
   if (!container.hasAttribute('data-scene-initialized')) {
       container.setAttribute('data-scene-initialized', 'true');

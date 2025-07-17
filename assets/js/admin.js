@@ -1805,8 +1805,6 @@ function transformDragEnd(){
 
       function loopDat(objectUrl, objScale, rowCount, columnCount, zCount, group, distances)
       {
-        // loader.load('obj/laptopIso.glb',	function ( gltf )
-        // loader.load('obj/tabletIso.glb',	function ( gltf )
         loader.load(objectUrl,	function ( gltf )
         {
           // deskObj
