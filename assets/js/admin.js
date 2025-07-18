@@ -23,6 +23,12 @@ class ModelConfig {
         {
           this.modelName = data.modelName || data.modelUrl.split('/').pop();; //Allow changable via object list, default to filename (like object list)
         }
+
+        this.imageUrl = data.imageUrl || '';
+        if(data.imageUrl)
+        {
+          this.modelName = data.imageUrl.split('/').pop();
+        }
         this.type = data.type;
         this.parentUuid = data.parentUuid || -1;
         // this.groupListId = ;
@@ -54,6 +60,7 @@ class ModelConfig {
         return {
             modelId: this.modelId,
             modelUrl: this.modelUrl,
+            imageUrl: this.imageUrl,
             modelName: this.modelName,
             positionX: this.position.x,
             positionY: this.position.y,
@@ -75,6 +82,7 @@ class ModelConfig {
         return new ModelConfig({
             modelId: obj.modelId,
             modelUrl: obj.modelUrl,
+            imageUrl: obj.imageUrl,
             modelName: obj.modelName,
             positionX: obj.positionX,
             positionY: obj.positionY,
@@ -208,10 +216,11 @@ window.onload = () =>
     const renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
     renderer.setSize(container.clientWidth, container.clientHeight);
     container.appendChild(renderer.domElement);
-    renderer.outputEncoding = THREE.sRGBEncoding;
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 2; // Adjust exposure as needed
+    renderer.outputColorSpace  = THREE.SRGBColorSpace;
+    // renderer.outputEncoding = THREE.sRGBEncoding;
+    // renderer.outputColorSpace = THREE.SRGBColorSpace;
+    // renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    // renderer.toneMappingExposure = 0.5; // Adjust exposure as needed
 
     const dlight = new THREE.DirectionalLight(0xffffff, 1);    
     scene.add(dlight);
@@ -986,6 +995,8 @@ function toggleCamera()
                     // MeshBasicMaterial is suitable for unlit surfaces.
                     // For lit surfaces (reacting to lights), consider THREE.MeshStandardMaterial
                     texture.colorSpace = THREE.SRGBColorSpace;
+                    // texture.encoding = THREE.sRGBEncoding; // <-- Use this for your screenshot texture
+
                     // const material = new THREE.MeshStandardMaterial({
                       const material = new THREE.MeshBasicMaterial({
                         map: texture,
@@ -1481,7 +1492,7 @@ function transformDragEnd(){
       {
         createObject('imageplane', {imageUrl: attachment.url});
       }
-      else if (fileMimeType === 'model/gltf-binary' || fileMimeType === 'model/gltf+json' || fileMimeType === 'model/gltf') 
+      else if (fileMimeType === 'model/glb-binary' || fileMimeType === 'model/gltf-binary' || fileMimeType === 'model/gltf+json' || fileMimeType === 'model/gltf') 
       {
         // preview.innerHTML = `Current Model: <a href="${attachment.url}" target="_blank">${attachment.url}</a>`;
         console.log(attachment.url);

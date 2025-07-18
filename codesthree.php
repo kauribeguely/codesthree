@@ -68,7 +68,7 @@ add_action('wp_enqueue_scripts', 'code33d_register_frontend_assets', 5);
 
 
 function code33d_frontend_enqueue_assets() {
-    
+
         wp_enqueue_style('codes-styles');
         
         wp_enqueue_script(
@@ -671,7 +671,6 @@ function code33d_editor_page($post) {
     $current_model_data = end($all_models);
 
 
-    // Now, extract the specific values for the current model (the last one, or defaults)
     $pos_x = isset($current_model_data['positionX']) ? round($current_model_data['positionX'], 2) : 0.0;
     $pos_y = isset($current_model_data['positionY']) ? round($current_model_data['positionY'], 2) : 0.0;
     $pos_z = isset($current_model_data['positionZ']) ? round($current_model_data['positionZ'], 2) : 0.0;
@@ -680,7 +679,6 @@ function code33d_editor_page($post) {
     $rot_z = isset($current_model_data['rotationZ']) ? round($current_model_data['rotationZ'], 2) : 0.0;
     $scale = isset($current_model_data['scale']) ? round($current_model_data['scale'], 2) : 1.0;
 
-    // You would do this for all other model-specific fields like modelUrl, loopActive, etc.
     $model_url = isset($current_model_data['modelUrl']) ? $current_model_data['modelUrl'] : '';
     $loop_active = isset($current_model_data['loopActive']) ? $current_model_data['loopActive'] : false;
     $loop_count_x = isset($current_model_data['loopCountX']) ? $current_model_data['loopCountX'] : 1;

@@ -180,7 +180,8 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
     const renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
     renderer.setSize(container.clientWidth, container.clientHeight);
 
-    renderer.outputEncoding = THREE.sRGBEncoding;
+    // renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.outputColorSpace  = THREE.SRGBColorSpace;
     // renderer.toneMapping = THREE.ACESFilmicToneMapping;
     // renderer.toneMappingExposure = 0.7; // Adjust for brightness
 
