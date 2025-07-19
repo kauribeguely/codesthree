@@ -24,10 +24,10 @@ class ModelConfig {
           this.modelName = data.modelName || data.modelUrl.split('/').pop();; //Allow changable via object list, default to filename (like object list)
         }
 
-        this.imageUrl = data.imageUrl || '';
-        if(data.imageUrl)
+        this.planeUrl = data.planeUrl || '';
+        if(data.planeUrl)
         {
-          this.modelName = data.imageUrl.split('/').pop();
+          this.modelName = data.planeUrl.split('/').pop();
         }
         this.type = data.type;
         this.parentUuid = data.parentUuid || -1;
@@ -60,7 +60,7 @@ class ModelConfig {
         return {
             modelId: this.modelId,
             modelUrl: this.modelUrl,
-            imageUrl: this.imageUrl,
+            planeUrl: this.planeUrl,
             modelName: this.modelName,
             positionX: this.position.x,
             positionY: this.position.y,
@@ -82,7 +82,7 @@ class ModelConfig {
         return new ModelConfig({
             modelId: obj.modelId,
             modelUrl: obj.modelUrl,
-            imageUrl: obj.imageUrl,
+            planeUrl: obj.planeUrl,
             modelName: obj.modelName,
             positionX: obj.positionX,
             positionY: obj.positionY,
@@ -807,6 +807,7 @@ function toggleCamera()
       else
       {
         //when intiate new scene, show the open popup
+        isInitialLoad = false;
         showIntroPopup();
       }
 
@@ -885,6 +886,7 @@ function toggleCamera()
 
     function loadAllMobileData()
     {
+      console.log('loading all mobile data');
       allMobileModels.forEach(function(model, index)
       {
         addMobDataToConfigRef(model, index);
@@ -932,6 +934,7 @@ function toggleCamera()
           // moveObjectToGroup(selectedObj, newParent);
           // duplicateObjectInGroup(selectedObj, newParent);
           moveToGroupKeepLocalPosition(selectedObj, newParent);
+          updateModelData(modelConfigInstance);
         }
       });
 
@@ -948,7 +951,7 @@ function toggleCamera()
       loader.load(url, (gltf) =>
       {
           gltf.scene.userData.type = 'model';
-          addObject(gltf.scene, objData, callback, index, url);
+          addObject(gltf.scene, objData, callback, index, {modelUrl:url});
           // const newThreeJsObject = gltf.scene;
           // let modelConfigInstance, modelConfigInstanceMob; // This will be our ModelConfig class instance
 
@@ -963,7 +966,7 @@ function toggleCamera()
         });
     }
 
-    function addImageAsPlane(imageUrl)
+    function addImageAsPlane(imageUrl, objData, callback)
     {
       return new Promise((resolve, reject) => {
         // Step 1: Load the image to get its dimensions
@@ -1007,7 +1010,9 @@ function toggleCamera()
                     const planeMesh = new THREE.Mesh(geometry, material);
 
                     // Resolve the Promise with the created mesh
+                    planeMesh.userData.type = 'imageplane';
                     resolve(planeMesh);
+                    addObject(planeMesh, objData, callback, null, {planeUrl:imageUrl}); 
                 },
                 // On progress callback (optional)
                 undefined,
@@ -1038,27 +1043,29 @@ function toggleCamera()
         newThreeJsObject = new THREE.Group();
         allGroups.push(newThreeJsObject);
       }
-      if(type == 'imageplane')
+      else if(type == 'imageplane')
       {
-        addImageAsPlane(objData.imageUrl).then(plane => {
-            newThreeJsObject = plane; // Add the created plane to your scene
-            newThreeJsObject.userData.type = type;
-            addObject(newThreeJsObject, objData, false, index); 
+          addImageAsPlane(objData.planeUrl, objData, callback).then(plane => {
+            plane.userData.type = type;
         })
       }
-      if(type == 'plane')
+      else if(type == 'plane')
       {
         //add to scene, add to sceneData
-        const planeGeo = new THREE.PlaneGeometry(1, 1); // 10x10 units wide and tall
+        const planeGeo = new THREE.PlaneGeometry(1, 1); 
         const planeMaterial = new THREE.MeshStandardMaterial({
                 color: 0x00ff00, // Green color
                 side: THREE.DoubleSide // Render both sides of the plane
             });
         newThreeJsObject = new THREE.Mesh(planeGeo, planeMaterial);
       }
-      else if(type == 'model' || type == undefined)
+      else if(type == 'model' )
       {
-        loadModel(objData.modelUrl, objData, callback, index)
+        loadModel(objData.modelUrl, objData, callback, index);
+      }
+      else
+      {
+        console.log('Type not defined/handled');
       }
 
       //model calls add after loaded
@@ -1071,18 +1078,23 @@ function toggleCamera()
 
     //add to scene and scenedata
     //applies objData if exists
-    function addObject(newThreeJsObject, objData, callback, index, url)
+    // function addObject(newThreeJsObject, objData, callback, index, url)
+    function addObject(newThreeJsObject, objData, callback, index, urlList)
     {
       // let newThreeJsObject;
       let modelConfigInstance, modelConfigInstanceMob; // This will be our ModelConfig class instance
 
-      let isModel = url != undefined;
+      // let isModel = url != undefined;
+      let isModel = urlList.modelUrl != undefined;
+      let isPlaneImage = urlList.planeUrl != undefined;
+      // userData.type!!!!!!!!!!!!!!!!
       if(objData) 
       {
             // Scenario 2: Loading/Reloading an Existing Model
             // We're creating a ModelConfig instance from the plain data we loaded.
             modelConfigInstance = ModelConfig.fromPlainObject(objData);
-            if(isModel) modelConfigInstance.modelUrl = url; // Ensure the URL is up-to-date in the instance
+            if(isModel) modelConfigInstance.modelUrl = urlList.modelUrl; // Ensure the URL is up-to-date in the instance
+            if(isPlaneImage) modelConfigInstance.modelUrl = urlList.planeUrl; // Ensure the URL is up-to-date in the instance
 
             // Before adding the new object, remove the old THREE.Object3D instance if it exists.
             // const oldThreeJsObject = allThreeJsObj.find(obj => obj.userData.modelConfigRef.modelId === modelConfigInstance.modelId);
@@ -1117,13 +1129,18 @@ function toggleCamera()
 
             // Scenario 1: Loading a New Model (no existing config provided)
             // Create a completely new ModelConfig instance.
-            modelConfigInstance = new ModelConfig({ modelUrl: url });
-            modelConfigInstanceMob = new ModelConfig({ modelUrl: url, isMobileConfig: true});
+            modelConfigInstance = new ModelConfig({ modelUrl: urlList.modelUrl, planeUrl:  urlList.planeUrl});
+            modelConfigInstanceMob = new ModelConfig({ modelUrl: urlList.modelUrl, planeUrl: urlList.planeUrl, isMobileConfig: true});
 
             if(isModel)
             {
-              modelConfigInstance.modelUrl = url;
-              modelConfigInstanceMob.modelUrl = url;
+              modelConfigInstance.modelUrl = urlList.modelUrl;
+              modelConfigInstanceMob.modelUrl = urlList.modelUrl;
+            }
+            else if(isPlaneImage)
+            {
+              modelConfigInstance.planeUrl = urlList.planeUrl;
+              modelConfigInstanceMob.planeUrl = urlList.planeUrl;
             }
             
             let type = newThreeJsObject.userData.type;
@@ -1137,6 +1154,10 @@ function toggleCamera()
               //allGroups.forEach - remove self from a copy of this list to check others;
               modelConfigInstance.modelName = newThreeJsObject.type + allGroups.length;
             }
+            else if(type == 'imageplane')
+            {
+              modelConfigInstance.modelName = 'Image' + allGroups.length;
+            }
             else
             {
               modelConfigInstance.modelName = newThreeJsObject.type + allThreeJsObj.length;
@@ -1145,7 +1166,10 @@ function toggleCamera()
             // The ModelConfig constructor already sets defaults for position, rotation, scale.
             newThreeJsObject.position.copy(modelConfigInstance.position);
             newThreeJsObject.rotation.copy(modelConfigInstance.rotation);
-            newThreeJsObject.scale.copy(modelConfigInstance.scale);        
+            newThreeJsObject.scale.copy(modelConfigInstance.scale);     
+            
+            modelConfigInstance.type = type;
+            if(modelConfigInstanceMob) modelConfigInstanceMob.type = type;
             // Add the plain object representation of this new model to sceneData.models for saving.
             allModels.push(modelConfigInstance.toPlainObject());
             allMobileModels[allModels.length-1] = modelConfigInstanceMob.toPlainObject();
@@ -1490,7 +1514,8 @@ function transformDragEnd(){
       const fileMimeType = attachment.mime;
       if (fileMimeType.startsWith('image/')) 
       {
-        createObject('imageplane', {imageUrl: attachment.url});
+        addImageAsPlane(attachment.url);
+        // createObject('imageplane', {imageUrl: attachment.url});
       }
       else if (fileMimeType === 'model/glb-binary' || fileMimeType === 'model/gltf-binary' || fileMimeType === 'model/gltf+json' || fileMimeType === 'model/gltf') 
       {
@@ -1586,28 +1611,32 @@ function transformDragEnd(){
             // const downloadResult = await initiateAjaxDownload(fileUrl, demoObject, fileType, event.target);
             const downloadResult = await downloadAsset(assetName, downloadType);
                 // alert(`"${assetName}" (${downloadType}) imported to Media Library successfully!`);
-                if (downloadResult.attachment_url) {
-                    loadModel(downloadResult.attachment_url); // Call your model loader with the URL
-                    importedDemoAssets[assetName] = {
+                if (downloadResult.attachment_url) 
+                {
+                  loadModel(downloadResult.attachment_url); // Call your model loader with the URL
+                  importedDemoAssets[assetName] = 
+                  {
                       imported_at: new Date().toISOString(), // Record current time
                       type: downloadType,
                       attachment_id: downloadResult.attachment_id || null,
                       attachment_url: downloadResult.attachment_url || null
                   };
-                    if(popupOpen)
-                    {
-                      hideIntroPopup();
-                    }
-                    if(demoModelPopupOpen)
-                    {
-                      toggleMediaModal();
-                    }
-                    downloadInProgress = false;
-                    button.querySelector('.c3-loading-icon').style.display = 'none';
-                    console.log('loadModel() called with:', downloadResult.attachment_url); // Specific log
-                } else {
-                    console.warn('Import successful, but no attachment URL received for individual asset.');
-                }
+                  if(popupOpen)
+                  {
+                    hideIntroPopup();
+                  }
+                  if(demoModelPopupOpen)
+                  {
+                    toggleMediaModal();
+                  }
+                  downloadInProgress = false;
+                  button.querySelector('.c3-loading-icon').style.display = 'none';
+                  console.log('loadModel() called with:', downloadResult.attachment_url); // Specific log
+              } 
+              else 
+              {
+                  console.warn('Import successful, but no attachment URL received for individual asset.');
+              }
             // Handle successful download result (e.g., show message, update UI, close modal)
             // alert(`"${demoObject}" imported successfully! Attachment ID: ${downloadResult.attachment_id}`);
             // modelImportModal.classList.add('hidden-modal'); // Hide modal on success
@@ -2067,7 +2096,7 @@ function transformDragEnd(){
                 break;  
           case 'h': 
                 // createObject('plane');
-                createObject('imageplane', {imageUrl: "http://localhost/wpLocalEdge/wp-content/uploads/2025/07/lapimg.jpg"});
+                createObject('imageplane', {planeUrl: "http://localhost/wpLocalEdge/wp-content/uploads/2025/07/lapimg.jpg"});
                 break;  
           case 't': // Translate mode
                 setTransformMode('translate');
@@ -2785,6 +2814,8 @@ function getThreeJsObjectByUuid(modelId)
                 try {
                     // Stringify the entire sceneData object
                     hiddenInputField.value = JSON.stringify(allSceneData);
+                    console.log('mobile models length' + allMobileModels.length);
+                    // console.log(allMobileModels);
                     // console.log("Hidden config field updated successfully.");
                     // console.log("Current hidden field value (first 200 chars):", hiddenInputField.value.substring(0, 200));
                 } catch (e) {
