@@ -7,11 +7,12 @@ let threeJsLoaded = false;
 let mutationObs;
 
 const localisedData = window.sceneLocalisedData;
+// const isAdmin = localisedData.isAdmin === 'true';
 const isAdmin = localisedData.isAdmin === 'true';
 
 if(allShortCodeContainers.length > 0)
 {  
-  initializeAllScenes();document
+  initializeAllScenes();
 }
 
 if(isAdmin)
@@ -73,7 +74,6 @@ async function loadThreeJs()
 
 async function initializeSceneFromContainer(container)
 {
-  console.log('test');
   await loadThreeJs();
   const containerID = container.id;
   const allSceneData = JSON.parse(container.dataset.sceneData);
@@ -235,23 +235,33 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
         newThreeJsObject = new THREE.Group();
         allGroups.push(newThreeJsObject);
       }
-      if(type == 'plane')
+      else if(type == 'imageplane')
+      {
+          addImageAsPlane(objData.planeUrl, objData, callback).then(plane => {
+            plane.userData.type = type;
+        })
+      }
+      else if(type == 'plane')
       {
         //add to scene, add to sceneData
-        const planeGeo = new THREE.PlaneGeometry(1, 1); // 10x10 units wide and tall
+        const planeGeo = new THREE.PlaneGeometry(1, 1); 
         const planeMaterial = new THREE.MeshStandardMaterial({
                 color: 0x00ff00, // Green color
                 side: THREE.DoubleSide // Render both sides of the plane
             });
         newThreeJsObject = new THREE.Mesh(planeGeo, planeMaterial);
       }
-      else if(type == 'model' || type == undefined)
+      else if(type == 'model' )
       {
-        loadModel(objData.modelUrl, objData, callback, index)
+        loadModel(objData.modelUrl, objData, callback, index);
       }
+      else
+      {
+        console.log('Type not defined/handled');
+      }     
 
       //model calls add after loaded
-      if(type != 'model' && type != undefined)
+      if(type != 'model' && type != undefined && type != "imageplane")
       {
         newThreeJsObject.userData.type = type;
         addObject(newThreeJsObject, objData, false, index);
@@ -265,8 +275,8 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
           rotateGroup.add(newThreeJsObject);
 
           let mobObjData = allMobileModels[index];
-          newThreeJsObject.userData.objData = objData; // Crucial for easy access
-          newThreeJsObject.userData.mobObjData = mobObjData; // Crucial for easy access
+          newThreeJsObject.userData.objData = objData; 
+          newThreeJsObject.userData.mobObjData = mobObjData; 
           allThreeJsObj.push(newThreeJsObject);
 
           if(isMobile)
@@ -290,7 +300,7 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
           if(itemsLoaded == allModels.length)
           {
             moveAllObjectsToGroups();
-          if(scrollAnimationLink) applyScrollTransforms();
+            if(scrollAnimationLink) applyScrollTransforms();
 
           }
 
@@ -339,6 +349,73 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
         }
     }
 
+    function addImageAsPlane(imageUrl, objData, callback)
+    {
+      return new Promise((resolve, reject) => {
+        // Step 1: Load the image to get its dimensions
+        const img = new Image();
+        img.crossOrigin = 'anonymous'; // Important for CORS if image is from a different domain
+        img.src = imageUrl;
+
+        img.onload = () => {
+          const imageWidth = img.width;
+          const imageHeight = img.height;
+          const aspectRatio = imageWidth / imageHeight;
+
+          // Step 2: Calculate plane dimensions based on aspect ratio and desired max height
+          // const planeHeight = maxHeight;
+          const planeHeight = 2;
+          const planeWidth = planeHeight * aspectRatio;
+
+          // Step 3: Create Plane Geometry
+          // Parameters: width, height, widthSegments, heightSegments
+          const geometry = new THREE.PlaneGeometry(planeWidth, planeHeight);
+
+          // Step 4: Load the texture using Three.js TextureLoader
+          const textureLoader = new THREE.TextureLoader();
+          textureLoader.load(
+              imageUrl,
+              // On load callback
+              (texture) => {
+                  // Step 5: Create a MeshBasicMaterial with the loaded texture
+                  // MeshBasicMaterial is suitable for unlit surfaces.
+                  // For lit surfaces (reacting to lights), consider THREE.MeshStandardMaterial
+                  texture.colorSpace = THREE.SRGBColorSpace;
+                  // texture.encoding = THREE.sRGBEncoding; // <-- Use this for your screenshot texture
+
+                  // const material = new THREE.MeshStandardMaterial({
+                    const material = new THREE.MeshBasicMaterial({
+                      map: texture,
+                      side: THREE.DoubleSide, 
+                      transparent: true 
+                  });
+
+                  // Step 6: Create the Mesh
+                  const planeMesh = new THREE.Mesh(geometry, material);
+
+                  // Resolve the Promise with the created mesh
+                  planeMesh.userData.type = 'imageplane';
+                  resolve(planeMesh);
+                  addObject(planeMesh, objData, callback, null, { planeUrl:imageUrl }); 
+              },
+              // On progress callback (optional)
+              undefined,
+              // On error callback
+              (error) => {
+                  console.error('An error occurred loading the texture:', error);
+                  reject(new Error('Failed to load texture: ' + imageUrl));
+              }
+          );
+      };
+
+      img.onerror = () => {
+          console.error('An error occurred loading the image to get dimensions:', imageUrl);
+          reject(new Error('Failed to load image for dimensions: ' + imageUrl));
+      };
+    });
+  }
+
+
     function applyAllTransformsFromConfigs()
     {
       // console.log(allThreeJsObj.length);
@@ -353,7 +430,7 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
     {
       object.position.set(config.positionX, config.positionY, config.positionZ);
       object.rotation.set(degToRad(config.rotationX), degToRad(config.rotationY), degToRad(config.rotationZ));
-      object.scale.set(config.scale, config.scale, config.scale);
+      object.scale.set(config.scaleX, config.scaleY, config.scaleZ);
     }
 
     function degToRad(deg)

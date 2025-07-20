@@ -1480,6 +1480,7 @@ function transformDragEnd(){
     // const popupMediaButton = document.getElementById('popup_media_button');
     // const popupMediaButton = document.getElementById('mediaLibraryBtn');
     const addModelButton = document.getElementById('add_model_button');
+    const addImageButton = document.getElementById('add_image_button');
     const addGroupButton = document.getElementById('add_group_button');
     const deleteModelButton = document.getElementById('delete_model_button');
     const popup = document.getElementById('newScenePopup');
@@ -1541,8 +1542,11 @@ function transformDragEnd(){
     // });
 
     addModelButton.addEventListener('click', function (e) {
-        // openMediaUploader(e);
         toggleMediaModal();
+    });
+    
+    addImageButton.addEventListener('click', function (e) {
+        handleMediaButtonClick(e);
     });
 
     closeModalBtn.addEventListener('click', toggleMediaModal);
@@ -1553,9 +1557,17 @@ function transformDragEnd(){
     });
 
     const mediaUploader = wp.media({
-        title: 'Select 3D Model',
+        title: 'Choose a 3d model or image',
         button: { text: 'Add to scene' },
         multiple: false
+        //works for just 'image' but not models
+        // library: {
+        //         type: [
+        //             'model/gltf+json', 
+        //             'model/gltf-binary',
+        //             'image'
+        //         ]
+        //     }
     });
 
     mediaUploader.on('select', function () 

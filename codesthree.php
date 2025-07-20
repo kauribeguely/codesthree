@@ -77,12 +77,15 @@ function code33d_frontend_enqueue_assets() {
             true 
         );
         
-        $is_admin_string = is_admin() ? 'true' : 'false';
+        // $is_admin_string = is_admin() ? 'true' : 'false';
+        // $is_admin_string = (is_admin() || ( defined( 'ELEMENTOR_PATH' ) && \Elementor\Plugin::$instance->editor->is_edit_mode() ) ) ? 'true' : 'false';
+        // $is_admin_string = (is_admin() || $_GET['action'] === 'elementor' ) ? 'true' : 'false';
+        $is_admin_string = (is_admin() || $_GET['action'] === 'elementor') ? 'true' : 'false';
         wp_localize_script(
             'codesthree-local-script',
             'sceneLocalisedData',     
             array(
-                'isAdmin' => $is_admin_string,
+                'isAdmin' => 'true',
                 'pluginUrl' => esc_url(plugins_url('', __FILE__)),
                 )
             );
@@ -267,8 +270,8 @@ add_action('wp_head', 'code33d_inject_threejs_assets', 0);
 
 // Add support for .glb and .gltf files in the Media Library
 function code33d_allow_3d_file_uploads($mime_types) {
-    $mime_types['glb'] = 'model/gltf-binary'; // Add .glb file type
-    $mime_types['gltf'] = 'model/gltf+json';  // Add .gltf file type
+    $mime_types['glb'] = 'model/gltf-binary'; 
+    $mime_types['gltf'] = 'model/gltf+json';  
     return $mime_types;
 }
 add_filter('upload_mimes', 'code33d_allow_3d_file_uploads');
@@ -287,7 +290,7 @@ add_filter('wp_check_filetype_and_ext', function($data, $file, $filename, $mime_
 
         if ('glb' === $file_type['ext']) {
             $data['ext']  = 'glb';
-            $data['type'] = 'model/glb-binary';
+            $data['type'] = 'model/gltf-binary';
         }
     }
 
@@ -598,7 +601,8 @@ function c33d_handle_media_sideload( $file_url, $asset_id, $download_type ) {
     $attachment_id = media_handle_sideload( $file_array, 0, sprintf( 'Imported %s: %s', ucwords($download_type), $asset_id ) );
 
     // Clean up the temporary file
-    @unlink( $file_array['tmp_name'] );
+    wp_delete_file( $file_array['tmp_name'] );
+    // @unlink( $file_array['tmp_name'] );
 
     if ( is_wp_error( $attachment_id ) ) {
         return new WP_Error( 'sideload_failed', 'Failed to import file to Media Library.', $attachment_id->get_error_message() );
@@ -867,10 +871,10 @@ function code33d_editor_page($post) {
                     <button style="" type="button" class="button" id="add_model_button" >Demos <span class="dashicons dashicons-download"></span></button>
                 <!-- </div> -->
                 <label>Others</label>
-                <!-- <div class="transform-group"> -->
-                    <!-- <button style="width: 50%;" type="button" class="button" id="add_model_button" >Model 🧊</button> -->
+                <div class="transform-group">
+                    <button style="" type="button" class="button" id="add_image_button" >Image <span class="dashicons dashicons-format-image"></span></button>
                     <button style="" type="button" class="button" id="add_group_button" >Group <span class="dashicons dashicons-open-folder"></span></button>
-                <!-- </div> -->
+                </div>
                 <hr>
                 <!-- <h2> Scene Objects</h2> -->
                 <div id="objectListContainer" style="">   
