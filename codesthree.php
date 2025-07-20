@@ -837,8 +837,10 @@ function code33d_editor_page($post) {
                 </div>
             </div>
         </div>
-        <div style="display: flex; justify-content: center; background: var(--c33d-bg-dark-blue); padding: 10px;">
+        <div style="display: flex; justify-content: center; background: var(--c33d-bg-dark-blue); padding: 10px; gap: 10px">
             <button id="toggleControls" type="button">Toggle Controls</button>
+            <button id="mobileMode" type="button"><span class="dashicons dashicons-smartphone"></span>Mobile View</button>
+
         </div>
         <div id = "canvasAndControls">
             <div id="threejs-canvas" style="width: 100%; height: var(--c33d-canvas-height);"></div>
@@ -963,7 +965,6 @@ function code33d_editor_page($post) {
                 <label>Breakpoint (px)
                     <input id="breakPoint" class="w-full" type="number" value="<?php echo esc_attr($breakpoint); ?>">
                 </label>
-                <button id="mobileMode" type="button">Mobile View</button>
             </div>
 
             <div class='tabContent canimation'>

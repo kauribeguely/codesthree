@@ -1085,8 +1085,15 @@ function toggleCamera()
       let modelConfigInstance, modelConfigInstanceMob; // This will be our ModelConfig class instance
 
       // let isModel = url != undefined;
-      let isModel = urlList.modelUrl != undefined;
-      let isPlaneImage = urlList.planeUrl != undefined;
+
+      let isModel;
+      let isPlaneImage;
+
+      if(urlList != undefined)
+      {        
+        isModel = urlList.modelUrl != undefined;
+        isPlaneImage = urlList.planeUrl != undefined;
+      }
       // userData.type!!!!!!!!!!!!!!!!
       if(objData) 
       {
@@ -1129,18 +1136,28 @@ function toggleCamera()
 
             // Scenario 1: Loading a New Model (no existing config provided)
             // Create a completely new ModelConfig instance.
-            modelConfigInstance = new ModelConfig({ modelUrl: urlList.modelUrl, planeUrl:  urlList.planeUrl});
-            modelConfigInstanceMob = new ModelConfig({ modelUrl: urlList.modelUrl, planeUrl: urlList.planeUrl, isMobileConfig: true});
+            
+            // modelConfigInstance = new ModelConfig({ modelUrl: urlList.modelUrl, planeUrl:  urlList.planeUrl});
+            // modelConfigInstanceMob = new ModelConfig({ modelUrl: urlList.modelUrl, planeUrl: urlList.planeUrl, isMobileConfig: true});
 
             if(isModel)
             {
+              modelConfigInstance = new ModelConfig({modelUrl:urlList.modelUrl });
+              modelConfigInstanceMob = new ModelConfig({ modelUrl:urlList.modelUrl, isMobileConfig: true});
               modelConfigInstance.modelUrl = urlList.modelUrl;
               modelConfigInstanceMob.modelUrl = urlList.modelUrl;
             }
             else if(isPlaneImage)
             {
+              modelConfigInstance = new ModelConfig({planeUrl:urlList.planeUrl });
+              modelConfigInstanceMob = new ModelConfig({ planeUrl:urlList.planeUrl, isMobileConfig: true});
               modelConfigInstance.planeUrl = urlList.planeUrl;
               modelConfigInstanceMob.planeUrl = urlList.planeUrl;
+            }
+            else
+            {
+              modelConfigInstance = new ModelConfig({ });
+              modelConfigInstanceMob = new ModelConfig({  isMobileConfig: true});
             }
             
             let type = newThreeJsObject.userData.type;
@@ -2814,7 +2831,7 @@ function getThreeJsObjectByUuid(modelId)
                 try {
                     // Stringify the entire sceneData object
                     hiddenInputField.value = JSON.stringify(allSceneData);
-                    console.log('mobile models length' + allMobileModels.length);
+                    // console.log('mobile models length' + allMobileModels.length);
                     // console.log(allMobileModels);
                     // console.log("Hidden config field updated successfully.");
                     // console.log("Current hidden field value (first 200 chars):", hiddenInputField.value.substring(0, 200));
@@ -2853,7 +2870,7 @@ function getThreeJsObjectByUuid(modelId)
 
         allTabs.forEach(tabElement => {
             const handleTabClick = (event) => {
-                const fullTabId = event.target.id;
+                const fullTabId = event.currentTarget.id;
                 const tabParameter = fullTabId.replace('Tab', '');
                 
                 tabClicked(tabParameter);
