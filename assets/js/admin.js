@@ -1007,61 +1007,62 @@ function toggleCamera()
         img.src = imageUrl;
 
         img.onload = () => {
-            const imageWidth = img.width;
-            const imageHeight = img.height;
-            const aspectRatio = imageWidth / imageHeight;
+          const imageWidth = img.width;
+          const imageHeight = img.height;
+          const aspectRatio = imageWidth / imageHeight;
 
-            // Step 2: Calculate plane dimensions based on aspect ratio and desired max height
-            // const planeHeight = maxHeight;
-            const planeHeight = 2;
-            const planeWidth = planeHeight * aspectRatio;
+          // Step 2: Calculate plane dimensions based on aspect ratio and desired max height
+          // const planeHeight = maxHeight;
+          const planeHeight = 2;
+          const planeWidth = planeHeight * aspectRatio;
 
-            // Step 3: Create Plane Geometry
-            // Parameters: width, height, widthSegments, heightSegments
-            const geometry = new THREE.PlaneGeometry(planeWidth, planeHeight);
+          // Step 3: Create Plane Geometry
+          // Parameters: width, height, widthSegments, heightSegments
+          const geometry = new THREE.PlaneGeometry(planeWidth, planeHeight);
 
-            // Step 4: Load the texture using Three.js TextureLoader
-            const textureLoader = new THREE.TextureLoader();
-            textureLoader.load(
-                imageUrl,
-                // On load callback
-                (texture) => {
-                    // Step 5: Create a MeshBasicMaterial with the loaded texture
-                    // MeshBasicMaterial is suitable for unlit surfaces.
-                    // For lit surfaces (reacting to lights), consider THREE.MeshStandardMaterial
-                    texture.colorSpace = THREE.SRGBColorSpace;
-                    // texture.encoding = THREE.sRGBEncoding; // <-- Use this for your screenshot texture
+          // Step 4: Load the texture using Three.js TextureLoader
+          const textureLoader = new THREE.TextureLoader();
+          textureLoader.load(
+              imageUrl,
+              // On load callback
+              (texture) => {
+                  // Step 5: Create a MeshBasicMaterial with the loaded texture
+                  // MeshBasicMaterial is suitable for unlit surfaces.
+                  // For lit surfaces (reacting to lights), consider THREE.MeshStandardMaterial
+                  texture.colorSpace = THREE.SRGBColorSpace;
+                  // texture.encoding = THREE.sRGBEncoding; // <-- Use this for your screenshot texture
 
-                    // const material = new THREE.MeshStandardMaterial({
-                      const material = new THREE.MeshBasicMaterial({
-                        map: texture,
-                        side: THREE.DoubleSide // Display texture on both sides of the plane
-                    });
+                  // const material = new THREE.MeshStandardMaterial({
+                    const material = new THREE.MeshBasicMaterial({
+                      map: texture,
+                      side: THREE.DoubleSide, 
+                      transparent: true 
+                  });
 
-                    // Step 6: Create the Mesh
-                    const planeMesh = new THREE.Mesh(geometry, material);
+                  // Step 6: Create the Mesh
+                  const planeMesh = new THREE.Mesh(geometry, material);
 
-                    // Resolve the Promise with the created mesh
-                    planeMesh.userData.type = 'imageplane';
-                    resolve(planeMesh);
-                    addObject(planeMesh, objData, callback, null, {planeUrl:imageUrl}); 
-                },
-                // On progress callback (optional)
-                undefined,
-                // On error callback
-                (error) => {
-                    console.error('An error occurred loading the texture:', error);
-                    reject(new Error('Failed to load texture: ' + imageUrl));
-                }
-            );
-        };
+                  // Resolve the Promise with the created mesh
+                  planeMesh.userData.type = 'imageplane';
+                  resolve(planeMesh);
+                  addObject(planeMesh, objData, callback, null, { planeUrl:imageUrl }); 
+              },
+              // On progress callback (optional)
+              undefined,
+              // On error callback
+              (error) => {
+                  console.error('An error occurred loading the texture:', error);
+                  reject(new Error('Failed to load texture: ' + imageUrl));
+              }
+          );
+      };
 
-        img.onerror = () => {
-            console.error('An error occurred loading the image to get dimensions:', imageUrl);
-            reject(new Error('Failed to load image for dimensions: ' + imageUrl));
-        };
+      img.onerror = () => {
+          console.error('An error occurred loading the image to get dimensions:', imageUrl);
+          reject(new Error('Failed to load image for dimensions: ' + imageUrl));
+      };
     });
-    }
+  }
 
     //adds new object to scene and sceneData
     // function addObject(type, objData, callback, index)
