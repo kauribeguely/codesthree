@@ -943,9 +943,26 @@ function code33d_editor_page($post) {
                     </div>
                 </fieldset>
 
-                <label>
-                Scale (model):<input type="number" name="scale" class="w-full" id="codes_scale" value="<?php echo esc_attr($scale); ?>" step="0.01" />
-                </label>
+                <fieldset>
+                    <label>
+                        Scale (model)
+                    </label>
+                    <div class="transform-group">
+                    <div class="transform-field">
+                        <label for="threejs_rotation_x">X</label>
+                        <input type="number" name="scale" class="w-full" id="codes_scale_x" value="<?php echo esc_attr($scale); ?>" step="0.01" />
+                    </div>
+                    <div class="transform-field">
+                        <label for="threejs_rotation_y">Y</label>
+                        <input type="number" name="scale" class="w-full" id="codes_scale_y" value="<?php echo esc_attr($scale); ?>" step="0.01" />
+                    </div>
+                    <div class="transform-field">
+                        <label for="threejs_rotation_z">Z</label>
+                        <input type="number" name="scale" class="w-full" id="codes_scale_z" value="<?php echo esc_attr($scale); ?>" step="0.01" />
+                    </div>
+                    </div>
+                </fieldset>
+                
                 <hr>
                 <div style="">
                     <label for="parentSelector">Move to group:</label>

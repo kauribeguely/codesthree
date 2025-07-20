@@ -39,7 +39,8 @@ class ModelConfig {
             THREE.MathUtils.degToRad(data.rotationY || 0),
             THREE.MathUtils.degToRad(data.rotationZ || 0)
         );
-        this.scale = new THREE.Vector3(data.scale || 1, data.scale || 1, data.scale || 1); // Assuming uniform scale
+        this.scale = new THREE.Vector3(data.scaleX || 1, data.scaleY || 1, data.scaleZ || 1);
+        // this.scale = new THREE.Vector3(data.scale || 1, data.scale || 1, data.scale || 1); // Assuming uniform scale
 
         this.loopActive = data.loopActive || false;
         this.loopCountX = data.loopCountX || 1;
@@ -68,7 +69,9 @@ class ModelConfig {
             rotationX: THREE.MathUtils.radToDeg(this.rotation.x),
             rotationY: THREE.MathUtils.radToDeg(this.rotation.y),
             rotationZ: THREE.MathUtils.radToDeg(this.rotation.z),
-            scale: this.scale.x, // Assuming uniform scale
+            scaleX: this.scale.x,
+            scaleY: this.scale.y,
+            scaleZ: this.scale.z,
             loopActive: this.loopActive,
             loopCountX: this.loopCountX,
             type: this.type,
@@ -90,7 +93,9 @@ class ModelConfig {
             rotationX: obj.rotationX, // Already degrees in plain object
             rotationY: obj.rotationY,
             rotationZ: obj.rotationZ,
-            scale: obj.scale,
+            scaleX: obj.scaleX,
+            scaleY: obj.scaleY,
+            scaleZ: obj.scaleZ,
             loopActive: obj.loopActive,
             loopCountX: obj.loopCountX,
             parentUuid: obj.parentUuid,
@@ -659,14 +664,41 @@ window.onload = () =>
 
 
 
-  const scaleInput = document.getElementById('codes_scale');
-  scaleInput.oninput = () =>
+  const scaleInputX = document.getElementById('codes_scale_x');
+  const scaleInputY = document.getElementById('codes_scale_y');
+  const scaleInputZ = document.getElementById('codes_scale_z');
+  scaleInputX.oninput = () =>
   {
-    selectedObjData.scale.setScalar(parseFloat(scaleInput.value));
+    selectedObjData.scale.setScalar(parseFloat(scaleInputX.value));
     transformObjectToSceneData(selectedObj);
-    
-    // model.scale.set(scaleInput.value, scaleInput.value, scaleInput.value);
-    // sceneData.scale = scaleInput.value;
+    if(sceneData.loopActive)
+    {
+      refreshLoop();
+    }
+    else
+    {
+
+    }
+  };
+
+  scaleInputY.oninput = () =>
+  {
+    selectedObjData.scale.setScalar(parseFloat(scaleInputY.value));
+    transformObjectToSceneData(selectedObj);
+    if(sceneData.loopActive)
+    {
+      refreshLoop();
+    }
+    else
+    {
+
+    }
+  };
+
+  scaleInputZ.oninput = () =>
+  {
+    selectedObjData.scale.setScalar(parseFloat(scaleInputZ.value));
+    transformObjectToSceneData(selectedObj);
     if(sceneData.loopActive)
     {
       refreshLoop();
@@ -1371,7 +1403,9 @@ function toggleCamera()
       rotYInput.value = THREE.MathUtils.radToDeg(rot.y).toFixed(2);
       rotZInput.value = THREE.MathUtils.radToDeg(rot.z).toFixed(2);
       
-      scaleInput.value = round(scale.x, 2);
+      scaleInputX.value = round(scale.x, 2);
+      scaleInputY.value = round(scale.y, 2);
+      scaleInputZ.value = round(scale.z, 2);
       // sceneData.scale = round(scale.x, 2);
       
 
@@ -2289,6 +2323,9 @@ function transformDragEnd(){
       if(mode != 'scale')
       {
         // groupControls.setMode(mode);
+      }
+      else
+      {
       }
 
       document.querySelectorAll('.transModeButton').forEach(button => 
