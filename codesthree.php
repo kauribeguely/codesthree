@@ -681,7 +681,9 @@ function code33d_editor_page($post) {
     $rot_x = isset($current_model_data['rotationX']) ? round($current_model_data['rotationX'], 2) : 0.0;
     $rot_y = isset($current_model_data['rotationY']) ? round($current_model_data['rotationY'], 2) : 0.0;
     $rot_z = isset($current_model_data['rotationZ']) ? round($current_model_data['rotationZ'], 2) : 0.0;
-    $scale = isset($current_model_data['scale']) ? round($current_model_data['scale'], 2) : 1.0;
+    $scale_x = isset($current_model_data['scaleX']) ? round($current_model_data['scaleX'], 2) : 1.0;
+    $scale_y = isset($current_model_data['scaleY']) ? round($current_model_data['scaleY'], 2) : 1.0;
+    $scale_z = isset($current_model_data['scaleZ']) ? round($current_model_data['scaleZ'], 2) : 1.0;
 
     $model_url = isset($current_model_data['modelUrl']) ? $current_model_data['modelUrl'] : '';
     $loop_active = isset($current_model_data['loopActive']) ? $current_model_data['loopActive'] : false;
@@ -954,15 +956,15 @@ function code33d_editor_page($post) {
                     <div class="transform-group">
                     <div class="transform-field">
                         <label for="threejs_rotation_x">X</label>
-                        <input type="number" name="scale" class="w-full" id="codes_scale_x" value="<?php echo esc_attr($scale); ?>" step="0.01" />
+                        <input type="number" name="scale" class="" id="codes_scale_x" value="<?php echo esc_attr($scale_x); ?>" step="0.01" />
                     </div>
                     <div class="transform-field">
                         <label for="threejs_rotation_y">Y</label>
-                        <input type="number" name="scale" class="w-full" id="codes_scale_y" value="<?php echo esc_attr($scale); ?>" step="0.01" />
+                        <input type="number" name="scale" class="" id="codes_scale_y" value="<?php echo esc_attr($scale_y); ?>" step="0.01" />
                     </div>
                     <div class="transform-field">
                         <label for="threejs_rotation_z">Z</label>
-                        <input type="number" name="scale" class="w-full" id="codes_scale_z" value="<?php echo esc_attr($scale); ?>" step="0.01" />
+                        <input type="number" name="scale" class="" id="codes_scale_z" value="<?php echo esc_attr($scale_z); ?>" step="0.01" />
                     </div>
                     </div>
                 </fieldset>
@@ -984,7 +986,7 @@ function code33d_editor_page($post) {
             
             <div class='tabContent csettings'>
                 <label>Breakpoint (px)
-                    <input id="breakPoint" class="w-full" type="number" value="<?php echo esc_attr($breakpoint); ?>">
+                    <input id="breakPoint" class="" type="number" value="<?php echo esc_attr($breakpoint); ?>">
                 </label>
             </div>
 
