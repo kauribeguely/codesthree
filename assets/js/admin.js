@@ -2990,6 +2990,7 @@ function getThreeJsObjectByUuid(modelId)
                                     .split(' ')
                                     .filter(name => name.trim() !== '');
             // if (modelList.length > 0) {
+            let downloadedModelResults;
             if (modelsToProcess.length > 0) {
                 console.log('Models to download:', modelsToProcess);
                 // if (buttonElement) buttonElement.textContent = `Downloading ${requiredModels.length} Models...`;
@@ -3003,9 +3004,13 @@ function getThreeJsObjectByUuid(modelId)
                       // downloadOrAddAsset(modelName, 'model')
                       downloadAsset(modelName, downloadType);
                     }
+                    else
+                    {
+                      return Promise.resolve({ modelName: modelName, asset: importedDemoAssets[modelName] });
+                    }
                   }
                 );
-                const downloadedModelResults = await Promise.all(downloadPromises);
+                downloadedModelResults = await Promise.all(downloadPromises);
                 console.log('All models downloaded:', downloadedModelResults);
                 if(popupOpen)
                 {
@@ -3017,9 +3022,13 @@ function getThreeJsObjectByUuid(modelId)
                 }
                 downloadInProgress = false;
                 button.querySelector('.c3-loading-icon').style.display = 'none';
+
+                // sceneConfig = setSceneJsonModelUrls(sceneConfig, downloadedModelResults);
+                setSceneJsonModelUrls(sceneConfig, downloadedModelResults);
             }
             // initGlobalSettings(sceneConfig.globalSettings);
-            updateSaveField(); // Now this will save the *imported* scene data
+
+            updateSaveField(); 
             isInitialLoad = true; 
             itemsLoaded = 0;
             initFromJson(sceneConfig);
@@ -3036,7 +3045,25 @@ function getThreeJsObjectByUuid(modelId)
           // }
         }
             
-
+        function setSceneJsonModelUrls(sceneData, downloadedModelResults)
+        {
+          //get all models urls (will just set to basic asset name e.g. phone, laptop) 
+          //    and update their url to the local version of them
+          sceneData.models.forEach((deviceModels) =>
+          {
+            deviceModels.forEach((model) =>
+            {
+              const modelName = model.modelUrl;
+              downloadedModelResults.forEach((downloadModel) =>
+              {
+                if(downloadModel.modelName == modelName)
+                {
+                  model.modelUrl = downloadModel.asset.attachment_url;
+                }
+              });
+            });
+          });
+        }
 
 
         // if (!ajaxUrl || !ajaxNonce) {
