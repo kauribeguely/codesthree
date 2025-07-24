@@ -2,7 +2,7 @@ import * as THREE from 'three';
 // import { OrbitControls } from 'three/addons/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 import { TransformControls } from 'three/addons/TransformControls.js';
-import { RGBELoader } from 'three/addons/RGBELoader.js';
+// import { RGBELoader } from 'three/addons/RGBELoader.js';
 
 
 const localisedData = window.localisedData;
@@ -111,7 +111,7 @@ let scrollMultiplier = 1;
 let isInitialLoad = true;
 let itemsLoaded = 0;
 const hiddenInputField = document.getElementById('threejs_scene_config_json');
-
+const saveButton = document.querySelector('#c3SaveButton');
 // document.addEventListener('DOMContentLoaded', () => {
 window.onload = () =>
 {
@@ -210,9 +210,9 @@ window.onload = () =>
   
 // scene.add( camera );
 
-    const rgbeLoader = new RGBELoader();
+    // const rgbeLoader = new RGBELoader();
 
-    updateEnvTexture();
+    // updateEnvTexture();
 
 
     let cameraPos = [0, 0, 5];
@@ -357,7 +357,7 @@ window.onload = () =>
     mouseRotZInput.value = mouseRotationZ;
     mouseAnimationLinkInput.checked = mouseAnimationLink;
     scrollAnimationLinkInput.checked = scrollAnimationLink;
-    useEnvLightInput.checked = useEnvLight;
+    // useEnvLightInput.checked = useEnvLight;
     isOrthoCameraInput.checked = isOrthoCamera;
     ambientLightSlider.value = sceneData.ambientLightIntensity;
     directionalLightSlider.value = sceneData.directionalLightIntensity;
@@ -378,7 +378,7 @@ window.onload = () =>
     sceneData.mouseRotationZ = parseFloat(mouseRotZInput.value);
     sceneData.mouseAnimationLink = mouseAnimationLinkInput.checked;
     sceneData.scrollAnimationLink = scrollAnimationLinkInput.checked;
-    sceneData.useEnvLight = useEnvLightInput.checked;
+    // sceneData.useEnvLight = useEnvLightInput.checked;
     sceneData.isOrthoCamera = isOrthoCameraInput.checked;
     sceneData.ambientLightIntensity = parseFloat(ambientLightSlider.value);
     sceneData.directionalLightIntensity = parseFloat(directionalLightSlider.value);
@@ -538,12 +538,12 @@ window.onload = () =>
     dlight.position.set(sceneData.lightPosX, sceneData.lightPosY, sceneData.lightPosZ);
   }
 
-  useEnvLightInput.oninput = () => {
+  // useEnvLightInput.oninput = () => {
       
-      useEnvLight = useEnvLightInput.checked;
-      updateEnvTexture();
+  //     useEnvLight = useEnvLightInput.checked;
+  //     updateEnvTexture();
       
-  };
+  // };
 
   function updateEnvTexture()
   {
@@ -2239,6 +2239,14 @@ function transformDragEnd(){
       }
     });
 
+    saveButton.addEventListener('click', saveButtonClicked);
+
+    function saveButtonClicked()
+    {
+      saveButton.style.opacity = '0.5';
+      saveButton.innerText = 'Saving...';
+      wpPublishButton.click()
+    }
 
     function stepScale(amount)
     {

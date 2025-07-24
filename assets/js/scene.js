@@ -1,5 +1,6 @@
 console.log('scene js loaded');
-let THREE, GLTFLoader, RGBELoader;
+// let THREE, GLTFLoader, RGBELoader;
+let THREE, GLTFLoader;
 
 
 let allShortCodeContainers = document.querySelectorAll('.c33d_scene');
@@ -65,9 +66,9 @@ async function loadThreeJs()
   {
     THREE = await import('three');
     const gltf = await import('three/addons/GLTFLoader.js');
-    const rgbe = await import('three/addons/RGBELoader.js');
+    // const rgbe = await import('three/addons/RGBELoader.js');
     GLTFLoader = gltf.GLTFLoader;
-    RGBELoader = rgbe.RGBELoader;
+    // RGBELoader = rgbe.RGBELoader;
     threeJsLoaded = true;
   }
 }
@@ -209,9 +210,9 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
 
     // Load 3D Model
     const loader = new GLTFLoader();
-    const rgbeLoader = new RGBELoader();
+    // const rgbeLoader = new RGBELoader();
     const sphereGroup = new THREE.Group();
-    updateEnvTexture();
+    // updateEnvTexture();
 
     if(allModels.length != 0)
     {

@@ -475,18 +475,18 @@ function c33d_download_asset() {
     // Determine the base URL and file extension based on download type and asset name
     switch ( $download_type ) {
         case 'model':
-            $base_url = 'https://c33d.kaurib.com/models/';
+            $base_url = 'https://c33d.kaurib.com/dl/models/';
             $file_extension = '.glb'; // Assuming all models are GLB for now
             // You could have a more complex mapping here if different models have different extensions:
             // $model_extensions = ['phone' => '.glb', 'laptop' => '.glb', 'car' => '.fbx'];
             // $file_extension = $model_extensions[$asset_name] ?? '.glb';
             break;
         case 'envtexture':
-            $base_url = 'https://c33d.kaurib.com/envtextures/'; // Assuming a separate folder for env textures
+            $base_url = 'https://c33d.kaurib.com/dl/envtextures/'; // Assuming a separate folder for env textures
             $file_extension = '.hdr'; // Assuming all environment textures are HDR
             break;
         case 'scene':
-            $base_url = 'https://c33d.kaurib.com/scenes/';
+            $base_url = 'https://c33d.kaurib.com/dl/scenes/';
             $file_extension = '.json'; // Scene configurations are JSON
             break;
         default:
@@ -843,9 +843,18 @@ function code33d_editor_page($post) {
                 </div>
             </div>
         </div>
-        <div style="display: flex; justify-content: center; background: var(--c33d-bg-dark-blue); padding: 10px; gap: 10px">
-            <button id="toggleControls" type="button">Toggle Controls</button>
-            <button id="mobileMode" type="button"><span class="dashicons dashicons-smartphone"></span>Mobile View</button>
+        <div style="display: flex;
+            justify-content: center;
+            background: var(--c33d-bg-dark-blue);
+            padding: 10px;
+            gap: 10px;
+            position: absolute;
+            top: 0;
+            z-index: 1;
+            left: 50%;
+            transform: translate(-50%);">
+        <button id="toggleControls" type="button">Toggle Controls</button>
+        <button id="mobileMode" type="button"><span class="dashicons dashicons-smartphone"></span>Mobile View</button>
 
         </div>
         <div id = "canvasAndControls">
@@ -889,6 +898,7 @@ function code33d_editor_page($post) {
 
                 
             <div class='leftBottom'>
+                <button id='c3SaveButton' style="width:100%; background-color: var(--c33d-yellow); color: var(--c33d-bg-dark-blue);" type="button" class="button" > Save </button>
                 <p>Use this shortcode to display the scene on your site:</p>
                 <textarea id='shortcodeArea' readonly style="width: 100%;"><?php echo esc_html($shortcode); ?></textarea>
             </div>
@@ -998,7 +1008,7 @@ function code33d_editor_page($post) {
                     </div>
                     <!-- Mouse Rotation Strength -->
                     <fieldset>
-                        <legend>Mouse Rotation Strength</legend>
+                        <legend>Mouse Rotation Degrees</legend>
                         <div class="transform-group">
                             <div class="transform-field">
                                 <label for="mouseRotationX">X</label>
@@ -1072,10 +1082,10 @@ function code33d_editor_page($post) {
                     </div>
                 </div>
 
-                <label>
+                <!-- <label>
                     <input type="checkbox" name="useEnvLight" id="useEnvLight" <?php checked($use_env_light, 'on'); ?>>
                     Use Environment Light (HDR)
-                </label>
+                </label> -->
             <hr>
 
             <!-- Toggle for isOrthoCamera -->

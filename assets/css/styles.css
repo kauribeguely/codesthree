@@ -7,6 +7,7 @@
   --c33d-light-dark-blue: #1F262E;
   --c33d-v-light-blue: #3f4d5d;
   --c33d-text: #A3B2C3;
+  --c33d-yellow: #FCB21B;
 }
 
 #threejs-canvas
@@ -181,13 +182,12 @@
     .topTransforms 
     {
         top: 0;
-        /* width: 223px; */
         left: 50%;
         transform: translate(-50%);
         position: absolute;
         display: flex;
         gap: 10px;
-        padding-top: 20px;
+        padding-top: 50px;
     }
 
     .rightControls, .leftControls 
@@ -239,7 +239,7 @@
         width: 360px;
         border: 10px solid black;
         border-radius: 20px;
-        box-shadow: 0 0 29px white;
+        box-shadow: 0 0 29px #ffffff3b;
         height: calc(var(--c33d-canvas-height) - 20px);
         position: absolute;
         left: 50%;
@@ -247,7 +247,6 @@
         pointer-events: none;
         display: none;
         z-index: 1;
-        top: 43px;
     }
 
     
@@ -261,15 +260,7 @@
         width: 223px;
     }
 
-    .topTransforms {
-        top: 0;
-        /* width: 223px; */
-        left: 50%;
-        transform: translate(-50%);
-        position: absolute;
-        z-index:2;
 
-    }
 
     .transButtonActive
     {
