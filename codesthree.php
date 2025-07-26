@@ -353,6 +353,8 @@ function code33d_register_scenes_post_type() {
 
     // Register the post type
     register_post_type('c33d_scene', $args);
+    //Same thing as permalinks refresh
+    flush_rewrite_rules();
 }
 
 
