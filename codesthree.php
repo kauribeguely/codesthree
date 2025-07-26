@@ -14,6 +14,21 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+register_uninstall_hook( __FILE__, 'c33d_on_plugin_uninstall' );
+
+function c33d_on_plugin_uninstall() {
+    // Define the option name to be deleted
+    $option_name_to_clear = 'c33d_imported_assets'; // Or 'codesthree_imported_demo_assets' if that's the final name
+
+    // Delete the option completely from the wp_options table
+    $deleted = delete_option( $option_name_to_clear );
+
+    // TODO - give user option to..
+    // - Delete custom post types (if you registered them and want them gone on uninstall)
+    // - Delete custom database tables created by your plugin
+    // - Delete any custom files/directories created by your plugin
+}
+
 function code33d_create_scene_shortcode($atts)
 {
     $atts = shortcode_atts(array(
@@ -25,11 +40,6 @@ function code33d_create_scene_shortcode($atts)
     $scene_data = code33d_get_scene_data($post_id);
     $isadmin = is_admin();
     ob_start(); 
-
-    // $option_name_to_clear = 'c33d_imported_assets';
-
-    // // Delete the option completely
-    // $deleted = delete_option( $option_name_to_clear );
     ?>
 
     <div id="scene-<?php echo esc_attr($post_id); ?>-<?php echo esc_attr(uniqid()); ?>" 
@@ -313,14 +323,15 @@ add_action('init', 'code33d_register_scenes_post_type');
 function code33d_register_scenes_post_type() {
     // Labels for the post type
     $labels = array(
-        'name'               => __('Scenes', 'code-three-3d-interactive'), // Use 'Scenes' as the translatable part
+        'name'               => __('Scenes', 'code-three-3d-interactive'),
         'singular_name'      => __('Scene', 'code-three-3d-interactive'),
-        'menu_name'          => 'Code 3 ' . __('Scenes', 'code-three-3d-interactive'), // Concatenate for display
-        'name_admin_bar'     => 'Code 3 ' . __('Scene', 'code-three-3d-interactive'),
-        'add_new'            => __('Add New Scene', 'code-three-3d-interactive'),
-        'add_new_item'       => __('Add New Scene', 'code-three-3d-interactive'),
+        'menu_name'          => 'Code Three', 
+        'name_admin_bar'     => __('Scene', 'code-three-3d-interactive'),
+        'all_items'          => __('All 3D Scenes', 'code-three-3d-interactive'),
+        'add_new'            => __('New 3D Scene', 'code-three-3d-interactive'),
+        'add_new_item'       => __('New 3D Scene', 'code-three-3d-interactive'),
         'edit_item'          => __('Edit Scene', 'code-three-3d-interactive'),
-        'new_item'           => __('New Code 3 Scene', 'code-three-3d-interactive'), // Keep 'Code 3' fixed
+        'new_item'           => __('New Scene', 'code-three-3d-interactive'), // Keep 'Code 3' fixed
         'view_item'          => __('View Scene', 'code-three-3d-interactive'),
         'search_items'       => __('Search Scenes', 'code-three-3d-interactive'),
         'not_found'          => __('No scenes found', 'code-three-3d-interactive'),

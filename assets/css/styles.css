@@ -680,3 +680,8 @@
         }
     }
 
+@media (max-height: 960px) {
+    :root {
+        --c33d-canvas-height: 85vh;
+    }
+}
