@@ -2175,7 +2175,8 @@ function transformDragEnd(){
                 if(event.ctrlKey)
                 {
                   event.preventDefault();
-                  wpPublishButton.click();
+                  saveButtonClicked();
+                  // wpPublishButton.click();
                 }
                 else
                 {
@@ -2245,7 +2246,7 @@ function transformDragEnd(){
     {
       saveButton.style.opacity = '0.5';
       saveButton.innerText = 'Saving...';
-      wpPublishButton.click()
+      wpPublishButton.click();
     }
 
     function stepScale(amount)
@@ -2993,7 +2994,7 @@ function getThreeJsObjectByUuid(modelId)
 
             console.log('Scene config downloaded:', sceneConfig);
             // const modelList = sceneConfig.models[0];
-            // 2. Download all required models concurrently based on the 'requiredModels' array
+            // 2. Download all required models concurrently
             const modelsToProcess = sceneConfig.globalSettings.downloadModels
                                     .split(' ')
                                     .filter(name => name.trim() !== '');
@@ -3003,17 +3004,18 @@ function getThreeJsObjectByUuid(modelId)
                 console.log('Models to download:', modelsToProcess);
                 // if (buttonElement) buttonElement.textContent = `Downloading ${requiredModels.length} Models...`;
 
-                //check if downloaded, if yes, do nothing, if no, wait till downloaded then run init
+                //check if downloaded, if yes, return the downloaded model, if no, wait till downloaded then run init
                 const downloadPromises = modelsToProcess.map(modelName => 
                   {
                     // downloadAsset(modelName, 'model')
                     if(!importedDemoAssets[modelName])
                     {
                       // downloadOrAddAsset(modelName, 'model')
-                      downloadAsset(modelName, downloadType);
+                      return downloadAsset(modelName, 'model');
                     }
                     else
                     {
+                      // return downloadAsset(modelName, 'model');   //enable to test downloading no matter what                   
                       return Promise.resolve({ modelName: modelName, asset: importedDemoAssets[modelName] });
                     }
                   }

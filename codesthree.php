@@ -25,6 +25,11 @@ function code33d_create_scene_shortcode($atts)
     $scene_data = code33d_get_scene_data($post_id);
     $isadmin = is_admin();
     ob_start(); 
+
+    // $option_name_to_clear = 'c33d_imported_assets';
+
+    // // Delete the option completely
+    // $deleted = delete_option( $option_name_to_clear );
     ?>
 
     <div id="scene-<?php echo esc_attr($post_id); ?>-<?php echo esc_attr(uniqid()); ?>" 
@@ -522,11 +527,15 @@ function c33d_download_asset() {
                 );
                 update_option( 'c33d_imported_assets', $imported_assets );
 
+
                 wp_send_json_success( array(
-                    'message'          => sprintf( '%s "%s" imported successfully!', ucwords($download_type), $asset_name ),
-                    'attachment_id'    => $result['attachment_id'],
-                    'attachment_url'   => $result['attachment_url'],
-                    'asset_name_requested' => $asset_name,
+                    'modelName' => $asset_name, 
+                    'asset'     => array( 
+                        'message'          => sprintf( '%s "%s" imported successfully!', ucwords($download_type), $asset_name ),
+                        'attachment_id'  => $result['attachment_id'],
+                        'attachment_url' => $result['attachment_url'],
+                        'type'           => $download_type,
+                    )
                 ) );
             }
             break;
@@ -799,12 +808,12 @@ function code33d_editor_page($post) {
                 <div class="demo-grid">
                     <!-- Demo Object 1: Phone -->
                     <div class="demo-grid-item c33-download"
-                        data-asset-name="scene1" 
+                        data-asset-name="devices-stars" 
                         data-download-type="scene">
-                        <img src="<?php echo esc_url($pluginUrl . '/assets/img/phone.jpg'); ?>" alt="Demo Phone">
+                        <img src="<?php echo esc_url($pluginUrl . '/assets/img/devices-stars.jpg'); ?>" alt="Demo Phone">
                         
                         <div class='c3_button_with_text'>
-                            <h4>Laptop and Phone</h4>
+                            <h4>Devices & Stars</h4>
                             <span class="dashicons dashicons-image-rotate c3-loading-icon"></span>
                         </div>
                         <div class="c33-download-overlay">
@@ -814,12 +823,12 @@ function code33d_editor_page($post) {
 
                     <!-- Demo Object 2: Laptop -->
                     <div class="demo-grid-item c33-download"
-                        data-asset-name="phonestars" 
+                        data-asset-name="phone-star-scroll" 
                         data-download-type="scene">
-                        <img src="<?php echo esc_url($pluginUrl . '/assets/img/laptop.jpg'); ?>" alt="Demo Laptop">
+                        <img src="<?php echo esc_url($pluginUrl . '/assets/img/scroll-phone.jpg'); ?>" alt="Demo Laptop">
                         
                         <div class='c3_button_with_text'>
-                            <h4>Phone Stars</h4>
+                            <h4>Scrolling Phones</h4>
                             <span class="dashicons dashicons-image-rotate c3-loading-icon"></span>
                         </div>
                         <div class="c33-download-overlay">
@@ -829,11 +838,24 @@ function code33d_editor_page($post) {
 
                     <!-- Demo Object 3: Star -->
                     <div class="demo-grid-item c33-download"
-                        data-asset-name="scene1" 
+                        data-asset-name="phone-carousel" 
                         data-download-type="scene">
-                        <img src="<?php echo esc_url($pluginUrl . '/assets/img/star.jpg'); ?>" alt="Demo Star">
+                        <img src="<?php echo esc_url($pluginUrl . '/assets/img/phone-carousel.jpg'); ?>" alt="Demo Star">
                         <div class='c3_button_with_text'>
-                            <h4>Star</h4>
+                            <h4>Phone Carousel</h4>
+                            <span class="dashicons dashicons-image-rotate c3-loading-icon"></span>
+                        </div>
+                        <div class="c33-download-overlay">
+                            <p>Add to scene</p>
+                        </div>
+                    </div>
+
+                    <div class="demo-grid-item c33-download"
+                        data-asset-name="isometric-devices" 
+                        data-download-type="scene">
+                        <img src="<?php echo esc_url($pluginUrl . '/assets/img/iso-devices.jpg'); ?>" alt="Demo Star">
+                        <div class='c3_button_with_text'>
+                            <h4>Isometric Devices</h4>
                             <span class="dashicons dashicons-image-rotate c3-loading-icon"></span>
                         </div>
                         <div class="c33-download-overlay">
