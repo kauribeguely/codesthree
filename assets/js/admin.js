@@ -9,7 +9,7 @@ const localisedData = window.localisedData;
 let allSceneData = JSON.parse(localisedData.allSceneData);
 const ajaxUrl = localisedData.ajax_url;
 const ajaxNonce = localisedData.ajax_nonce;
-console.log('Three.js Transform Data:', allSceneData);
+console.log('C33D Transform Data:', allSceneData);
 const importedDemoAssets = JSON.parse(localisedData.importedDemoAssets);
 let downloadInProgress = false;            
 
@@ -17,7 +17,6 @@ let downloadInProgress = false;
 class ModelConfig {
     constructor(data = {}) {
         this.modelId = data.modelId || crypto.randomUUID(); // Assign a new ID if not provided
-        // console.log(this.modelId);
         this.modelUrl = data.modelUrl || '';
         if(data.modelUrl || data.modelName)
         {
@@ -138,7 +137,7 @@ window.onload = () =>
   
   let allThreeJsObj = [];
   let allGroups = [];
-  console.log('Admin JS Codes 3D started');
+  // console.log('Admin JS Code 3D started');
 
   let mouseDown = false;
   let mouse = new THREE.Vector2();
@@ -369,7 +368,6 @@ window.onload = () =>
 
   function updateDataFromUi()
   {
-    console.log('saving');
     sceneData.scrollMoveX = parseFloat(scrollXInput.value);
     sceneData.scrollMoveY = parseFloat(scrollYInput.value);
     sceneData.scrollMoveZ = parseFloat(scrollZInput.value);
@@ -450,7 +448,6 @@ window.onload = () =>
     {
       mobileOutline.style.display = 'none';
     }
-    // console.log(allSceneData);
     applyAllTransformsFromConfigs();    
   }
 
@@ -918,7 +915,6 @@ function toggleCamera()
 
     function loadAllMobileData()
     {
-      console.log('loading all mobile data');
       allMobileModels.forEach(function(model, index)
       {
         addMobDataToConfigRef(model, index);
@@ -931,7 +927,6 @@ function toggleCamera()
       // const modelId = allThreeJsObj.findIndex(m => m.modelId === data.modelId);
       // const threeJsObject = selectObjectFromList(data.modelId);
       const threeJsObject = allThreeJsObj[index];
-      // console.log(index, threeJsObject.userData.modelConfigRef.modelUrl, data.modelUrl);
       threeJsObject.userData.modelConfigRefMob = ModelConfig.fromPlainObject(data);
       if(allMobileModels[index] == undefined)
       {
@@ -1098,7 +1093,7 @@ function toggleCamera()
       }
       else
       {
-        console.log('Type not defined/handled');
+        // console.log('Type not defined/handled');
       }
 
       //model calls add after loaded
@@ -1224,7 +1219,6 @@ function toggleCamera()
             allModels.push(modelConfigInstance.toPlainObject());
             allMobileModels[allModels.length-1] = modelConfigInstanceMob.toPlainObject();
             // allMobileModels.push(modelConfigInstanceMob.toPlainObject());
-            console.log("Added new model config to allModels:", modelConfigInstance.toPlainObject());
           }
           
           
@@ -1278,7 +1272,6 @@ function toggleCamera()
         {
           //can add scene size via here, add whenever new model loaded
           itemsLoaded++;
-          // console.log(itemsLoaded);
           if(itemsLoaded == allModels.length)
           {
             isInitialLoad = false;
@@ -1584,7 +1577,6 @@ function transformDragEnd(){
       else if (fileMimeType === 'model/glb-binary' || fileMimeType === 'model/gltf-binary' || fileMimeType === 'model/gltf+json' || fileMimeType === 'model/gltf') 
       {
         // preview.innerHTML = `Current Model: <a href="${attachment.url}" target="_blank">${attachment.url}</a>`;
-        console.log(attachment.url);
         if(scene.loopActive)
         {
           // loopDat(sceneData.modelUrl, 0.3, 40, 80, objGroup, [2, 0, 0]);
@@ -1646,7 +1638,7 @@ function transformDragEnd(){
                 }
               }
             });
-          console.log('Demo modal listeners setup complete.');
+          // console.log('Demo modal listeners setup complete.');
       });
     }
 
@@ -1655,7 +1647,7 @@ function transformDragEnd(){
     {
       if(importedDemoAssets[assetName])
       {
-          console.log(assetName + ' already downloaded, loading');
+          // console.log(assetName + ' already downloaded, loading');
           loadModel(importedDemoAssets[assetName].attachment_url);
           if(popupOpen)
           {
@@ -1670,7 +1662,7 @@ function transformDragEnd(){
       }
       else
       {
-        console.log(assetName + ' not downloaded, initiating download');
+        // console.log(assetName + ' not downloaded, initiating download');
         try {
             // const downloadResult = await initiateAjaxDownload(fileUrl, demoObject, fileType, event.target);
             const downloadResult = await downloadAsset(assetName, downloadType);
@@ -1695,7 +1687,7 @@ function transformDragEnd(){
                   }
                   downloadInProgress = false;
                   button.querySelector('.c3-loading-icon').style.display = 'none';
-                  console.log('loadModel() called with:', downloadResult.asset.attachment_url); // Specific log
+                  // console.log('loadModel() called with:', downloadResult.asset.attachment_url); // Specific log
               } 
               else 
               {
@@ -1745,7 +1737,7 @@ function transformDragEnd(){
               const result = await response.json();
 
             if (result.success) {
-                console.log('Download successful:', result.data);
+                // console.log('Download successful:', result.data);
                 importedDemoAssets[assetName] = 
                   {
                       imported_at: new Date().toISOString(), // Record current time
@@ -1905,7 +1897,6 @@ function transformDragEnd(){
         // );
         updateLinkedObjData();
         currentRotation.copy(object.rotation); // The most direct way
-        // console.log(object.position);
       }
 
          //requires selectedObj to be updated first
@@ -1920,7 +1911,6 @@ function transformDragEnd(){
         if (existingModelIndex !== -1) {
             // Replace the old plain object with the updated one from our ModelConfig instance.
             allModels[existingModelIndex] = modelConfigInstance.toPlainObject();
-            // console.log(`Updated model config for ID: ${modelConfigInstance.modelId} in sceneData.models.`);
         }
       }
 
@@ -2078,7 +2068,6 @@ function transformDragEnd(){
           //to go slightly off grid
           let xRandomness = (Math.random() - 0.5) * randomMax;
           let yRandomness = (Math.random() - 0.5) * randomMax;
-          // console.log('calc: '+centerMath);
           // activeDiv = addToDiv; //should be the first one
           // activeDivObj = null;
           // addObj(loopObject);
@@ -2407,7 +2396,6 @@ function transformDragEnd(){
       {
         isDragging = false;
         mouseDown = false;
-        // console.log()
       }
 
       function sceneOnMouseDown(event)
@@ -2431,20 +2419,17 @@ function transformDragEnd(){
         // Check if TransformControls is active/dragging. If so, don't re-select.
         // This is important to prevent accidental re-selection when trying to drag an object.
         if (controls.dragging) {
-            // console.log("Controls are dragging, ignoring mouse up for selection.");
             return;
         }
 
         if (intersects.length > 0) {
             // An object was clicked! Get the first (closest) intersected object.
             let clickedObject = intersects[0].object;
-            // console.log("Clicked object (raw):", clickedObject);
             // controls.enabled = true;
             // controls.visible = true;
 
             isDragging = true;
 
-            // console.log('planePreNormal: ' + plane.position + " rot:" + plane.rotation);
             
 
             // Find the top-level object in `modelsInScene` that this clicked object belongs to.
@@ -2485,17 +2470,14 @@ function transformDragEnd(){
 
             // if (selectableObject && selectableObject !== selectedObj) {
             //     // A new object is selected
-            //     console.log("Selected a new object:", selectableObject.name || selectableObject.uuid);
             //     selectModelForEditing(selectableObject); // Call your existing selection function
             // } else if (selectableObject === selectedObj) {
-            //     console.log("Clicked the currently selected object. No change.");
             //     // Optionally, you could toggle controls mode (translate/rotate/scale) here
             // }
 
         } else {
             // No object was clicked, so deselect the current one (optional)
             if (selectedObj) {
-                // console.log("Clicked empty space. Deselecting object.");
                 // controls.detach();
                 // controls.visible = false;
                 // controls.enabled = false;
@@ -2651,7 +2633,6 @@ parentInput.addEventListener('change', () => {
     newParent = getThreeJsObjectByUuid(groupUuid);
     selectedObj.userData.modelConfigRef.parentUuid = newParent.userData.modelConfigRef.modelId;
   }
-  // console.log(allModels[0].parentUuid);
   moveObjectToGroup(selectedObj, newParent);
   updateModelData(selectedObjData);
   updateTransforms(); //relative transforms change
@@ -2842,25 +2823,22 @@ function getThreeJsObjectByUuid(modelId)
             rotateGroup.remove(objectToDelete);
           }
         } 
-          console.log(`Removed object from scene: ${objectToDelete.name || objectToDelete.uuid}`);
+          // console.log(`Removed object from scene: ${objectToDelete.name || objectToDelete.uuid}`);
       } else {
           console.warn("Three.js scene not provided or selectedObj is not a valid Three.js object. Object might not be removed from the scene.");
       }
 
       // 5. Remove from allThreeJsObj
       allThreeJsObj.splice(threeJsObjectIndex, 1);
-      console.log(`Removed Three.js object from allThreeJsObj at index ${threeJsObjectIndex}`);
 
       // 6. Remove from allModels
       allModels.splice(modelConfigIndex, 1);
       allMobileModels.splice(modelConfigIndex, 1);
-      console.log(`Removed model config from allModels at index ${modelConfigIndex} (modelId: ${modelIdToDelete})`);
 
       // Optional: Dispose of Three.js geometry, material, and textures
       // This is crucial to prevent memory leaks, especially if you load many models.
       if (objectToDelete.geometry) {
           objectToDelete.geometry.dispose();
-          console.log(`Disposed geometry for object: ${objectToDelete.name || selectedObj.uuid}`);
       }
       if (objectToDelete.material) {
           // If material is an array of materials
@@ -2869,7 +2847,6 @@ function getThreeJsObjectByUuid(modelId)
           } else {
               objectToDelete.material.dispose();
           }
-          console.log(`Disposed material(s) for object: ${objectToDelete.name || selectedObj.uuid}`);
       }
 
       // TODO: if last object deleted, show first screen again
@@ -2897,10 +2874,6 @@ function getThreeJsObjectByUuid(modelId)
                 try {
                     // Stringify the entire sceneData object
                     hiddenInputField.value = JSON.stringify(allSceneData);
-                    // console.log('mobile models length' + allMobileModels.length);
-                    // console.log(allMobileModels);
-                    // console.log("Hidden config field updated successfully.");
-                    // console.log("Current hidden field value (first 200 chars):", hiddenInputField.value.substring(0, 200));
                 } catch (e) {
                     console.error("Error stringifying sceneData:", e);
                     // Optionally, clear the field or revert to a safe state if stringification fails
@@ -2999,7 +2972,6 @@ function getThreeJsObjectByUuid(modelId)
                 throw new Error('Failed to retrieve scene configuration data.');
             }
 
-            console.log('Scene config downloaded:', sceneConfig);
             // const modelList = sceneConfig.models[0];
             // 2. Download all required models concurrently
             const modelsToProcess = sceneConfig.globalSettings.downloadModels
@@ -3008,7 +2980,7 @@ function getThreeJsObjectByUuid(modelId)
             // if (modelList.length > 0) {
             let downloadedModelResults;
             if (modelsToProcess.length > 0) {
-                console.log('Models to download:', modelsToProcess);
+                // console.log('Models to download:', modelsToProcess);
                 // if (buttonElement) buttonElement.textContent = `Downloading ${requiredModels.length} Models...`;
 
                 //check if downloaded, if yes, return the downloaded model, if no, wait till downloaded then run init
@@ -3028,7 +3000,6 @@ function getThreeJsObjectByUuid(modelId)
                   }
                 );
                 downloadedModelResults = await Promise.all(downloadPromises);
-                console.log('All models downloaded:', downloadedModelResults);
                 if(popupOpen)
                 {
                   hideIntroPopup();
@@ -3112,7 +3083,6 @@ function getThreeJsObjectByUuid(modelId)
         //     const result = await response.json();
 
         //     if (result.success) {
-        //         console.log('Scene import successful:', result.data);
         //         initFromJson(result.data);
         //         return result.data; // Return the entire data object from PHP, including scene_data
         //     } else {

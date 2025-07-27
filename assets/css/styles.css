@@ -27,7 +27,7 @@
   position: relative;
 }
 
-#code_three_metabox .inside {
+#code-three-metabox .inside {
     padding: 0;
     margin: 0;
 }
@@ -316,7 +316,7 @@
         background-color: var(--c33d-v-light-blue);
     }
 
-    #code_three_metabox .inside {
+    #code-three-metabox .inside {
         padding: 0px;
     }
 

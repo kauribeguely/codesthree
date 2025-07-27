@@ -92,10 +92,20 @@ function code33d_frontend_enqueue_assets() {
             true 
         );
         
+        $is_admin_string = 'false'; 
+
+        if ( is_admin() ) {
+            $is_admin_string = 'true';
+        }
+
+        if ( isset( $_GET['action'] ) && sanitize_text_field( wp_unslash( $_GET['action'] ) ) === 'elementor' ) {
+            $is_admin_string = 'true';
+        }
+
         // $is_admin_string = is_admin() ? 'true' : 'false';
         // $is_admin_string = (is_admin() || ( defined( 'ELEMENTOR_PATH' ) && \Elementor\Plugin::$instance->editor->is_edit_mode() ) ) ? 'true' : 'false';
         // $is_admin_string = (is_admin() || $_GET['action'] === 'elementor' ) ? 'true' : 'false';
-        $is_admin_string = (is_admin() || $_GET['action'] === 'elementor') ? 'true' : 'false';
+        // $is_admin_string = (is_admin() || $_GET['action'] === 'elementor') ? 'true' : 'false';
         wp_localize_script(
             'codesthree-local-script',
             'sceneLocalisedData',     
@@ -409,7 +419,7 @@ add_action('save_post', 'code33d_save_scene_metadata');
 // Add meta box for 3D Element Editor in Scene post type
 function code33d_add_editor_meta_box() {
     add_meta_box(
-        'code_three_metabox', // Meta box ID
+        'code-three-metabox', // Meta box ID
         'Code Three Scene Editor',    // Meta box title
         'code33d_editor_page', // Callback function to render the content
         'c33d_scene',                // Post type where the meta box will appear
