@@ -1675,9 +1675,9 @@ function transformDragEnd(){
             // const downloadResult = await initiateAjaxDownload(fileUrl, demoObject, fileType, event.target);
             const downloadResult = await downloadAsset(assetName, downloadType);
                 // alert(`"${assetName}" (${downloadType}) imported to Media Library successfully!`);
-                if (downloadResult.attachment_url) 
+                if (downloadResult.asset.attachment_url) 
                 {
-                  loadModel(downloadResult.attachment_url); // Call your model loader with the URL
+                  loadModel(downloadResult.asset.attachment_url); // Call your model loader with the URL
                   // importedDemoAssets[assetName] = 
                   // {
                   //     imported_at: new Date().toISOString(), // Record current time
@@ -1695,7 +1695,7 @@ function transformDragEnd(){
                   }
                   downloadInProgress = false;
                   button.querySelector('.c3-loading-icon').style.display = 'none';
-                  console.log('loadModel() called with:', downloadResult.attachment_url); // Specific log
+                  console.log('loadModel() called with:', downloadResult.asset.attachment_url); // Specific log
               } 
               else 
               {
