@@ -1678,13 +1678,13 @@ function transformDragEnd(){
                 if (downloadResult.attachment_url) 
                 {
                   loadModel(downloadResult.attachment_url); // Call your model loader with the URL
-                  importedDemoAssets[assetName] = 
-                  {
-                      imported_at: new Date().toISOString(), // Record current time
-                      type: downloadType,
-                      attachment_id: downloadResult.attachment_id || null,
-                      attachment_url: downloadResult.attachment_url || null
-                  };
+                  // importedDemoAssets[assetName] = 
+                  // {
+                  //     imported_at: new Date().toISOString(), // Record current time
+                  //     type: downloadType,
+                  //     attachment_id: downloadResult.attachment_id || null,
+                  //     attachment_url: downloadResult.attachment_url || null
+                  // };
                   if(popupOpen)
                   {
                     hideIntroPopup();
@@ -1746,6 +1746,13 @@ function transformDragEnd(){
 
             if (result.success) {
                 console.log('Download successful:', result.data);
+                importedDemoAssets[assetName] = 
+                  {
+                      imported_at: new Date().toISOString(), // Record current time
+                      type: downloadType,
+                      attachment_id: result.data.asset?.attachment_id || null,
+                      attachment_url: result.data.asset?.attachment_url || null
+                  };
                 return result.data; // Return the 'data' part of the successful response
             } else {
                 console.error('Download failed:', result.data.errors || result.data.message);
