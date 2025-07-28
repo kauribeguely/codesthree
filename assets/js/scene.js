@@ -7,7 +7,7 @@ let allShortCodeContainers = document.querySelectorAll('.c33d_scene');
 let threeJsLoaded = false;
 let mutationObs;
 
-const localisedData = window.sceneLocalisedData;
+const localisedData = window.c33dlocaliseddata;
 // const isAdmin = localisedData.isAdmin === 'true';
 const isAdmin = localisedData.isAdmin === 'true';
 

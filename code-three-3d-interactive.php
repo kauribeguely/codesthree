@@ -7,6 +7,9 @@ Author: Kauri Beguely
 Text Domain: code-three-3d-interactive
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
+Requires at least: 6.2
+Requires PHP: 7.4
+Stable tag: 1.0.0
 */
 
 // Exit if accessed directly
@@ -15,10 +18,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 register_uninstall_hook( __FILE__, 'c33d_on_plugin_uninstall' );
-
+ 
 function c33d_on_plugin_uninstall() {
     // Define the option name to be deleted
-    $option_name_to_clear = 'c33d_imported_assets'; // Or 'codesthree_imported_demo_assets' if that's the final name
+    $option_name_to_clear = 'c33d_imported_assets'; // Or 'c33d_imported_demo_assets' if that's the final name
 
     // Delete the option completely from the wp_options table
     $deleted = delete_option( $option_name_to_clear );
@@ -26,10 +29,10 @@ function c33d_on_plugin_uninstall() {
     // TODO - give user option to..
     // - Delete custom post types (if you registered them and want them gone on uninstall)
     // - Delete custom database tables created by your plugin
-    // - Delete any custom files/directories created by your plugin
+    // - Delete any custom files/directories created by your plugin (e.g. media library)
 }
 
-function code33d_create_scene_shortcode($atts)
+function c33d_create_scene_shortcode($atts)
 {
     $atts = shortcode_atts(array(
         'id' => get_the_ID(),
@@ -37,7 +40,7 @@ function code33d_create_scene_shortcode($atts)
         'height' => '500px', // Default height is 500px
     ), $atts);
     $post_id = intval($atts['id']);
-    $scene_data = code33d_get_scene_data($post_id);
+    $scene_data = c33d_get_scene_data($post_id);
     $isadmin = is_admin();
     ob_start(); 
     ?>
@@ -61,10 +64,10 @@ function code33d_create_scene_shortcode($atts)
     <?php
     return ob_get_clean();
 }
-add_shortcode('c33d_scene', 'code33d_create_scene_shortcode');
+add_shortcode('c33d_scene', 'c33d_create_scene_shortcode');
 
 //register to enqueue later, didnt end up working
-function code33d_register_frontend_assets()
+function c33d_register_frontend_assets()
 {
     $plugin_version = 1.0;
     wp_register_style(
@@ -79,15 +82,15 @@ function code33d_register_frontend_assets()
 
 
 }
-add_action('wp_enqueue_scripts', 'code33d_register_frontend_assets', 5);
+add_action('wp_enqueue_scripts', 'c33d_register_frontend_assets', 5);
 
 
-function code33d_frontend_enqueue_assets() {
+function c33d_frontend_enqueue_assets() {
 
         wp_enqueue_style('codes-styles');
         
         wp_enqueue_script(
-            'codesthree-local-script', 
+            'c33d-local-script', 
             plugins_url('/assets/js/local.js', __FILE__), 
             true 
         );
@@ -107,8 +110,8 @@ function code33d_frontend_enqueue_assets() {
         // $is_admin_string = (is_admin() || $_GET['action'] === 'elementor' ) ? 'true' : 'false';
         // $is_admin_string = (is_admin() || $_GET['action'] === 'elementor') ? 'true' : 'false';
         wp_localize_script(
-            'codesthree-local-script',
-            'sceneLocalisedData',     
+            'c33d-local-script',
+            'c33dlocaliseddata',     
             array(
                 'isAdmin' => 'true',
                 'pluginUrl' => esc_url(plugins_url('', __FILE__)),
@@ -117,10 +120,10 @@ function code33d_frontend_enqueue_assets() {
             
         wp_enqueue_script_module('codes-scene-script');
 }
-add_action('wp_enqueue_scripts', 'code33d_frontend_enqueue_assets', 6);
+add_action('wp_enqueue_scripts', 'c33d_frontend_enqueue_assets', 6);
 
 
-function code33d_admin_enqueue_assets() {
+function c33d_admin_enqueue_assets() {
 
 
     global $post; 
@@ -158,18 +161,18 @@ function code33d_admin_enqueue_assets() {
 
 
     wp_enqueue_script(
-        'codesthree-local-script', 
+        'c33d-local-script', 
         plugins_url('/assets/js/local.js', __FILE__), 
         true 
     );
 
     wp_localize_script(
-        'codesthree-local-script',
-        'localisedData',     
+        'c33d-local-script',
+        'c33dadminlocaliseddata',     
         array(
             'ajax_url' => admin_url('admin-ajax.php'), 
-            'ajax_nonce'    => wp_create_nonce('codesthree_local_ajax_nonce'), 
-            'allSceneData' => wp_json_encode(code33d_get_scene_data($post->ID)),
+            'ajax_nonce'    => wp_create_nonce('c33d_local_ajax_nonce'), 
+            'allSceneData' => wp_json_encode(c33d_get_scene_data($post->ID)),
             'pluginUrl' => esc_url(plugins_url('', __FILE__)),
             'importedDemoAssets'  => wp_json_encode( get_option( 'c33d_imported_assets', array() ) ),
         )
@@ -179,28 +182,26 @@ function code33d_admin_enqueue_assets() {
     wp_enqueue_script_module(
         'codes-admin-script',
         plugins_url('/assets/js/admin.js', __FILE__),
-        array( 'codesthree-local-script' ) // Your main module depends on the data script
+        array( 'c33d-local-script' ) // Your main module depends on the data script
         
     );
 }
-add_action('admin_enqueue_scripts', 'code33d_admin_enqueue_assets');
+add_action('admin_enqueue_scripts', 'c33d_admin_enqueue_assets');
 
 
 
-function my_shortcode_box_in_publish_meta() {
+function c33d_shortcode_in_publish_box() {
     global $post;
 
-    // Only show for a specific post type if needed
     if ($post->post_type !== 'c33d_scene') return;
 
-    // Create the shortcode string using the post ID or other info
     $shortcode = '[c33d_scene id="' . $post->ID . '"]';
 
     echo '<input type="text" readonly value="' . esc_attr($shortcode) . '" style="width:100%; background:#f9f9f9; cursor:text;" onclick="this.select()" />';
 }
-add_action('post_submitbox_misc_actions', 'my_shortcode_box_in_publish_meta');
+add_action('post_submitbox_misc_actions', 'c33d_shortcode_in_publish_box');
 
-function code33d_get_scene_data($post_id) {
+function c33d_get_scene_data($post_id) {
     // Define the meta key where the full JSON configuration is stored
     $db_meta_key = '_threejs_scene_config_data';
 
@@ -273,14 +274,14 @@ function code33d_get_scene_data($post_id) {
    return $final_config;
 }
 
-function code33d_inject_threejs_assets() 
+function c33d_inject_threejs_assets() 
 {
 ?>
 
 <script type="importmap">
     {
         "imports": {
-            "three": "<?php echo esc_url(plugins_url('/assets/js/threemin.module.js', __FILE__)); ?>",
+            "three": "<?php echo esc_url(plugins_url('/assets/js/three.module.min.js', __FILE__)); ?>",
             "three/addons/": "<?php echo esc_url(plugins_url('/assets/js/threeaddons/', __FILE__)); ?>"
         }
     }
@@ -289,17 +290,17 @@ function code33d_inject_threejs_assets()
 <?php
 }
 // Hook into the wp_head to ensure the assets are loaded globally
-add_action('wp_head', 'code33d_inject_threejs_assets', 0);
+add_action('wp_head', 'c33d_inject_threejs_assets', 0);
 
 
 
 // Add support for .glb and .gltf files in the Media Library
-function code33d_allow_3d_file_uploads($mime_types) {
+function c33d_allow_3d_file_uploads($mime_types) {
     $mime_types['glb'] = 'model/gltf-binary'; 
     $mime_types['gltf'] = 'model/gltf+json';  
     return $mime_types;
 }
-add_filter('upload_mimes', 'code33d_allow_3d_file_uploads');
+add_filter('upload_mimes', 'c33d_allow_3d_file_uploads');
 
 
 add_filter('wp_check_filetype_and_ext', function($data, $file, $filename, $mime_types, $real_mime_type) {
@@ -328,9 +329,9 @@ add_filter('wp_check_filetype_and_ext', function($data, $file, $filename, $mime_
 
 
 // Hook to initialize the custom post type
-add_action('init', 'code33d_register_scenes_post_type');
+add_action('init', 'c33d_register_scenes_post_type');
 
-function code33d_register_scenes_post_type() {
+function c33d_register_scenes_post_type() {
     // Labels for the post type
     $labels = array(
         'name'               => __('Scenes', 'code-three-3d-interactive'),
@@ -368,7 +369,7 @@ function code33d_register_scenes_post_type() {
 }
 
 
-function code33d_save_scene_metadata($post_id) {
+function c33d_save_scene_metadata($post_id) {
 
     // Verify this is a "c33d_scene" post type
     if (get_post_type($post_id) !== 'c33d_scene') {
@@ -379,7 +380,7 @@ function code33d_save_scene_metadata($post_id) {
     if ( isset( $_POST['scene_meta_nonce'] ) ) {
         $nonce = sanitize_text_field(wp_unslash( $_POST['scene_meta_nonce'] )); // Unslash first
         // $nonce = sanitize_text_field( $nonce );
-        if ( ! wp_verify_nonce( $nonce, 'code33d_save_scene_data_nonce' ) ) {
+        if ( ! wp_verify_nonce( $nonce, 'c33d_save_scene_data_nonce' ) ) {
             return;
         }
     } 
@@ -414,53 +415,53 @@ function code33d_save_scene_metadata($post_id) {
         delete_post_meta($post_id, $db_meta_key);
         }
 }
-add_action('save_post', 'code33d_save_scene_metadata');
+add_action('save_post', 'c33d_save_scene_metadata');
 
 // Add meta box for 3D Element Editor in Scene post type
-function code33d_add_editor_meta_box() {
+function c33d_add_editor_meta_box() {
     add_meta_box(
         'code-three-metabox', // Meta box ID
         'Code Three Scene Editor',    // Meta box title
-        'code33d_editor_page', // Callback function to render the content
+        'c33d_editor_page', // Callback function to render the content
         'c33d_scene',                // Post type where the meta box will appear
         'normal',               // Context (normal, side, or advanced)
         'default'               // Priority
     );
 }
-add_action('add_meta_boxes', 'code33d_add_editor_meta_box');
+add_action('add_meta_boxes', 'c33d_add_editor_meta_box');
 
 
-function code33d_remove_post_editing_box() {
+function c33d_remove_post_editing_box() {
     remove_post_type_support('c33d_scene', 'editor');
 }
-add_action('init', 'code33d_remove_post_editing_box');
+add_action('init', 'c33d_remove_post_editing_box');
 
 
-function code33d_custom_template_redirect($template) {
+function c33d_custom_template_redirect($template) {
 
 	if (is_singular('c33d_scene')) {
 		return plugin_dir_path(__FILE__) . 'templates/single_scene.php';
     }
     return $template;
 }
-add_filter('template_include', 'code33d_custom_template_redirect');
+add_filter('template_include', 'c33d_custom_template_redirect');
 
 
-function code33d_add_shortcode_column($columns) {
+function c33d_add_shortcode_column($columns) {
     $columns['c33d_scene_shortcode'] = 'Shortcode';
     return $columns;
 }
-add_filter('manage_c33d_scene_posts_columns', 'code33d_add_shortcode_column'); 
+add_filter('manage_c33d_scene_posts_columns', 'c33d_add_shortcode_column'); 
 
-function code33d_populate_shortcode_column($column, $post_id) {
+function c33d_populate_shortcode_column($column, $post_id) {
     if ($column === 'c33d_scene_shortcode') {
         echo '[c33d_scene id="' . absint($post_id) . '"]';
     }
 }
-add_action('manage_c33d_scene_posts_custom_column', 'code33d_populate_shortcode_column', 10, 2); 
+add_action('manage_c33d_scene_posts_custom_column', 'c33d_populate_shortcode_column', 10, 2); 
 
 
-function code33d_set_default_one_column_layout($default, $option, $value) {
+function c33d_set_default_one_column_layout($default, $option, $value) {
     $screen = get_current_screen();
 
     if ($screen && $screen->id === 'c33d_scene') {
@@ -469,15 +470,15 @@ function code33d_set_default_one_column_layout($default, $option, $value) {
 
     return $default;
 }
-add_filter('default_option_screen_layout_c33d_scene', 'code33d_set_default_one_column_layout', 10, 3); 
+add_filter('default_option_screen_layout_c33d_scene', 'c33d_set_default_one_column_layout', 10, 3); 
 
 
 add_action( 'wp_ajax_c33d_download_asset', 'c33d_download_asset' );
 
 
-// function codesthree_handle_demo_import_ajax() {
+// function c33d_handle_demo_import_ajax() {
 function c33d_download_asset() {
-    if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'codesthree_local_ajax_nonce' ) ) {
+    if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'c33d_local_ajax_nonce' ) ) {
         wp_send_json_error( array( 'message' => 'Security check failed. Invalid nonce.' ) );
         wp_die(); // Always exit after sending JSON response in AJAX handlers
     }
@@ -667,10 +668,10 @@ function c33d_handle_scene_json_fetch( $scene_url, $asset_id ) {
 }
 
 // Admin page content
-function code33d_editor_page($post) {
+function c33d_editor_page($post) {
 
   // Assuming $post->ID is available here
-    $full_meta = code33d_get_scene_data($post->ID);
+    $full_meta = c33d_get_scene_data($post->ID);
     $globalSettings = $full_meta['globalSettings']; // This function now returns the structure with 'allModels' array inside it.
     $all_models = $full_meta['models']; // Get the array of all models
     // --- Global Scene Settings ---
@@ -740,7 +741,7 @@ function code33d_editor_page($post) {
         <script type="importmap">
             {
                 "imports": {
-                    "three": "<?php echo esc_url(plugins_url('/assets/js/threemin.module.js', __FILE__)); ?>",
+                    "three": "<?php echo esc_url(plugins_url('/assets/js/three.module.min.js', __FILE__)); ?>",
                     "three/addons/": "<?php echo esc_url(plugins_url('/assets//js/threeaddons/', __FILE__)); ?>"
                 }
             }
@@ -751,7 +752,7 @@ function code33d_editor_page($post) {
             name="threejs_scene_config_json"
             id="threejs_scene_config_json"
             value=""> 
-        <?php wp_nonce_field('code33d_save_scene_data_nonce', 'scene_meta_nonce'); ?>
+        <?php wp_nonce_field('c33d_save_scene_data_nonce', 'scene_meta_nonce'); ?>
 
         <!-- <h1>3D Model Editor</h1> -->
 

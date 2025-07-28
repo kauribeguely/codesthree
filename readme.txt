@@ -1,7 +1,7 @@
 === Code Three 3D Interactive ===
 Contributors: kauribeguely
 Tags: 3d, three.js, animation, interactive, multi object
-Requires at least: 5.0
+Requires at least: 6.0
 Tested up to: 6.8
 Requires PHP: 7.4
 Stable tag: 1.0

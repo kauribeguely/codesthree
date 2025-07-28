@@ -5,7 +5,7 @@ import { TransformControls } from 'three/addons/TransformControls.js';
 // import { RGBELoader } from 'three/addons/RGBELoader.js';
 
 
-const localisedData = window.localisedData;
+const localisedData = window.c33dadminlocaliseddata;
 let allSceneData = JSON.parse(localisedData.allSceneData);
 const ajaxUrl = localisedData.ajax_url;
 const ajaxNonce = localisedData.ajax_nonce;
@@ -891,7 +891,6 @@ function toggleCamera()
     
     function initFromJson(importJson)
     {
-      // let importString = '{"globalSettings":{"ambientLightIntensity":0.5,"directionalLightIntensity":1,"lightPosX":5,"lightPosY":10,"lightPosZ":7.5,"useEnvLight":true,"isOrthoCamera":false,"mouseAnimationLink":true,"mouseRotationX":6,"mouseRotationY":6,"mouseRotationZ":0,"scrollAnimationLink":false,"scrollMoveX":0,"scrollMoveY":5,"scrollMoveZ":0,"breakpoint":768,"modelUrl":"http://localhost/wpLocalEdge/wp-content/uploads/2025/06/phoneWhite.glb","breakPoint":768},"models":[[{"modelId":"cc842f75-5f2b-4ab3-b3bf-a63c3225c947","modelUrl":"http://localhost/wpLocalEdge/wp-content/uploads/2025/06/laptopCD.glb","modelName":"laptopCD.glb","positionX":-0.5485610472763248,"positionY":-0.6196226712307388,"positionZ":-1.2121505485711381,"rotationX":-4.681889054216438,"rotationY":43.31244929456555,"rotationZ":22.935199701058483,"scale":0.6399999999999997,"loopActive":false,"loopCountX":1,"type":"model","parentUuid":-1},{"modelId":"df6127bc-5aaf-493d-b334-3abaaef5ec1d","modelUrl":"http://localhost/wpLocalEdge/wp-content/uploads/2025/06/phoneWhite.glb","modelName":"phoneWhite.glb","positionX":1.7804044468391422,"positionY":1.204533054386354,"positionZ":-1.070533463623571,"rotationX":-148.2209293940659,"rotationY":-53.28320057979277,"rotationZ":-157.0488743547062,"scale":0.8,"loopActive":false,"loopCountX":1,"type":"model","parentUuid":-1}],[{"modelId":"84ad05fa-4094-494a-920b-b9f78754323e","modelUrl":"http://localhost/wpLocalEdge/wp-content/uploads/2025/06/laptopCD.glb","modelName":"laptopCD.glb","positionX":0,"positionY":0,"positionZ":0,"rotationX":0,"rotationY":0,"rotationZ":0,"scale":1,"loopActive":false,"loopCountX":1,"parentUuid":-1},{"modelId":"0af3addb-4fa6-4a51-aa57-7f9297415463","modelUrl":"http://localhost/wpLocalEdge/wp-content/uploads/2025/06/phoneWhite.glb","modelName":"phoneWhite.glb","positionX":0,"positionY":0,"positionZ":0,"rotationX":0,"rotationY":0,"rotationZ":0,"scale":1,"loopActive":false,"loopCountX":1,"parentUuid":-1}]]}';
       // allSceneData = JSON.parse(importString);
       // const importedSceneData = JSON.parse(importJson.scene_data);
       // const importedSceneData = importJson.scene_data;
