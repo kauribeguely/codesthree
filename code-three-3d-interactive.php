@@ -1054,8 +1054,42 @@ function c33d_editor_page($post) {
                 </div>
 
                 <label>Materials</label>
-                <div id="material-list">
+                        
+                <!-- Dropdown for material selection -->
+                <div class="form-group">
+                    <label for="materialSelector" class="label">Select Material</label>
+                    <select id="materialSelector" class="select-input">
+                        <!-- Options will be populated by JavaScript -->
+                    </select>
+                </div>
 
+                <!-- Material Properties Panel (Initially hidden) -->
+                <div id="materialPropertiesPanel" class="properties-panel hidden">
+                    <!-- Material Color Control -->
+                    <label for="materialColor" class="property-label">Material</label>
+                    <div class="transform-group">
+                        <input type="color" id="materialColor" class="color-picker">
+                    <!-- </div> -->
+
+                    <!-- Material Texture Button -->
+                    <!-- <div class="texture-button-container"> -->
+                        <button type="button" id="materialTextureBtn" class="texture-button">
+                            Texture
+                        </button>
+                    </div>
+
+                    <!-- Emissive Color Control -->
+                    <label for="emissiveColor" class="property-label">Emissive</label>
+                    <div class="transform-group">
+                        <input type="color" id="emissiveColor" class="color-picker">
+                    <!-- </div> -->
+
+                    <!-- Emissive Texture Button -->
+                    <!-- <div class="texture-button-container"> -->
+                        <button type="button" id="emissiveTextureBtn" class="texture-button">
+                            Texture
+                        </button>
+                    </div>
                 </div>
             </div>
             

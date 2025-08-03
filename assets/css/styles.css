@@ -194,7 +194,7 @@
     {
         position: absolute;
         display: flex;
-        flex-wrap: wrap;
+        /* flex-wrap: wrap; */
         flex-direction: column;
         top: 0;
         /* background: var(--c33d-mid-dark-blue); */
@@ -330,19 +330,7 @@
         box-shadow: inset 3px 3px 6.3px 4px #00000036;
     }
 
-    .material-entry 
-    {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
 
-    #material-list 
-    {
-        display: flex;
-        flex-direction: column;
-        gap: 13px;
-    }
 
 }
 

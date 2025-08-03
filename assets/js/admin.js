@@ -113,14 +113,15 @@ class ModelConfig {
             const propValue = properties[propName];
 
             // Special handling for textureUrl
-            if (propName === 'textureUrl') {
+            if (propName === 'map' || propName === 'emissiveMap') {
               console.log(`Loading texture for material name: ${materialName} from ${propValue}`);
               textureLoader.load(
                 propValue,
                 (texture) => {
                   texture.flipY = false;
                   texture.colorSpace = THREE.SRGBColorSpace;
-                  material.map = texture;
+                  material[propName] = texture;
+                  // material.map = texture;
                   material.needsUpdate = true;
                   console.log(`Successfully applied texture to material name: ${materialName}`);
                 },
@@ -129,15 +130,30 @@ class ModelConfig {
                   console.error(`Error loading texture from URL: ${propValue} for material name: ${materialName}`, error);
                 }
               );
-            } else if (propName === 'color' && material.color) {
-              // Specific handling for color
-              console.log(`Applying color to material '${materialName}' with value: ${propValue}`);
-              material.color.set(propValue);
-              material.needsUpdate = true;
-            } else if (propName in material) {
+            } 
+            // else if (propName === 'materialColor' && material.color) {
+            //   // Specific handling for color
+            //   console.log(`Applying color to material '${materialName}' with value: ${propValue}`);
+            //   material.color.setHex(propValue);
+            //   material.needsUpdate = true;
+            // } 
+            // else if (propName === 'emissiveColor' && material.emissive) {
+            //   // Specific handling for color
+            //   console.log(`Applying color to material '${materialName}' with value: ${propValue}`);
+            //   material.color.setHex(propValue);
+            //   material.needsUpdate = true;
+            // } 
+            else if (propName in material) {
               // For all other properties, apply them directly
               console.log(`Applying property '${propName}' to material '${materialName}' with value: ${propValue}`);
-              material[propName] = propValue;
+              if(material[propName].isColor)
+              {
+                material[propName].setHex(propValue);
+              }
+              else
+              {
+                material[propName] = propValue;
+              }
               material.needsUpdate = true;
             } else {
               console.warn(`Property '${propName}' is not a valid property for material '${materialName}'.`);
@@ -236,7 +252,16 @@ let isInitialLoad = true;
 let itemsLoaded = 0;
 const hiddenInputField = document.getElementById('threejs_scene_config_json');
 const saveButton = document.querySelector('#c3SaveButton');
-const materialListDiv = document.getElementById('material-list');
+// const materialListDiv = document.getElementById('material-list');
+
+const materialSelector = document.getElementById('materialSelector');
+const propertiesPanel = document.getElementById('materialPropertiesPanel');
+const materialColorPicker = document.getElementById('materialColor');
+const materialTextureBtn = document.getElementById('materialTextureBtn');
+const emissiveColorPicker = document.getElementById('emissiveColor');
+const emissiveTextureBtn = document.getElementById('emissiveTextureBtn');
+let editingTextureType = null; // 'map' or 'emissiveMap'
+let selectedMaterials = null;
 
 // document.addEventListener('DOMContentLoaded', () => {
 window.onload = () =>
@@ -1403,7 +1428,10 @@ function toggleCamera()
             // scene.add(controls);
         }
             //performance issue (tried as last object for initial load but bugs if not the last)
-            renderMaterialList(getMaterialsFromObject(selectedObj));
+          // renderMaterialList(getMaterialsFromObject(selectedObj));
+          selectedMaterials = getMaterialsFromObject(selectedObj);
+          populateMaterialSelector(selectedMaterials);
+
 
         //when last model added (i.e. last in load all or adding a new one)
         if(allModels.length == allThreeJsObj.length)
@@ -1703,37 +1731,60 @@ function transformDragEnd(){
         }
     });
 
-    textureUploader.on('select', function () 
-    {
-        const attachment = textureUploader.state().get('selection').first().toJSON();
-        const imageUrl = attachment.url;
 
-        console.log(`Loading texture from: ${imageUrl}`);
-        
-        // Use the globally scoped 'selectedMaterial' variable
-        if (selectedMaterial) {
-            textureLoader.load(imageUrl,
-                (texture) => {
-                    texture.flipY = false;
-                    texture.colorSpace = THREE.SRGBColorSpace;
-                    selectedMaterial.map = texture;
-                    selectedMaterial.needsUpdate = true;
-                    //applies to selected object
-                    selectedObj.userData.modelConfigRef.setMaterialProperties(selectedMaterial.name, { textureUrl: imageUrl });
-                    updateModelData(selectedObj.userData.modelConfigRef);
-                    updateSaveField();
-                    selectedMaterial.color.setHex(0xffffff);
-                    console.log(`Successfully applied texture to material: "${selectedMaterial.name}"`);
-                },
-                undefined,
-                (error) => {
-                    console.error(`Error loading texture for material "${selectedMaterial.name}":`, error);
-                }
-            );
-        } else {
-            console.error('No material selected to apply the texture to.');
-        }
-    });
+  textureUploader.on('select', function () {
+      const attachment = textureUploader.state().get('selection').first().toJSON();
+      const imageUrl = attachment.url;
+
+      console.log(`Loading texture for ${editingTextureType} from: ${imageUrl}`);
+      
+      if (selectedMaterial) {
+          // Use the globally scoped 'selectedMaterial' variable
+          
+          textureLoader.load(imageUrl,
+              (texture) => {
+                  texture.flipY = false;
+                  texture.colorSpace = THREE.SRGBColorSpace;
+
+                  // Apply the texture to the correct material property based on which button was clicked
+                  if (editingTextureType === 'map') {
+                      selectedMaterial.map = texture;
+                      // Reset the color to white since a texture is now applied
+                      selectedMaterial.color.setHex(0xffffff);
+                      materialColorPicker.value = '#ffffff';
+                      selectedObjData.setMaterialProperties(selectedMaterial.name, { emissiveMap: imageUrl });
+
+                  } else if (editingTextureType === 'emissiveMap') {
+                      selectedMaterial.emissiveMap = texture;
+                      // If set to black will not be visible
+                      if(emissiveColorPicker.value = '#000000')
+                      {
+                        selectedMaterial.emissive.setHex(0xFFFFFF);
+                        emissiveColorPicker.value = '#FFFFFF';
+                      }
+                      selectedObjData.setMaterialProperties(selectedMaterial.name, { map: imageUrl });
+                      
+                  }
+                  
+                  selectedMaterial.needsUpdate = true;
+                  
+                  // Applies to selected object
+                  // selectedObj.userData.modelConfigRef.setMaterialProperties(selectedMaterial.name, { textureUrl: imageUrl });
+                  // selectedObjData.setMaterialProperties(selectedMaterial.name, { textureUrl: imageUrl });
+                  updateModelData(selectedObjData);
+                  updateSaveField();
+                  
+                  console.log(`Successfully applied texture to material: "${selectedMaterial.name}" on property: "${editingTextureType}"`);
+              },
+              undefined, // Progress callback
+              (error) => {
+                  console.error(`Error loading texture for material "${selectedMaterial.name}":`, error);
+              }
+          );
+      } else {
+          console.error('No material selected to apply the texture to.');
+      }
+  });
 
     const mediaUploader = wp.media({
         title: 'Choose a 3d model or image',
@@ -2691,11 +2742,13 @@ function transformDragEnd(){
 
         if(selectedObj.userData.modelConfigRef.type == "model") 
         {
-          renderMaterialList(getMaterialsFromObject(selectedObj));
+          // renderMaterialList(getMaterialsFromObject(selectedObj));
+          selectedMaterials = getMaterialsFromObject(selectedObj);
+          populateMaterialSelector(selectedMaterials);
         }
         else
         {
-          materialListDiv.innerHTML = 'None'; 
+          // materialListDiv.innerHTML = 'None'; 
         }
 
         highlightSelectedListItem(obj.uuid);        
@@ -3275,23 +3328,113 @@ function getThreeJsObjectByUuid(modelId)
             const materialsArray = Array.from(uniqueMaterials);
 
             // --- Commented lines for filtering materials by name ---
-            // const nameStartsWith = 'Special'; // The string to filter by
+            // const nameStartsWith = 'c33d_'; // The string to filter by
             // const filteredMaterials = materialsArray.filter(mat => mat.name && mat.name.startsWith(nameStartsWith));
             // console.log(`Found ${filteredMaterials.length} filtered materials:`, filteredMaterials);
             // return filteredMaterials;
 
             // Log the JSON object of all materials found
-            const materialsJson = materialsArray.map(mat => {
-                return {
-                    name: mat.name,
-                    uuid: mat.uuid,
-                    type: mat.type,
-                    color: mat.color ? `#${mat.color.getHexString()}` : 'N/A'
-                };
-            });
+            // const materialsJson = materialsArray.map(mat => {
+            //     return {
+            //         name: mat.name,
+            //         uuid: mat.uuid,
+            //         type: mat.type,
+            //         color: mat.color ? `#${mat.color.getHexString()}` : 'N/A'
+            //     };
+            // });
             // console.log('JSON object of all materials:', JSON.stringify(materialsJson, null, 2));
 
             return materialsArray;
+        }
+
+                /**
+         * Populates the material dropdown with a list of materials.
+         * Auto-selects the first material and shows the properties panel.
+         * @param {Array<Object>} materials The array of material objects to display.
+         */
+        function populateMaterialSelector(materials) {
+            // Clear existing options
+            materialSelector.innerHTML = '';
+
+            if (materials.length > 0) {
+                materials.forEach(mat => {
+                    const option = document.createElement('option');
+                    option.value = mat.name;
+                    option.textContent = mat.name;
+                    materialSelector.appendChild(option);
+                });
+
+                // Auto-select the first material
+                selectMaterial(materials[0].materialName);
+            } else {
+                propertiesPanel.classList.add('hidden');
+                console.warn('No materials available to populate the selector.');
+            }
+        }
+
+        /**
+         * Selects a material by name, updates the UI, and the selectedMaterial object.
+         * @param {string} materialName The name of the material to select.
+         */
+        function selectMaterial(materialName) {
+            selectedMaterial = selectedMaterials.find(mat => mat.name === materialName);
+            if (selectedMaterial) {
+                // Update color pickers with the selected material's values
+                const mainColorHex = selectedMaterial.color && selectedMaterial.color.getHexString
+                    ? selectedMaterial.color.getHexString()
+                    : 'ffffff'; // Fallback to white if color is not a THREE.Color object
+                const emissiveColorHex = selectedMaterial.emissiveColor && selectedMaterial.emissiveColor.getHexString
+                    ? selectedMaterial.emissiveColor.getHexString()
+                    : '000000'; // Fallback to black
+                materialColorPicker.value = `#${mainColorHex}`;
+                emissiveColorPicker.value = `#${emissiveColorHex}`;
+                propertiesPanel.classList.remove('hidden');
+            } else {
+                propertiesPanel.classList.add('hidden');
+            }
+        }
+
+
+        // Event listeners
+        // This listener replaces the need for the old `renderMaterialList`'s button clicks.
+        materialSelector.addEventListener('change', (event) => {
+            selectMaterial(event.target.value);
+        });
+
+        materialColorPicker.addEventListener('input', (event) => {
+            if (selectedMaterial) {
+                selectedMaterial.color.setHex(hexToThreeColor(event.target.value));
+                selectedObjData.setMaterialProperties(selectedMaterial.name, { color: hexToThreeColor(event.target.value) });
+
+                // console.log(`Updated material color for ${selectedMaterial.materialName} to ${event.target.value}`);
+            }
+        });
+
+        emissiveColorPicker.addEventListener('input', (event) => {
+            if (selectedMaterial) {
+                selectedMaterial.emissive.setHex(hexToThreeColor(event.target.value));
+                selectedObjData.setMaterialProperties(selectedMaterial.name, { emissive: hexToThreeColor(event.target.value) });
+
+                // console.log(`Updated emissive color for ${selectedMaterial.materialName} to ${event.target.value}`);
+            }
+        });
+
+        // When a texture button is clicked, set the type and open the media frame.
+        // The `editingTextureType` variable ensures the `on('select', ...)` function
+        // knows which property to update.
+        materialTextureBtn.addEventListener('click', () => {
+            editingTextureType = 'map';
+            textureUploader.open();
+        });
+
+        emissiveTextureBtn.addEventListener('click', () => {
+            editingTextureType = 'emissiveMap';
+            textureUploader.open();
+        });
+
+        function hexToThreeColor(hexString)
+        {
+          return parseInt(hexString.substring(1), 16);
         }
 
         function renderMaterialList(materials) {

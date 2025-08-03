@@ -76,6 +76,11 @@ Just glb/gltf for now. More coming soon.
 
 == Changelog ==
 
+= 1.1.0
+
+* Can see all materials belonging to models and change (for base and emissive) the color and texture (to a media library image)
+* Fixed bug with image planes not being added to scene correctly
+
 = 1.0.0 =
 * Initial release
 * Upload/Add GLB
