@@ -236,6 +236,8 @@ let isInitialLoad = true;
 let itemsLoaded = 0;
 const hiddenInputField = document.getElementById('threejs_scene_config_json');
 const saveButton = document.querySelector('#c3SaveButton');
+const materialListDiv = document.getElementById('material-list');
+
 // document.addEventListener('DOMContentLoaded', () => {
 window.onload = () =>
 {
@@ -1370,7 +1372,7 @@ function toggleCamera()
         // modelConfigInstanceMob.threeJsObject = newThreeJsObject;
 
         // Load any changed textures
-        if(newThreeJsObject.userData.type == 'model') modelConfigInstance.applyMaterialPropertiesToModel();
+        if(newThreeJsObject.userData.type == 'model' && objData) modelConfigInstance.applyMaterialPropertiesToModel();
 
         // Add the new Three.js object to our active tracking array and the scene.
         selectedObj = newThreeJsObject;
@@ -2687,7 +2689,15 @@ function transformDragEnd(){
         controls.visible = gizmoVisible;
         controls.enabled = gizmoVisible;
 
-        if(selectedObj.userData.modelConfigRef.type == "model") renderMaterialList(getMaterialsFromObject(selectedObj));
+        if(selectedObj.userData.modelConfigRef.type == "model") 
+        {
+          renderMaterialList(getMaterialsFromObject(selectedObj));
+        }
+        else
+        {
+          materialListDiv.innerHTML = 'None'; 
+        }
+
         highlightSelectedListItem(obj.uuid);        
         updateParentList();
       }
@@ -3285,7 +3295,6 @@ function getThreeJsObjectByUuid(modelId)
         }
 
         function renderMaterialList(materials) {
-          const materialListDiv = document.getElementById('material-list');
           materialListDiv.innerHTML = ''; 
 
           materials.forEach(material => {

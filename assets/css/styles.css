@@ -330,6 +330,19 @@
         box-shadow: inset 3px 3px 6.3px 4px #00000036;
     }
 
+    .material-entry 
+    {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    #material-list 
+    {
+        display: flex;
+        flex-direction: column;
+        gap: 13px;
+    }
 
 }
 
@@ -665,6 +678,8 @@
       font-size: 0.875rem;
       margin-top: 8px;
   }
+
+  
 
 
 

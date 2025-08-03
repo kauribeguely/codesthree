@@ -1053,8 +1053,9 @@ function c33d_editor_page($post) {
                     <button style="width: 50%;" type="button" class="button" id="btn_duplicate">Clone</button>
                 </div>
 
+                <label>Materials</label>
                 <div id="material-list">
-                    
+
                 </div>
             </div>
             
