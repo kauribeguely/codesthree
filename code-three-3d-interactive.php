@@ -188,6 +188,21 @@ function c33d_admin_enqueue_assets() {
 }
 add_action('admin_enqueue_scripts', 'c33d_admin_enqueue_assets');
 
+function c33d_plugin_row_meta( $links, $file ) {
+
+    if ( plugin_basename( __FILE__ ) === $file ) {
+        $new_scene_link = '<a href="' . esc_url( admin_url( 'post-new.php?post_type=c33d_scene' ) ) . '">' . esc_html__( 'New Scene', 'code-three-3d-interactive' ) . '</a>';
+
+        $view_demo_link = '<a href="' . esc_url( 'https://c33d.kaurib.com/' ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'View Demo', 'code-three-3d-interactive' ) . '</a>';
+
+        $links[] = $new_scene_link;
+        $links[] = $view_demo_link;
+    }
+    
+
+    return $links;
+}
+add_filter( 'plugin_row_meta', 'c33d_plugin_row_meta', 10, 2 );
 
 
 function c33d_shortcode_in_publish_box() {
@@ -891,7 +906,6 @@ function c33d_editor_page($post) {
         </div>
         <div style="display: flex;
             justify-content: center;
-            background: var(--c33d-bg-dark-blue);
             padding: 10px;
             gap: 10px;
             position: absolute;
@@ -1037,6 +1051,10 @@ function c33d_editor_page($post) {
                 <div class="transform-group">
                     <button style="width: 50%;" type="button" class="button" id="delete_model_button">Delete</button>
                     <button style="width: 50%;" type="button" class="button" id="btn_duplicate">Clone</button>
+                </div>
+
+                <div id="material-list">
+                    
                 </div>
             </div>
             

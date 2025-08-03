@@ -48,7 +48,133 @@ class ModelConfig {
         this.isMobileConfig = data.isMobileConfig || false;
 
         this.threeJsObject = null; // Reference to the actual THREE.Object3D instance
+        this.materialProperties = data.materialProperties || {};
+        
     }
+
+
+    setMaterialProperties(materialName, properties) {
+        if (!materialName || !properties) {
+            console.error('Material name and properties object are required to set material properties.');
+            return;
+        }
+
+        // Initialize materialProperties as an array if it doesn't exist.
+        if (!Array.isArray(this.materialProperties)) {
+            this.materialProperties = [];
+        }
+
+        // Find if an object for this materialName already exists.
+        let materialPropsObject = this.materialProperties.find(item => item.materialName === materialName);
+
+        // If a matching object is found, merge the new properties into it.
+        if (materialPropsObject) {
+            Object.assign(materialPropsObject, properties);
+        } else {
+            // If not found, create a new object and push it into the array.
+            this.materialProperties.push({
+                materialName: materialName,
+                ...properties, // Use the spread operator to add all properties from the 'properties' object
+            });
+        }
+    }
+
+
+    applyMaterialPropertiesToModel() {
+      // Return early if there's no Three.js object or no material properties to apply.
+      if (!this.threeJsObject || this.materialProperties.length === 0) {
+        console.warn('No Three.js object or explicit material properties available to apply.');
+        return;
+      }
+
+      const textureLoader = new THREE.TextureLoader();
+      const materialsByName = new Map();
+
+      // First, build a map of materials by their name for quick lookup.
+      // This part remains the same and is a good practice.
+      this.threeJsObject.traverse((child) => {
+        if (child.isMesh && child.material) {
+          const materials = Array.isArray(child.material) ? child.material : [child.material];
+          materials.forEach(mat => {
+            if (mat.name) {
+              materialsByName.set(mat.name, mat);
+            }
+          });
+        }
+      });
+
+      // --- THIS IS THE KEY CHANGE ---
+      // Now, iterate through the saved material properties array and apply them.
+      this.materialProperties.forEach(savedMaterial => {
+        // Destructure the properties from the object in the array.
+        const { materialName, ...properties } = savedMaterial;
+        const material = materialsByName.get(materialName);
+
+        if (material) {
+          // Iterate through the properties of the current material.
+          for (const propName in properties) {
+            const propValue = properties[propName];
+
+            // Special handling for textureUrl
+            if (propName === 'textureUrl') {
+              console.log(`Loading texture for material name: ${materialName} from ${propValue}`);
+              textureLoader.load(
+                propValue,
+                (texture) => {
+                  texture.flipY = false;
+                  material.map = texture;
+                  material.needsUpdate = true;
+                  console.log(`Successfully applied texture to material name: ${materialName}`);
+                },
+                undefined,
+                (error) => {
+                  console.error(`Error loading texture from URL: ${propValue} for material name: ${materialName}`, error);
+                }
+              );
+            } else if (propName === 'color' && material.color) {
+              // Specific handling for color
+              console.log(`Applying color to material '${materialName}' with value: ${propValue}`);
+              material.color.set(propValue);
+              material.needsUpdate = true;
+            } else if (propName in material) {
+              // For all other properties, apply them directly
+              console.log(`Applying property '${propName}' to material '${materialName}' with value: ${propValue}`);
+              material[propName] = propValue;
+              material.needsUpdate = true;
+            } else {
+              console.warn(`Property '${propName}' is not a valid property for material '${materialName}'.`);
+            }
+          }
+        } else {
+          console.warn(`Could not find a material with name: ${materialName} on the loaded object.`);
+        }
+      });
+    }
+    // updateSavedMaterials() {
+    //     const textureData = [];
+    //     const uniqueMaterials = new Set();
+        
+    //     this.threeJsObject.traverse((child) => {
+    //         if (child.isMesh && child.material) {
+    //             const materials = Array.isArray(child.material) ? child.material : [child.material];
+    //             materials.forEach(mat => uniqueMaterials.add(mat));
+    //         }
+    //     });
+
+    //     uniqueMaterials.forEach(material => {
+    //         if (material.map && material.map.source && material.map.source.data) {
+    //             // We're storing the material's UUID and the texture's source URL
+    //             textureData.push({
+    //                 materialUuid: material.uuid,
+    //                 textureUrl: material.map.source.data.src
+    //             });
+    //         }
+    //     });
+
+    //     this.materialTextures = textureData;
+    //     return textureData;
+    // }
+
 
     // Method to convert this class instance back to a plain object for JSON stringification
     toPlainObject() {
@@ -75,6 +201,7 @@ class ModelConfig {
             loopCountX: this.loopCountX,
             type: this.type,
             parentUuid: this.parentUuid,
+            materialProperties: this.materialProperties,
             // ... include all other properties
         };
     }
@@ -98,7 +225,7 @@ class ModelConfig {
             loopActive: obj.loopActive,
             loopCountX: obj.loopCountX,
             parentUuid: obj.parentUuid,
-
+            materialProperties: obj.materialProperties || [],
             // ... include all other properties
         });
     }
@@ -264,7 +391,7 @@ window.onload = () =>
  
       
 
-    let selectedObj, selectedObjData; //override model
+    let selectedObj, selectedObjData, selectedMaterial; //override model
     // let allModels = [];
     let model, loopGroup;
 
@@ -272,6 +399,7 @@ window.onload = () =>
     // Load 3D Model
     // const loader = new THREE.GLTFLoader();
     const loader = new GLTFLoader();
+    const textureLoader = new THREE.TextureLoader();
 
 
     let loopable;
@@ -1015,7 +1143,6 @@ function toggleCamera()
           const geometry = new THREE.PlaneGeometry(planeWidth, planeHeight);
 
           // Step 4: Load the texture using Three.js TextureLoader
-          const textureLoader = new THREE.TextureLoader();
           textureLoader.load(
               imageUrl,
               // On load callback
@@ -1148,6 +1275,8 @@ function toggleCamera()
             // This ensures sceneData.models is kept in sync with the current instance state
             // (e.g., if modelUrl changed).
             
+            
+
             const existingModelIndex = allModels.findIndex(m => m.modelId === modelConfigInstance.modelId);
             if (existingModelIndex !== -1) {
                 allModels[existingModelIndex] = modelConfigInstance.toPlainObject();
@@ -1233,10 +1362,15 @@ function toggleCamera()
         // Link the THREE.Object3D back to the ModelConfig instance (optional but useful)
         modelConfigInstance.threeJsObject = newThreeJsObject;
         // modelConfigInstanceMob.threeJsObject = newThreeJsObject;
+        // Load any changed textures
+        modelConfigInstance.applyMaterialPropertiesToModel();
 
         // Add the new Three.js object to our active tracking array and the scene.
         selectedObj = newThreeJsObject;
         selectedObjData = modelConfigInstance;
+
+        
+
         if(index == undefined)
         {
           allThreeJsObj.push(newThreeJsObject);
@@ -1276,7 +1410,12 @@ function toggleCamera()
             isInitialLoad = false;
             loadAllMobileData();
             moveAllObjectsToGroups();
+            renderMaterialList(getMaterialsFromObject(selectedObj));
           }
+        }
+        else
+        {
+          renderMaterialList(getMaterialsFromObject(selectedObj));
         }
 
         if(callback)
@@ -1418,8 +1557,6 @@ function toggleCamera()
       {
         modelConfigInstance = selectedObj.userData.modelConfigRef;
       }
-
-      
       
       modelConfigInstance.position.copy(selectedObj.position);
       modelConfigInstance.rotation.copy(selectedObj.rotation);
@@ -1546,6 +1683,47 @@ function transformDragEnd(){
 
     addGroupButton.addEventListener('click', function (e) {
         createObject('group');
+    });
+
+    const textureUploader = wp.media({
+        title: 'Select an image for your material',
+        button: { text: 'Set texture' },
+        multiple: false,
+        library: {
+            type: 'image' 
+        }
+    });
+
+    textureUploader.on('select', function () 
+    {
+        const attachment = textureUploader.state().get('selection').first().toJSON();
+        const imageUrl = attachment.url;
+
+        console.log(`Loading texture from: ${imageUrl}`);
+        
+        // Use the globally scoped 'selectedMaterial' variable
+        if (selectedMaterial) {
+            textureLoader.load(imageUrl,
+                (texture) => {
+                    texture.flipY = false;
+                    texture.colorSpace = THREE.SRGBColorSpace;
+                    selectedMaterial.map = texture;
+                    selectedMaterial.needsUpdate = true;
+                    //applies to selected object
+                    selectedObj.userData.modelConfigRef.setMaterialProperties(selectedMaterial.name, { textureUrl: imageUrl });
+                    updateModelData(selectedObj.userData.modelConfigRef);
+                    updateSaveField();
+                    selectedMaterial.color.setHex(0xffffff);
+                    console.log(`Successfully applied texture to material: "${selectedMaterial.name}"`);
+                },
+                undefined,
+                (error) => {
+                    console.error(`Error loading texture for material "${selectedMaterial.name}":`, error);
+                }
+            );
+        } else {
+            console.error('No material selected to apply the texture to.');
+        }
     });
 
     const mediaUploader = wp.media({
@@ -3049,6 +3227,80 @@ function getThreeJsObjectByUuid(modelId)
                 }
               });
             });
+          });
+        }
+
+        function getMaterialsFromObject(object) {
+            const materials = [];
+            
+            // Use a Set to ensure we only get unique material instances
+            const uniqueMaterials = new Set();
+
+            // The traverse method is the best way to iterate through an object and its children
+            object.traverse((child) => {
+                if (child.isMesh) {
+                    // Check if the child has a material property
+                    if (child.material) {
+                        // A mesh can have a single material or an array of materials
+                        if (Array.isArray(child.material)) {
+                            // If it's a MultiMaterial, add all of them
+                            child.material.forEach(mat => uniqueMaterials.add(mat));
+                        } else {
+                            // Otherwise, just add the single material
+                            uniqueMaterials.add(child.material);
+                        }
+                    }
+                }
+            });
+
+            const materialsArray = Array.from(uniqueMaterials);
+
+            // --- Commented lines for filtering materials by name ---
+            // const nameStartsWith = 'Special'; // The string to filter by
+            // const filteredMaterials = materialsArray.filter(mat => mat.name && mat.name.startsWith(nameStartsWith));
+            // console.log(`Found ${filteredMaterials.length} filtered materials:`, filteredMaterials);
+            // return filteredMaterials;
+
+            // Log the JSON object of all materials found
+            const materialsJson = materialsArray.map(mat => {
+                return {
+                    name: mat.name,
+                    uuid: mat.uuid,
+                    type: mat.type,
+                    color: mat.color ? `#${mat.color.getHexString()}` : 'N/A'
+                };
+            });
+            // console.log('JSON object of all materials:', JSON.stringify(materialsJson, null, 2));
+
+            return materialsArray;
+        }
+
+        function renderMaterialList(materials) {
+          const materialListDiv = document.getElementById('material-list');
+          materialListDiv.innerHTML = ''; 
+
+          materials.forEach(material => {
+            const materialEntry = document.createElement('div');
+            materialEntry.className = 'material-entry';
+
+            const materialName = document.createElement('span');
+            materialName.textContent = material.name || 'Unnamed Material';
+            materialName.className = 'material-name';
+
+            const actionButton = document.createElement('button');
+            actionButton.textContent = 'Change';
+            actionButton.type = 'button';
+            actionButton.className = 'action-button';
+
+            actionButton.addEventListener('click', () => {
+              selectedMaterial = material;
+              textureUploader.open();
+            });
+
+            materialEntry.appendChild(materialName);
+            materialEntry.appendChild(actionButton);
+
+            materialListDiv.appendChild(materialEntry);
           });
         }
 

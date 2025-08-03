@@ -606,6 +606,7 @@
   .demo-three-column .demo-grid-item img
   {
     width: 145px;
+    max-width: 100%;
     height: 101px;
   }
 
