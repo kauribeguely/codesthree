@@ -103,10 +103,7 @@ class ModelConfig {
         }
       });
 
-      // --- THIS IS THE KEY CHANGE ---
-      // Now, iterate through the saved material properties array and apply them.
       this.materialProperties.forEach(savedMaterial => {
-        // Destructure the properties from the object in the array.
         const { materialName, ...properties } = savedMaterial;
         const material = materialsByName.get(materialName);
 
@@ -122,6 +119,7 @@ class ModelConfig {
                 propValue,
                 (texture) => {
                   texture.flipY = false;
+                  texture.colorSpace = THREE.SRGBColorSpace;
                   material.map = texture;
                   material.needsUpdate = true;
                   console.log(`Successfully applied texture to material name: ${materialName}`);
@@ -1054,7 +1052,16 @@ function toggleCamera()
       // const modelId = allThreeJsObj.findIndex(m => m.modelId === data.modelId);
       // const threeJsObject = selectObjectFromList(data.modelId);
       const threeJsObject = allThreeJsObj[index];
-      threeJsObject.userData.modelConfigRefMob = ModelConfig.fromPlainObject(data);
+      // if(threeJsObject.userData.modelConfigRefMob != undefined)
+      // {
+        threeJsObject.userData.modelConfigRefMob = ModelConfig.fromPlainObject(data);
+      // }
+      // else
+      // {
+      //   console.log('no user data found');
+      // }
+
+
       if(allMobileModels[index] == undefined)
       {
         allMobileModels[index] = data;
@@ -1120,7 +1127,7 @@ function toggleCamera()
         });
     }
 
-    function addImageAsPlane(imageUrl, objData, callback)
+    function addImageAsPlane(imageUrl, objData, callback, index)
     {
       return new Promise((resolve, reject) => {
         // Step 1: Load the image to get its dimensions
@@ -1166,7 +1173,7 @@ function toggleCamera()
                   // Resolve the Promise with the created mesh
                   planeMesh.userData.type = 'imageplane';
                   resolve(planeMesh);
-                  addObject(planeMesh, objData, callback, null, { planeUrl:imageUrl }); 
+                  addObject(planeMesh, objData, callback, index, { planeUrl:imageUrl }); 
               },
               // On progress callback (optional)
               undefined,
@@ -1186,7 +1193,6 @@ function toggleCamera()
   }
 
     //adds new object to scene and sceneData
-    // function addObject(type, objData, callback, index)
 
     async function createObject(type, objData, callback, index)
     {
@@ -1199,7 +1205,7 @@ function toggleCamera()
       }
       else if(type == 'imageplane')
       {
-          addImageAsPlane(objData.planeUrl, objData, callback).then(plane => {
+          addImageAsPlane(objData.planeUrl, objData, callback, index).then(plane => {
             plane.userData.type = type;
         })
       }
@@ -1349,7 +1355,7 @@ function toggleCamera()
             // allMobileModels.push(modelConfigInstanceMob.toPlainObject());
           }
           
-          
+
         modelConfigInstance.type = newThreeJsObject.userData.type;
         if(modelConfigInstanceMob) modelConfigInstanceMob.type = newThreeJsObject.userData.type;
 
@@ -1362,8 +1368,9 @@ function toggleCamera()
         // Link the THREE.Object3D back to the ModelConfig instance (optional but useful)
         modelConfigInstance.threeJsObject = newThreeJsObject;
         // modelConfigInstanceMob.threeJsObject = newThreeJsObject;
+
         // Load any changed textures
-        modelConfigInstance.applyMaterialPropertiesToModel();
+        if(newThreeJsObject.userData.type == 'model') modelConfigInstance.applyMaterialPropertiesToModel();
 
         // Add the new Three.js object to our active tracking array and the scene.
         selectedObj = newThreeJsObject;
@@ -1393,6 +1400,8 @@ function toggleCamera()
             // Ensure controls are in the scene (might be redundant if always there)
             // scene.add(controls);
         }
+            //performance issue (tried as last object for initial load but bugs if not the last)
+            renderMaterialList(getMaterialsFromObject(selectedObj));
 
         //when last model added (i.e. last in load all or adding a new one)
         if(allModels.length == allThreeJsObj.length)
@@ -1410,12 +1419,10 @@ function toggleCamera()
             isInitialLoad = false;
             loadAllMobileData();
             moveAllObjectsToGroups();
-            renderMaterialList(getMaterialsFromObject(selectedObj));
           }
         }
         else
         {
-          renderMaterialList(getMaterialsFromObject(selectedObj));
         }
 
         if(callback)
@@ -2679,6 +2686,8 @@ function transformDragEnd(){
         controls.attach(selectedObj);
         controls.visible = gizmoVisible;
         controls.enabled = gizmoVisible;
+
+        if(selectedObj.userData.modelConfigRef.type == "model") renderMaterialList(getMaterialsFromObject(selectedObj));
         highlightSelectedListItem(obj.uuid);        
         updateParentList();
       }
