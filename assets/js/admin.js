@@ -1397,7 +1397,8 @@ function toggleCamera()
         // modelConfigInstanceMob.threeJsObject = newThreeJsObject;
 
         // Load any changed textures
-        if(newThreeJsObject.userData.type == 'model' && objData) modelConfigInstance.applyMaterialPropertiesToModel();
+        // if(newThreeJsObject.userData.type == 'model' && objData) modelConfigInstance.applyMaterialPropertiesToModel();
+        if(objData && Object.keys(objData.materialProperties).length != 0) modelConfigInstance.applyMaterialPropertiesToModel();
 
         // Add the new Three.js object to our active tracking array and the scene.
         selectedObj = newThreeJsObject;
@@ -1746,23 +1747,32 @@ function transformDragEnd(){
                   texture.flipY = false;
                   texture.colorSpace = THREE.SRGBColorSpace;
 
+                  let hasColor = false;
+                  
+                  if(Object.keys(selectedObjData.materialProperties).length != 0) hasColor = selectedObjData.materialProperties.find(m => m.materialName === selectedMaterial.name)?.color !== undefined;
+
                   // Apply the texture to the correct material property based on which button was clicked
                   if (editingTextureType === 'map') {
                       selectedMaterial.map = texture;
                       // Reset the color to white since a texture is now applied
-                      selectedMaterial.color.setHex(0xffffff);
-                      materialColorPicker.value = '#ffffff';
-                      selectedObjData.setMaterialProperties(selectedMaterial.name, { emissiveMap: imageUrl });
+                      if(!hasColor)
+                      {
+                        selectedMaterial.color.setHex(0xffffff);
+                        materialColorPicker.value = '#ffffff';
+                      } 
+                          
+                      selectedObjData.setMaterialProperties(selectedMaterial.name, { map: imageUrl });
 
                   } else if (editingTextureType === 'emissiveMap') {
                       selectedMaterial.emissiveMap = texture;
                       // If set to black will not be visible
-                      if(emissiveColorPicker.value = '#000000')
+                      // if(emissiveColorPicker.value = '#000000' && selectedObjData.materialProperties.emissive == undefined)
+                      if(emissiveColorPicker.value == '#000000')
                       {
                         selectedMaterial.emissive.setHex(0xFFFFFF);
                         emissiveColorPicker.value = '#FFFFFF';
                       }
-                      selectedObjData.setMaterialProperties(selectedMaterial.name, { map: imageUrl });
+                      selectedObjData.setMaterialProperties(selectedMaterial.name, { emissiveMap: imageUrl });
                       
                   }
                   
@@ -2727,32 +2737,35 @@ function transformDragEnd(){
 
       function selectModelForEditing(obj)
       {
-        selectedObj = obj;
-        if(isMobileView)
+        if(selectedObj != obj)
         {
-          selectedObjData = selectedObj.userData.modelConfigRefMob;
+          selectedObj = obj;
+          if(isMobileView)
+          {
+            selectedObjData = selectedObj.userData.modelConfigRefMob;
+          }
+          else
+          {
+            selectedObjData = selectedObj.userData.modelConfigRef;
+          }
+          controls.attach(selectedObj);
+          controls.visible = gizmoVisible;
+          controls.enabled = gizmoVisible;
+  
+          if(selectedObj.userData.modelConfigRef.type == "model" || selectedObj.userData.modelConfigRef.type == "imageplane") 
+          {
+            // renderMaterialList(getMaterialsFromObject(selectedObj));
+            selectedMaterials = getMaterialsFromObject(selectedObj);
+            populateMaterialSelector(selectedMaterials);
+          }
+          else
+          {
+            // materialListDiv.innerHTML = 'None'; 
+          }
+  
+          highlightSelectedListItem(obj.uuid);        
+          updateParentList();
         }
-        else
-        {
-          selectedObjData = selectedObj.userData.modelConfigRef;
-        }
-        controls.attach(selectedObj);
-        controls.visible = gizmoVisible;
-        controls.enabled = gizmoVisible;
-
-        if(selectedObj.userData.modelConfigRef.type == "model") 
-        {
-          // renderMaterialList(getMaterialsFromObject(selectedObj));
-          selectedMaterials = getMaterialsFromObject(selectedObj);
-          populateMaterialSelector(selectedMaterials);
-        }
-        else
-        {
-          // materialListDiv.innerHTML = 'None'; 
-        }
-
-        highlightSelectedListItem(obj.uuid);        
-        updateParentList();
       }
 
       // Get references to your HTML elements
@@ -3347,7 +3360,7 @@ function getThreeJsObjectByUuid(modelId)
             return materialsArray;
         }
 
-                /**
+        /**
          * Populates the material dropdown with a list of materials.
          * Auto-selects the first material and shows the properties panel.
          * @param {Array<Object>} materials The array of material objects to display.
@@ -3365,7 +3378,7 @@ function getThreeJsObjectByUuid(modelId)
                 });
 
                 // Auto-select the first material
-                selectMaterial(materials[0].materialName);
+                selectMaterial(materials[0].name);
             } else {
                 propertiesPanel.classList.add('hidden');
                 console.warn('No materials available to populate the selector.');
@@ -3383,8 +3396,8 @@ function getThreeJsObjectByUuid(modelId)
                 const mainColorHex = selectedMaterial.color && selectedMaterial.color.getHexString
                     ? selectedMaterial.color.getHexString()
                     : 'ffffff'; // Fallback to white if color is not a THREE.Color object
-                const emissiveColorHex = selectedMaterial.emissiveColor && selectedMaterial.emissiveColor.getHexString
-                    ? selectedMaterial.emissiveColor.getHexString()
+                const emissiveColorHex = selectedMaterial.emissive && selectedMaterial.emissive.getHexString
+                    ? selectedMaterial.emissive.getHexString()
                     : '000000'; // Fallback to black
                 materialColorPicker.value = `#${mainColorHex}`;
                 emissiveColorPicker.value = `#${emissiveColorHex}`;
@@ -3418,6 +3431,15 @@ function getThreeJsObjectByUuid(modelId)
                 // console.log(`Updated emissive color for ${selectedMaterial.materialName} to ${event.target.value}`);
             }
         });
+
+        materialColorPicker.addEventListener('input', updateModelAndSavefield);
+        emissiveColorPicker.addEventListener('input', updateModelAndSavefield);
+
+        function updateModelAndSavefield()
+        {
+          updateModelData(selectedObjData);
+          updateSaveField();
+        }
 
         // When a texture button is clicked, set the type and open the media frame.
         // The `editingTextureType` variable ensures the `on('select', ...)` function
