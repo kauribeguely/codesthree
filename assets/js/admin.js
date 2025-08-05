@@ -12,9 +12,35 @@ const ajaxNonce = localisedData.ajax_nonce;
 console.log('C33D Transform Data:', allSceneData);
 const importedDemoAssets = JSON.parse(localisedData.importedDemoAssets);
 let downloadInProgress = false;            
+const blendModeSelect = document.getElementById('blendMode');
 
 
-class ModelConfig {
+
+
+
+let keyXRot = false, keyYRot = false, keyZRot = false, keyZTrans = false, keyScale = false;
+let shiftDown = false;
+let scrollMultiplier = 1;
+let isInitialLoad = true;
+let itemsLoaded = 0;
+const hiddenInputField = document.getElementById('threejs_scene_config_json');
+const saveButton = document.querySelector('#c3SaveButton');
+// const materialListDiv = document.getElementById('material-list');
+
+const materialSelector = document.getElementById('materialSelector');
+const propertiesPanel = document.getElementById('materialPropertiesPanel');
+const materialColorPicker = document.getElementById('materialColor');
+const materialTextureBtn = document.getElementById('materialTextureBtn');
+const emissiveColorPicker = document.getElementById('emissiveColor');
+const emissiveTextureBtn = document.getElementById('emissiveTextureBtn');
+let editingTextureType = null; // 'map' or 'emissiveMap'
+let selectedMaterials = null;
+
+// document.addEventListener('DOMContentLoaded', () => {
+window.onload = () =>
+{
+
+  class ModelConfig {
     constructor(data = {}) {
         this.modelId = data.modelId || crypto.randomUUID(); // Assign a new ID if not provided
         this.modelUrl = data.modelUrl || '';
@@ -131,6 +157,9 @@ class ModelConfig {
                 }
               );
             } 
+            else if (propName === 'blending') {
+              setBlendMode(material, propValue);
+            }
             // else if (propName === 'materialColor' && material.color) {
             //   // Specific handling for color
             //   console.log(`Applying color to material '${materialName}' with value: ${propValue}`);
@@ -245,27 +274,6 @@ class ModelConfig {
     }
 }
 
-let keyXRot = false, keyYRot = false, keyZRot = false, keyZTrans = false, keyScale = false;
-let shiftDown = false;
-let scrollMultiplier = 1;
-let isInitialLoad = true;
-let itemsLoaded = 0;
-const hiddenInputField = document.getElementById('threejs_scene_config_json');
-const saveButton = document.querySelector('#c3SaveButton');
-// const materialListDiv = document.getElementById('material-list');
-
-const materialSelector = document.getElementById('materialSelector');
-const propertiesPanel = document.getElementById('materialPropertiesPanel');
-const materialColorPicker = document.getElementById('materialColor');
-const materialTextureBtn = document.getElementById('materialTextureBtn');
-const emissiveColorPicker = document.getElementById('emissiveColor');
-const emissiveTextureBtn = document.getElementById('emissiveTextureBtn');
-let editingTextureType = null; // 'map' or 'emissiveMap'
-let selectedMaterials = null;
-
-// document.addEventListener('DOMContentLoaded', () => {
-window.onload = () =>
-{
 
   let plane = new THREE.Plane();
   let isDragging = false;
@@ -287,6 +295,16 @@ window.onload = () =>
   let allModels = allSceneData.models[0];
   let allMobileModels = allSceneData.models[1];
   
+  // Map the string values from the HTML to the Three.js constants
+  const blendModes = {
+    NormalBlending: THREE.NormalBlending,
+    AdditiveBlending: THREE.AdditiveBlending,
+    SubtractiveBlending: THREE.SubtractiveBlending,
+    MultiplyBlending: THREE.MultiplyBlending,
+    NoBlending: THREE.NoBlending,
+    CustomBlending: THREE.CustomBlending
+  };
+
   let allThreeJsObj = [];
   let allGroups = [];
   // console.log('Admin JS Code 3D started');
@@ -3401,6 +3419,14 @@ function getThreeJsObjectByUuid(modelId)
                     : '000000'; // Fallback to black
                 materialColorPicker.value = `#${mainColorHex}`;
                 emissiveColorPicker.value = `#${emissiveColorHex}`;
+                for (const key in blendModes) {
+                  if (blendModes[key] === selectedMaterial.blending) {
+                    // Found a match! Set the dropdown's value to the key (the string name)
+                    blendModeSelect.value = key;
+                    break; // Exit the loop once a match is found
+                  }
+                }
+
                 propertiesPanel.classList.remove('hidden');
             } else {
                 propertiesPanel.classList.add('hidden');
@@ -3459,81 +3485,46 @@ function getThreeJsObjectByUuid(modelId)
           return parseInt(hexString.substring(1), 16);
         }
 
-        function renderMaterialList(materials) {
-          materialListDiv.innerHTML = ''; 
+        
 
-          materials.forEach(material => {
-            const materialEntry = document.createElement('div');
-            materialEntry.className = 'material-entry';
+        // Add an event listener to the dropdown
+        blendModeSelect.addEventListener('change', (event) => {
+          // Get the selected blend mode string
+          const selectedModeString = event.target.value;
 
-            const materialName = document.createElement('span');
-            materialName.textContent = material.name || 'Unnamed Material';
-            materialName.className = 'material-name';
+          // Find the corresponding THREE.js constant
+          // const selectedBlendMode = blendModes[selectedModeString];
 
-            const actionButton = document.createElement('button');
-            actionButton.textContent = 'Change';
-            actionButton.type = 'button';
-            actionButton.className = 'action-button';
+          setBlendMode(selectedMaterial, selectedModeString);
+          // selectedMaterial.blending = selectedBlendMode;
+          selectedObjData.setMaterialProperties(selectedMaterial.name, { blending: selectedModeString });
 
-            actionButton.addEventListener('click', () => {
-              selectedMaterial = material;
-              textureUploader.open();
-            });
+            
+        });
 
-            materialEntry.appendChild(materialName);
-            materialEntry.appendChild(actionButton);
+        function setBlendMode(material, blendModeString)
+        {
+          const selectedBlendMode = blendModes[blendModeString];
+          material.blending = selectedBlendMode;
+          material.premultipliedAlpha = true;
+          // scene.background = new THREE.Color(0x333333);
+          // You might need to set material.transparent to true for some blending modes to work correctly
+            if (selectedBlendMode !== THREE.NoBlending) {
+              material.transparent = true;
+            } else {
+              material.transparent = false;
+            }
 
-            materialListDiv.appendChild(materialEntry);
-          });
+            // A material.needsUpdate = true might be necessary depending on the Three.js version and material type
+            material.needsUpdate = true;
+            
+            console.log('Blend mode changed to:', blendModeString);
         }
 
 
-        // if (!ajaxUrl || !ajaxNonce) {
-        //     console.error('AJAX URL or Scene Import Nonce is missing. Cannot import scene config.');
-        //     alert('Configuration error: Cannot import scene. Missing AJAX URL or security token.');
-        //     throw new Error('Missing AJAX URL or nonce.');
-        // }
-
-        // const originalButtonText = buttonElement ? buttonElement.textContent : '';
-        // if (buttonElement) {
-        //     buttonElement.textContent = 'Importing...';
-        //     buttonElement.disabled = true;
-        // }
-
-        // try {
-        //     const response = await fetch(ajaxUrl, {
-        //         method: 'POST',
-        //         headers: {
-        //             'Content-Type': 'application/x-www-form-urlencoded',
-        //         },
-        //         body: new URLSearchParams({
-        //             action: 'codesthree_import_scene_config',
-        //             nonce: ajaxNonce,
-        //             scene_id: sceneId,
-        //             scene_url: sceneUrl
-        //         })
-        //     });
-
-        //     const result = await response.json();
-
-        //     if (result.success) {
-        //         initFromJson(result.data);
-        //         return result.data; // Return the entire data object from PHP, including scene_data
-        //     } else {
-        //         console.error('Scene import failed:', result.data.errors || result.data.message);
-        //         throw new Error(result.data.message || 'Unknown scene import error');
-        //     }
-        // } catch (error) {
-        //     console.error('Network or parsing error during scene import:', error);
-        //     throw error;
-        // } finally {
-        //     if (buttonElement) {
-        //         buttonElement.textContent = originalButtonText;
-        //         buttonElement.disabled = false;
-        //     }
-        // }
     // }
 }
+
 
 
 

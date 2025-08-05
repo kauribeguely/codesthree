@@ -213,8 +213,8 @@
     .transform-group 
     {
         display: flex;
-        /* flex-direction: column; */
-        gap: 8px; /* Adds spacing between input groups */
+        gap: 8px;
+        align-items: center;
     }
 
     .checkbox-group
@@ -268,13 +268,6 @@
         color: white;
     }
 
-
-
-    .transform-group {
-        display: flex;
-        /* flex-direction: column; */
-        gap: 8px; /* Adds spacing between input groups */
-    }
 
     .transform-field {
         display: flex;
@@ -330,7 +323,12 @@
         box-shadow: inset 3px 3px 6.3px 4px #00000036;
     }
 
-
+    #materialPropertiesPanel {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+    }
 
 }
 
@@ -437,7 +435,7 @@
   }
 
   /* Utility to hide the modal */
-  .hidden-modal {
+  .hidden-modal, .hidden {
       display: none;
   }
 
