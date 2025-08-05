@@ -1076,6 +1076,9 @@ function c33d_editor_page($post) {
                         <button type="button" id="materialTextureBtn" class="texture-button">
                             Texture
                         </button>
+                        <button type="button" id="deleteTexture" class="texture-button">
+                            <span class="dashicons dashicons-trash"></span>
+                        </button>
                     </div>
 
                     <!-- Emissive Color Control -->
@@ -1086,6 +1089,10 @@ function c33d_editor_page($post) {
 
                         <button type="button" id="emissiveTextureBtn" class="texture-button">
                             Texture
+                        </button>
+
+                        <button type="button" id="deleteEmissive" class="texture-button">
+                            <span class="dashicons dashicons-trash"></span>
                         </button>
                     </div>
 

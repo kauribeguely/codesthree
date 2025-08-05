@@ -35,6 +35,10 @@ const emissiveColorPicker = document.getElementById('emissiveColor');
 const emissiveTextureBtn = document.getElementById('emissiveTextureBtn');
 let editingTextureType = null; // 'map' or 'emissiveMap'
 let selectedMaterials = null;
+let mediaModelOpen = false;
+
+const deleteTextureBtn = document.getElementById('deleteTexture'); 
+const deleteEmissiveBtn = document.getElementById('deleteEmissive'); 
 
 // document.addEventListener('DOMContentLoaded', () => {
 window.onload = () =>
@@ -1777,6 +1781,8 @@ function transformDragEnd(){
                       {
                         selectedMaterial.color.setHex(0xffffff);
                         materialColorPicker.value = '#ffffff';
+                        selectedObjData.setMaterialProperties(selectedMaterial.name, { color: 0xffffff });
+
                       } 
                           
                       selectedObjData.setMaterialProperties(selectedMaterial.name, { map: imageUrl });
@@ -1789,6 +1795,7 @@ function transformDragEnd(){
                       {
                         selectedMaterial.emissive.setHex(0xFFFFFF);
                         emissiveColorPicker.value = '#FFFFFF';
+                        selectedObjData.setMaterialProperties(selectedMaterial.name, { emissive: 0xffffff });
                       }
                       selectedObjData.setMaterialProperties(selectedMaterial.name, { emissiveMap: imageUrl });
                       
@@ -2392,6 +2399,10 @@ function transformDragEnd(){
                 {
                   // openMediaUploader(event);
                   toggleMediaModal();
+                }
+                else if(mediaModelOpen)
+                {
+                  handleMediaButtonClick(event);
                 }                
                 break;  
           case 'A':
@@ -3228,6 +3239,7 @@ function getThreeJsObjectByUuid(modelId)
 
       function toggleMediaModal() 
       {
+          mediaModelOpen = !mediaModelOpen;
           modelImportModal.classList.toggle('hidden-modal');
           demoModelPopupOpen = !modelImportModal.classList.contains('hidden-modal');
       }
@@ -3502,6 +3514,22 @@ function getThreeJsObjectByUuid(modelId)
             
         });
 
+        deleteTextureBtn.addEventListener('click', () => {
+            selectedMaterial.map = null;
+            selectedMaterial.needsUpdate = true;
+            let materialPropsObject = selectedObjData.materialProperties.find(item => item.materialName === selectedMaterial.name);
+
+            delete materialPropsObject.map;
+        });
+
+        deleteEmissiveBtn.addEventListener('click', () => {
+            selectedMaterial.emissiveMap = null;
+            selectedMaterial.needsUpdate = true;
+            let materialPropsObject = selectedObjData.materialProperties.find(item => item.materialName === selectedMaterial.name);
+            delete materialPropsObject.emissiveMap;
+        });
+
+
         function setBlendMode(material, blendModeString)
         {
           const selectedBlendMode = blendModes[blendModeString];
@@ -3520,6 +3548,7 @@ function getThreeJsObjectByUuid(modelId)
             
             console.log('Blend mode changed to:', blendModeString);
         }
+        
 
 
     // }
