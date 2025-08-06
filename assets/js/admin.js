@@ -129,6 +129,11 @@ window.onload = () =>
             if (mat.name) {
               materialsByName.set(mat.name, mat);
             }
+            else
+            {
+              mat.name = 'Unnamed';
+              materialsByName.set(mat.name, mat);
+            }
           });
         }
       });
@@ -144,7 +149,7 @@ window.onload = () =>
 
             // Special handling for textureUrl
             if (propName === 'map' || propName === 'emissiveMap') {
-              console.log(`Loading texture for material name: ${materialName} from ${propValue}`);
+              // console.log(`Loading texture for material name: ${materialName} from ${propValue}`);
               textureLoader.load(
                 propValue,
                 (texture) => {
@@ -153,7 +158,7 @@ window.onload = () =>
                   material[propName] = texture;
                   // material.map = texture;
                   material.needsUpdate = true;
-                  console.log(`Successfully applied texture to material name: ${materialName}`);
+                  // console.log(`Successfully applied texture to material name: ${materialName}`);
                 },
                 undefined,
                 (error) => {
@@ -178,7 +183,7 @@ window.onload = () =>
             // } 
             else if (propName in material) {
               // For all other properties, apply them directly
-              console.log(`Applying property '${propName}' to material '${materialName}' with value: ${propValue}`);
+              // console.log(`Applying property '${propName}' to material '${materialName}' with value: ${propValue}`);
               if(material[propName].isColor)
               {
                 material[propName].setHex(propValue);
@@ -3402,8 +3407,10 @@ function getThreeJsObjectByUuid(modelId)
             if (materials.length > 0) {
                 materials.forEach(mat => {
                     const option = document.createElement('option');
+                    if(mat.name == "") mat.name = 'Unnamed';
                     option.value = mat.name;
                     option.textContent = mat.name;
+                    // if(mat.name == "") option.textContent = 'Unnamed';
                     materialSelector.appendChild(option);
                 });
 
@@ -3546,7 +3553,7 @@ function getThreeJsObjectByUuid(modelId)
             // A material.needsUpdate = true might be necessary depending on the Three.js version and material type
             material.needsUpdate = true;
             
-            console.log('Blend mode changed to:', blendModeString);
+            // console.log('Blend mode changed to:', blendModeString);
         }
         
 
