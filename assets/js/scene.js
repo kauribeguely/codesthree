@@ -290,6 +290,7 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
           }
 
           objData.threeJsObject = newThreeJsObject;
+          if(objData && Object.keys(objData.materialProperties).length != 0) applyMaterialPropertiesToModel(newThreeJsObject, objData);
 
           currentRotation.copy(lastAddedObject.rotation); // The most direct way
 
@@ -307,6 +308,106 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
 
           //TODO count properly, along with env texture if enabled
           hideLoadScreen();
+    }
+
+    function applyMaterialPropertiesToModel(threeJsObject, objData)
+    {
+      // Return early if there's no Three.js object or no material properties to apply.
+            if (!threeJsObject || objData.materialProperties.length === 0) {
+              console.warn('No Three.js object or explicit material properties available to apply.');
+              return;
+            }
+      
+            const textureLoader = new THREE.TextureLoader();
+            const materialsByName = new Map();
+      
+            // First, build a map of materials by their name for quick lookup.
+            // This part remains the same and is a good practice.
+            threeJsObject.traverse((child) => {
+              if (child.isMesh && child.material) {
+                const materials = Array.isArray(child.material) ? child.material : [child.material];
+                materials.forEach(mat => {
+                  if (mat.name) {
+                    materialsByName.set(mat.name, mat);
+                  }
+                  else
+                  {
+                    mat.name = 'Unnamed';
+                    materialsByName.set(mat.name, mat);
+                  }
+                });
+              }
+            });
+
+            objData.materialProperties.forEach(savedMaterial => {
+              const { materialName, ...properties } = savedMaterial;
+              const material = materialsByName.get(materialName);
+      
+              if (material) {
+                // Iterate through the properties of the current material.
+                for (const propName in properties) {
+                  const propValue = properties[propName];
+      
+                  // Special handling for textureUrl
+                  if (propName === 'map' || propName === 'emissiveMap') {
+                    // console.log(`Loading texture for material name: ${materialName} from ${propValue}`);
+                    textureLoader.load(
+                      propValue,
+                      (texture) => {
+                        texture.flipY = false;
+                        texture.colorSpace = THREE.SRGBColorSpace;
+                        material[propName] = texture;
+                        // material.map = texture;
+                        material.needsUpdate = true;
+                        // console.log(`Successfully applied texture to material name: ${materialName}`);
+                      },
+                      undefined,
+                      (error) => {
+                        console.error(`Error loading texture from URL: ${propValue} for material name: ${materialName}`, error);
+                      }
+                    );
+                  } 
+                  else if (propName === 'blending') {
+                    setBlendMode(material, propValue);
+                  }
+                  else if (propName in material) 
+                  {
+                    if(material[propName].isColor)
+                    {
+                      material[propName].setHex(propValue);
+                    }
+                    else
+                    {
+                      material[propName] = propValue;
+                    }
+                    material.needsUpdate = true;
+                  } else {
+                    console.warn(`Property '${propName}' is not a valid property for material '${materialName}'.`);
+                  }
+                }
+              } else {
+                console.warn(`Could not find a material with name: ${materialName} on the loaded object.`);
+              }
+            });
+    }
+
+    function setBlendMode(material, blendModeString)
+    {
+      const selectedBlendMode = blendModes[blendModeString];
+      material.blending = selectedBlendMode;
+      material.premultipliedAlpha = true;
+      // scene.background = new THREE.Color(0x333333);
+      // You might need to set material.transparent to true for some blending modes to work correctly
+        if (selectedBlendMode !== THREE.NoBlending) {
+          material.transparent = true;
+        } else {
+          material.transparent = false;
+        }
+
+        // A material.needsUpdate = true might be necessary depending on the Three.js version and material type
+        material.needsUpdate = true;
+        
+        // console.log('Blend mode changed to:', blendModeString);
     }
       
     // TODO: change data to dataList = [] - can scale to many screen sizes easier

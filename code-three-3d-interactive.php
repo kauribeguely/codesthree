@@ -953,6 +953,12 @@ function c33d_editor_page($post) {
                     </ul>
                 </div>
 
+                                <hr>
+
+                <div class="transform-group">
+                    <button style="width: 50%;" type="button" class="button" id="delete_model_button">Delete</button>
+                    <button style="width: 50%;" type="button" class="button" id="btn_duplicate">Clone</button>
+                </div>
             </div>
 
 
@@ -1048,20 +1054,11 @@ function c33d_editor_page($post) {
 
                 <hr>
 
-                <div class="transform-group">
-                    <button style="width: 50%;" type="button" class="button" id="delete_model_button">Delete</button>
-                    <button style="width: 50%;" type="button" class="button" id="btn_duplicate">Clone</button>
-                </div>
-
                 <label>Materials</label>
                         
-                <!-- Dropdown for material selection -->
-                <div class="">
-                    <label for="materialSelector" class="label">Select Material</label>
-                    <select id="materialSelector" class="select-input">
-                        <!-- Options will be populated by JavaScript -->
-                    </select>
-                </div>
+                <select id="materialSelector" class="select-input">
+                    <!-- Options will be populated by JavaScript -->
+                </select>
 
                 <!-- Material Properties Panel (Initially hidden) -->
                 <div id="materialPropertiesPanel" class="properties-panel hidden">
@@ -1074,7 +1071,7 @@ function c33d_editor_page($post) {
                     <!-- Material Texture Button -->
                     <!-- <div class="texture-button-container"> -->
                         <button type="button" id="materialTextureBtn" class="texture-button">
-                            Texture
+                            Base
                         </button>
                         <button type="button" id="deleteTexture" class="texture-button">
                             <span class="dashicons dashicons-trash"></span>

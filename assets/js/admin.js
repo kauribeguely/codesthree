@@ -2528,9 +2528,13 @@ function transformDragEnd(){
 
     function stepScale(amount)
     {
-      selectedObj.scale.x += amount;
-      selectedObj.scale.y += amount;
-      selectedObj.scale.z += amount;
+      const scaleSensitivity = 0.05; 
+    
+      let scaleFactor = 1 + (amount * scaleSensitivity);
+
+      selectedObj.scale.x *= scaleFactor;
+      selectedObj.scale.y *= scaleFactor;
+      selectedObj.scale.z *= scaleFactor;
     }
 
 
