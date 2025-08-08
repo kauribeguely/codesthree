@@ -925,7 +925,7 @@ function c33d_editor_page($post) {
                     <button class='transModeButton' id="btnTranslateMode" type="button" onmousedown="setTransformMode('translate', event, this)">Translate (T)</button>
                     <button class='transModeButton' id="btnRotateMode" type="button" onmousedown="setTransformMode('rotate', event,  this)">Rotate (R)</button>
                     <button class='transModeButton' id='codesScaleButton' title="not available in loop mode, use scale text input on left" type="button" onmousedown="setTransformMode('scale', event, this)">Scale (Y)</button>
-                    <button id="toggleGizmo" type="button">Gizmo</button>
+                    <button id="toggleGizmo" type="button" class="transButtonActive">Gizmo</button>
                 </div>
 
             
@@ -1207,6 +1207,10 @@ function c33d_editor_page($post) {
                 <input type="checkbox" name="isOrthoCamera" id="isOrthoCamera" <?php checked($is_ortho_camera, 'on'); ?>>
                 Use Orthographic Camera
             </label>
+
+            <hr>
+
+            <button type="button" id="orbitToggle">Toggle Camera Control</button>
 
             </div>
                 <!-- <hr> -->

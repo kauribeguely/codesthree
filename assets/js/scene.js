@@ -174,8 +174,8 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
 
     let cameraPos = [0, 0, 5];
 
-    camera.position.set(cameraPos[0], cameraPos[1], cameraPos[2]);
-
+    // camera.position.set(cameraPos[0], cameraPos[1], cameraPos[2]);
+    loadCameraFromSceneData();
     scene.add( camera );
 
     const renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
@@ -833,6 +833,30 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
       });
     }
 
+    function loadCameraFromSceneData() {
+      const savedCameraData = allSceneData.globalSettings.camera;
+      if(savedCameraData)
+      {
+        // Use .set() to apply the saved position and rotation
+        camera.position.set(savedCameraData.position.x, savedCameraData.position.y, savedCameraData.position.z);
+        camera.quaternion.set(savedCameraData.rotation.x, savedCameraData.rotation.y, savedCameraData.rotation.z, savedCameraData.rotation.w);
+        camera.zoom = savedCameraData.zoom;
+        camera.updateProjectionMatrix();
 
+        // Crucially, update the controls to reflect the new camera state
+        // orbitControls.update();
+
+        console.log("Camera position and rotation loaded from allSceneData object.");
+      }
+      else
+      {
+        // Fallback: Set to default position and rotation
+          camera.position.set(0, 0, 5);
+          camera.quaternion.set(0, 0, 0, 1); // Identity quaternion (no rotation)
+          camera.zoom = 1;
+      }
+
+      
+  }
 
 }

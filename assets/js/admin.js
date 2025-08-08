@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-// import { OrbitControls } from 'three/addons/OrbitControls.js';
+import { OrbitControls } from 'three/addons/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 import { TransformControls } from 'three/addons/TransformControls.js';
 // import { RGBELoader } from 'three/addons/RGBELoader.js';
@@ -13,7 +13,7 @@ console.log('C33D Transform Data:', allSceneData);
 const importedDemoAssets = JSON.parse(localisedData.importedDemoAssets);
 let downloadInProgress = false;            
 const blendModeSelect = document.getElementById('blendMode');
-
+let orbitControls;
 
 
 
@@ -385,6 +385,11 @@ window.onload = () =>
   const perspectiveCamera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
   const orthoCamera = new THREE.OrthographicCamera( container.clientWidth / - isoZoom, container.clientWidth / isoZoom, container.clientHeight / isoZoom, container.clientHeight / - isoZoom, 1, 1000 );
 
+  // camera: {
+  //               position: { x: 10, y: 10, z: 10 },
+  //               rotation: { x: 0, y: 0, z: 0, w: 1 },
+  //               zoom: 1
+  //           }
   
 // scene.add( camera );
 
@@ -393,7 +398,7 @@ window.onload = () =>
     // updateEnvTexture();
 
 
-    let cameraPos = [0, 0, 5];
+    // let cameraData = sceneData.cameraData;
 
 
     const renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
@@ -463,11 +468,11 @@ window.onload = () =>
       // 6. Add Helpers for Visualization (NEW ADDITION)
     // Axes Helper: Red = X, Green = Y, Blue = Z
     const axesHelper = new THREE.AxesHelper(5); // Size 5 units
-    // scene.add(axesHelper);
+    scene.add(axesHelper);
 
     // Grid Helper: Grid on XZ plane
     const gridHelper = new THREE.GridHelper(10, 10); // 10x10 units, 10 divisions
-    // scene.add(gridHelper);
+    scene.add(gridHelper);
 
     // Directional Light Helper (already there, just ensuring its log is here for context)
     const lightHelper = new THREE.DirectionalLightHelper(dlight, 2); // Helper size 2
@@ -485,8 +490,6 @@ window.onload = () =>
     
     const breakPoint = document.getElementById('breakPoint');
 
-    let orbit;
-    // orbit = new OrbitControls(camera, renderer.domElement);
 
   applyGlobalSettings();
   function applyGlobalSettings()
@@ -514,7 +517,11 @@ window.onload = () =>
     {
       camera = perspectiveCamera;
     }
-    camera.position.set(cameraPos[0], cameraPos[1], cameraPos[2]);
+    // camera.position.set(cameraPos[0], cameraPos[1], cameraPos[2]);
+    
+    orbitControls = new OrbitControls(camera, renderer.domElement);
+    orbitControls.enabled = false;
+    loadCameraFromSceneData();
 
     dlight.position.set(sceneData.lightPosX, sceneData.lightPosY, sceneData.lightPosZ);
     dlight.intensity = sceneData.directionalLightIntensity;
@@ -572,9 +579,9 @@ window.onload = () =>
   scene.add(controls);
   controls.visible = gizmoVisible;
 
-  const toggleButton = document.getElementById('toggleControls');
+  const toggleControlsButton = document.getElementById('toggleControls');
   let isControlsVisible = true;
-  toggleButton.addEventListener('click', () => {
+  toggleControlsButton.addEventListener('click', () => {
       isControlsVisible = !isControlsVisible;      
 
       toggleVisibility('.rightControls');
@@ -602,6 +609,12 @@ window.onload = () =>
       }
       
   });
+
+  function toggleHelpers()
+  {
+    axesHelper.visible = !axesHelper.visible;
+    gridHelper.visible = !gridHelper.visible;
+  }
 
   setupDemoModal();
 
@@ -662,9 +675,12 @@ window.onload = () =>
 
   const toggleGizmoButton = document.getElementById('toggleGizmo');
   toggleGizmoButton.addEventListener('click', () => {
-    gizmoVisible = !gizmoVisible;
-    setGizmoVisible(gizmoVisible);
-    toggleGizmoButton.classList.toggle('transButtonActive');
+    if(!orbitControls.enabled)
+    {
+      gizmoVisible = !gizmoVisible;
+      setGizmoVisible(gizmoVisible);
+      toggleGizmoButton.classList.toggle('transButtonActive');
+    }
   });
 
   function setGizmoVisible(visible)
@@ -2042,18 +2058,20 @@ function transformDragEnd(){
       // let initialRotationZ = parseFloat(sceneData.rotationZ);
 
       const onMouseMove = (event) => {
-          const mouseX = (event.clientX / window.innerWidth) * 2 - 1;
-          const mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+        const mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+        const mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
 
-          const rect = renderer.domElement.getBoundingClientRect();
-          mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-          mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        const rect = renderer.domElement.getBoundingClientRect();
+        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-          // Calculate target rotation
-          targetRotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * mouseRotationX);
-          targetRotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * mouseRotationY);
-          targetRotation.z = THREE.MathUtils.degToRad(initialRotationZ + -mouseX * mouseRotationZ);
+        // Calculate target rotation
+        targetRotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * mouseRotationX);
+        targetRotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * mouseRotationY);
+        targetRotation.z = THREE.MathUtils.degToRad(initialRotationZ + -mouseX * mouseRotationZ);
 
+        if(!orbitControls.enabled)
+        {
           if (mouseAnimationLink && !(isTransforming || keyXRot || keyYRot || keyZRot || isDragging)) {
               // Smoothly interpolate to the target rotation
               // const easing = 0.1; // Adjust this value for speed (lower = slower)
@@ -2100,7 +2118,8 @@ function transformDragEnd(){
             // Update any necessary transforms
             updateTransforms();
 
-          }
+          }            
+        }
       };
       window.addEventListener('mousemove', onMouseMove);
 
@@ -2442,55 +2461,64 @@ function transformDragEnd(){
           case 't': // Translate mode
                 setTransformMode('translate');
                 break;
-            case 'r': // Rotate mode
-                setTransformMode('rotate');
-                break;
-            case 'y': // Scale mode
-                setTransformMode('scale');
-                break;
-            case 's': // save and scroll scale
-                if(event.ctrlKey)
-                {
-                  event.preventDefault();
-                  saveButtonClicked();
-                  // wpPublishButton.click();
-                }
-                else
-                {
-                  keyScale = true;
-                }                
-                break;
-                // dont allow scaling of group, must be set via single or input
-                // groupControls.setMode('scale');
-            case 'd': //duplicate
-                if(event.ctrlKey)
-                {
-                  event.preventDefault();
-                  cloneSelected();
-                }
-            case 'o':
-                orbitActive = !orbitActive;
-                break;
-            case 'delete':
-                deleteObject();
-                break;
-            case 'shift':
-                shiftDown = true;
-                scrollMultiplier = 0.3;
-                break;
-            case 'l': // Scale mode
-                loopActive = !loopActive;
-                loopActiveInput.checked = loopActive;
-                toggleLoop();
-                break;
-            case 'p':
-                copySceneDataToClipboard();
-                break;
-            case 'm':
-              downloadInitFullScene('scene1', ['star', 'laptop']);
-              // initiateSceneConfigImport('https://c33d.kaurib.com/scenes/scene1.json', 'scene1');  
-              // initFromJson();
-                break;
+          case 'r': // Rotate mode
+              setTransformMode('rotate');
+              break;
+          case 'y': // Scale mode
+              setTransformMode('scale');
+              break;
+          case 's': // save and scroll scale
+              if(event.ctrlKey)
+              {
+                event.preventDefault();
+                saveButtonClicked();
+                // wpPublishButton.click();
+              }
+              else
+              {
+                keyScale = true;
+              }                
+              break;
+              // dont allow scaling of group, must be set via single or input
+              // groupControls.setMode('scale');
+          case 'd': //duplicate
+              if(event.ctrlKey)
+              {
+                event.preventDefault();
+                cloneSelected();
+              }
+          case 'o':
+              orbitActive = !orbitActive;
+              break;
+          case 'delete':
+              deleteObject();
+              break;
+          case 'shift':
+              shiftDown = true;
+              scrollMultiplier = 0.3;
+              break;
+          case 'l': // Scale mode
+              loopActive = !loopActive;
+              loopActiveInput.checked = loopActive;
+              toggleLoop();
+              break;
+          case 'p':
+              copySceneDataToClipboard();
+              break;
+          case 'v':
+              toggleHelpers()
+              break;
+          case 'c':
+              if(event.altKey)
+              {
+                toggleOrbitControls();
+              }
+              break;
+          case 'm':
+            downloadInitFullScene('scene1', ['star', 'laptop']);
+            // initiateSceneConfigImport('https://c33d.kaurib.com/scenes/scene1.json', 'scene1');  
+            // initFromJson();
+              break;
         }
     });
 
@@ -2528,7 +2556,7 @@ function transformDragEnd(){
 
     function stepScale(amount)
     {
-      const scaleSensitivity = 0.05; 
+      const scaleSensitivity = 0.5; 
     
       let scaleFactor = 1 + (amount * scaleSensitivity);
 
@@ -2541,6 +2569,9 @@ function transformDragEnd(){
     const scrollRotAmount = THREE.MathUtils.degToRad(10);
     document.addEventListener('wheel', function(e)
     {
+
+      if(orbitControls.enabled) return;
+
       if(keyXRot || keyYRot || keyZRot || keyZTrans || keyScale) 
       {
         e.preventDefault();
@@ -2620,6 +2651,7 @@ function transformDragEnd(){
     function setTransformMode(mode, e, clickedButton)
     {
       if(e) e.preventDefault();
+      if(orbitControls.enabled) return;
       controls.setMode(mode);
       // groupControls.setMode(mode);
       setGizmoVisible(true);
@@ -3169,6 +3201,7 @@ function getThreeJsObjectByUuid(modelId)
       {
         // Enable this line to override mobile data with current .models, helpful if mobile data is corrupted
         // allSceneData.models[1] = allSceneData.models[0];
+        saveCameraToSceneData();
         if (hiddenInputField) 
           {
                 try {
@@ -3182,7 +3215,7 @@ function getThreeJsObjectByUuid(modelId)
             } else {
                 console.warn("Hidden input field with ID 'threejs_scene_config_json' not found!");
             }
-        }
+      }
 
         const allTabs = document.querySelectorAll('.tab');
         const allTabsContent = document.querySelectorAll('.tabContent');
@@ -3558,6 +3591,80 @@ function getThreeJsObjectByUuid(modelId)
             material.needsUpdate = true;
             
             // console.log('Blend mode changed to:', blendModeString);
+        }
+
+        document.querySelector('#orbitToggle').addEventListener('click', toggleOrbitControls);
+
+        function toggleOrbitControls() {
+          
+            orbitControls.enabled = !orbitControls.enabled;
+            document.querySelector('#orbitToggle').classList.toggle('transButtonActive');
+            setGizmoVisible(!orbitControls.enabled);
+            axesHelper.visible = orbitControls.enabled;
+            gridHelper.visible = orbitControls.enabled;
+            lightHelper.visible = orbitControls.enabled;
+            if (orbitControls.enabled) {
+                // toggleControlsButton.textContent = 'Disable Controls';
+                console.log('Controls enabled');
+                document.querySelector('.topTransforms').style.display = 'none';
+
+            } else {
+                // toggleControlsButton.textContent = 'Enable Controls';
+                console.log('Controls disabled');
+                document.querySelector('.topTransforms').style.display = 'flex';
+            }
+        }
+
+        function loadCameraFromSceneData() {
+            const savedCameraData = allSceneData.globalSettings.camera;
+            if(savedCameraData)
+            {
+              // Use .set() to apply the saved position and rotation
+              camera.position.set(savedCameraData.position.x, savedCameraData.position.y, savedCameraData.position.z);
+              camera.quaternion.set(savedCameraData.rotation.x, savedCameraData.rotation.y, savedCameraData.rotation.z, savedCameraData.rotation.w);
+              camera.zoom = savedCameraData.zoom;
+              camera.updateProjectionMatrix();
+
+              // Crucially, update the controls to reflect the new camera state
+              orbitControls.update();
+
+              console.log("Camera position and rotation loaded from allSceneData object.");
+            }
+            else
+            {
+              // Fallback: Set to default position and rotation
+                camera.position.set(0, 0, 5);
+                camera.quaternion.set(0, 0, 0, 1); // Identity quaternion (no rotation)
+                camera.zoom = 1;
+            }
+
+            
+        }
+
+        function saveCameraToSceneData() {
+            // Convert Vector3 and Quaternion to simple objects
+            const cameraPos = {
+                x: camera.position.x,
+                y: camera.position.y,
+                z: camera.position.z
+            };
+
+            // Use the camera's quaternion for rotation
+            const cameraRot = {
+                x: camera.quaternion.x,
+                y: camera.quaternion.y,
+                z: camera.quaternion.z,
+                w: camera.quaternion.w
+            };
+
+            // Update the allSceneData object
+            allSceneData.globalSettings.camera = {
+                position: cameraPos,
+                rotation: cameraRot,
+                zoom: camera.zoom
+            };
+
+            // console.log("Camera position and rotation saved to allSceneData object.");
         }
         
 
