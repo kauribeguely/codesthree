@@ -54,10 +54,12 @@ function c33d_create_scene_shortcode($atts)
         style="width: <?php echo esc_attr($atts['width']); ?>; height: <?php echo esc_attr($atts['height']); ?>;">
 
         <div class = "loadScreen">
-            <div class = "loadCircle">
+            <div class = "cubeLoader">
+            </div>
+            <!-- <div class = "loadCircle">
                 <div class = "loadInnerCircle">
                 </div>
-            </div>
+            </div> -->
         </div>
     </div>
 
