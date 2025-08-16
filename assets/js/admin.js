@@ -1022,9 +1022,6 @@ function toggleCamera()
       // Copy the rotation (or lookAt vector)
       targetCamera.rotation.copy(sourceCamera.rotation);
 
-      // IMPORTANT: If you want both cameras to look at the same point,
-      // you also need to copy the controls' target.
-      // Assuming orbitControls.target is an instance of Vector3
       targetCamera.lookAt(orbitControls.target);
   }
 
@@ -2109,6 +2106,7 @@ function transformDragEnd(){
 
         if(!orbitControls.enabled)
         {
+          //Animation link
           if (mouseAnimationLink && !(isTransforming || keyXRot || keyYRot || keyZRot || isDragging)) {
               // Smoothly interpolate to the target rotation
               // const easing = 0.1; // Adjust this value for speed (lower = slower)
@@ -2131,6 +2129,7 @@ function transformDragEnd(){
               fullLoopGroup.rotation.z = currentRotation.z;
           }
 
+          //ez drag function
           if(isDragging)
           {
             raycaster.setFromCamera(mouse, camera);
@@ -2143,9 +2142,10 @@ function transformDragEnd(){
             const newWorldPosition = new THREE.Vector3(
               newIntersectPoint.x + offset.x,
               newIntersectPoint.y + offset.y,
-              selectedObj.getWorldPosition(new THREE.Vector3()).z // Keep current world Z
+              newIntersectPoint.z + offset.z
             );
-
+            
+            // selectedObj.getWorldPosition(new THREE.Vector3()).z // Keep current world Z
             // Convert world position to local position relative to selectedObj's parent
             const newLocalPosition = selectedObj.parent.worldToLocal(newWorldPosition.clone());
 
@@ -2635,28 +2635,42 @@ function transformDragEnd(){
       {
         let currentWorldPosition = new THREE.Vector3();    
         selectedObj.getWorldPosition(currentWorldPosition);
-        const targetWorldPosition = currentWorldPosition.clone();
+        // const targetWorldPosition = currentWorldPosition.clone();
+        const direction = e.deltaY > 0 ? 1 : -1;
+
+        const cameraDirection = new THREE.Vector3();
+        camera.getWorldDirection(cameraDirection);
+
+        // 2. Scale the direction vector by the desired speed and scroll direction
+        const moveVector = cameraDirection.multiplyScalar(-direction * scrollMultiplier * 0.5);
+
+        // 3. Get the selected object's current world position
+        const targetWorldPosition = new THREE.Vector3();
+        selectedObj.getWorldPosition(targetWorldPosition);
+
+        // 4. Add the movement vector to the world position
+        targetWorldPosition.add(moveVector);
+            
+        if(keyZTrans)
+        {
+          if (selectedObjData.parentUuid != -1) 
+          { 
+              // targetWorldPosition.z -= scrollMultiplier * 0.5;
+              selectedObj.parent.worldToLocal(targetWorldPosition);
+              selectedObj.position.copy(targetWorldPosition);
+          } 
+          else 
+          {
+              // If there's no parent or the parent is the scene, the object's position is already in world coordinates.
+              // selectedObj.position.z -= scrollMultiplier * 0.5;
+              selectedObj.position.copy(targetWorldPosition);
+              // selectedObj.position.z = targetWorldPosition.z; // Directly set the world Z
+          }
+        }
+
 
         if(e.wheelDelta > 0) //scroll up, away,
         {
-          if(keyZTrans)
-          {
-            if (selectedObjData.parentUuid != -1) 
-            { 
-                targetWorldPosition.z -= scrollMultiplier * 0.5;
-                selectedObj.parent.worldToLocal(targetWorldPosition);
-                selectedObj.position.copy(targetWorldPosition);
-            } 
-            else 
-            {
-                // If there's no parent or the parent is the scene, the object's position is already in world coordinates.
-                selectedObj.position.z -= scrollMultiplier * 0.5;
-                // selectedObj.position.z = targetWorldPosition.z; // Directly set the world Z
-            }
-          }
-          // if(keyXRot) selectedObjData.rotation.x -= THREE.MathUtils.degToRad(5);
-          // if(keyYRot) selectedObjData.rotation.y -= THREE.MathUtils.degToRad(5);
-          // if(keyZRot) selectedObjData.rotation.z -= THREE.MathUtils.degToRad(5);
           if(keyXRot) selectedObj.rotateX(scrollMultiplier*-scrollRotAmount);
           if(keyYRot) selectedObj.rotateY(scrollMultiplier*-scrollRotAmount);
           if(keyZRot) selectedObj.rotateZ(scrollMultiplier*-scrollRotAmount);
@@ -2670,25 +2684,7 @@ function transformDragEnd(){
         }
         else
         {
-          if(keyZTrans)
-          {
-            if (selectedObjData.parentUuid != -1) 
-            { 
-                targetWorldPosition.z += scrollMultiplier * 0.5;
-                selectedObj.parent.worldToLocal(targetWorldPosition);
-                selectedObj.position.copy(targetWorldPosition);
-            } 
-            else 
-            {
-                // If there's no parent or the parent is the scene, the object's position is already in world coordinates.
-                selectedObj.position.z += scrollMultiplier * 0.5;
-                // selectedObj.position.z = targetWorldPosition.z; // Directly set the world Z
-            }
-          }
-          // if(keyZTrans) selectedObj.position.z += scrollMultiplier*0.5;
-          // if(keyXRot) selectedObjData.rotation.x += THREE.MathUtils.degToRad(5);
-          // if(keyYRot) selectedObjData.rotation.y += THREE.MathUtils.degToRad(5);
-          // if(keyZRot) selectedObjData.rotation.z += THREE.MathUtils.degToRad(5);
+
           if(keyXRot) selectedObj.rotateX(scrollMultiplier*scrollRotAmount);
           if(keyYRot) selectedObj.rotateY(scrollMultiplier*scrollRotAmount);
           if(keyZRot) selectedObj.rotateZ(scrollMultiplier*scrollRotAmount);
