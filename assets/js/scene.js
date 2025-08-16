@@ -662,7 +662,7 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
       function applyScrollTransforms(event)
       {
         // Get the normalized scroll position (0 - 1)
-        const scrollPos = getCanvasOffset();
+        const scrollPos = -getCanvasOffset();
 
         // Determine how much to move the camera based on scroll and position
         const scrollFactor = 0.1; // Adjust this value to change the sensitivity of the scroll

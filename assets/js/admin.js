@@ -385,7 +385,7 @@ window.onload = () =>
   scene.add(rotateGroup);
   let camera;
   const perspectiveCamera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
-  const orthoCamera = new THREE.OrthographicCamera( container.clientWidth / - isoZoom, container.clientWidth / isoZoom, container.clientHeight / isoZoom, container.clientHeight / - isoZoom, 1, 1000 );
+  const orthoCamera = new THREE.OrthographicCamera( container.clientWidth / - isoZoom, container.clientWidth / isoZoom, container.clientHeight / isoZoom, container.clientHeight / - isoZoom, 0, 1000 );
 
   // camera: {
   //               position: { x: 10, y: 10, z: 10 },
@@ -810,10 +810,14 @@ window.onload = () =>
 
   scrollAnimationLinkInput.oninput = () => {
     scrollAnimationLink = scrollAnimationLinkInput.checked;
+    //reset camera back to initial position
     if(!scrollAnimationLink)
     {
       // camera.position.set(cameraPos[0], cameraPos[1], cameraPos[2]);
-      loadCameraFromSceneData();
+      // loadCameraFromSceneData();
+      rotateGroup.position.x = 0;
+      rotateGroup.position.y = 0;
+      rotateGroup.position.z = 0;
     }
   };
 
@@ -999,7 +1003,7 @@ function toggleCamera()
     // groupControls.camera = camera;
 
     // camera.position.set(cameraPos[0], cameraPos[1], cameraPos[2]);
-    loadCameraFromSceneData();
+    // loadCameraFromSceneData();
     scene.add(camera);
 
     renderer.render(scene, camera);
@@ -2267,7 +2271,7 @@ function transformDragEnd(){
         // camera.position.z = savedCameraData.position.z + scrollMoveZ * scrollPos;
         // Update the camera's position
         // camera.updateProjectionMatrix();
-        
+
         rotateGroup.position.x = scrollMoveX * scrollPos;
         rotateGroup.position.y = scrollMoveY * scrollPos;
         rotateGroup.position.z = scrollMoveZ * scrollPos;
@@ -2589,6 +2593,8 @@ function transformDragEnd(){
     {
 
       if(orbitControls.enabled) return;
+
+      if(scrollAnimationLink) return;
 
       if(keyXRot || keyYRot || keyZRot || keyZTrans || keyScale) 
       {

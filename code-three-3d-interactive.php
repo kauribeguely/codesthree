@@ -1122,7 +1122,7 @@ function c33d_editor_page($post) {
                     </div>
                     <!-- Mouse Rotation Strength -->
                     <fieldset>
-                        <legend>Mouse Rotation Degrees</legend>
+                        <legend>Scene Rotation Degrees</legend>
                         <div class="transform-group">
                             <div class="transform-field">
                                 <label for="mouseRotationX">X</label>
