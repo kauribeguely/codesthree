@@ -1147,7 +1147,7 @@ function c33d_editor_page($post) {
 
                     <!-- Scroll Camera Movement -->
                     <fieldset>
-                        <legend>Scroll Camera Movement</legend>
+                        <legend>Scroll Scene Movement</legend>
                         <div class="transform-group">
                             <div class="transform-field">
                                 <label for="scrollMoveX">X</label>
