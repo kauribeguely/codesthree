@@ -668,12 +668,18 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
         const scrollFactor = 0.1; // Adjust this value to change the sensitivity of the scroll
 
         // Calculate new camera position based on scroll distance
-        camera.position.x = cameraPos[0] + scrollMoveX * scrollPos;
-        camera.position.y = cameraPos[1] + scrollMoveY * scrollPos;
-        camera.position.z = cameraPos[2] + scrollMoveZ * scrollPos;
+        // const savedCameraData = allSceneData.globalSettings.camera;
+        // camera.position.x = savedCameraData.position.x + scrollMoveX * scrollPos;
+        // camera.position.y = savedCameraData.position.y + scrollMoveY * scrollPos;
+        // camera.position.z = savedCameraData.position.z + scrollMoveZ * scrollPos;
+
+        rotateGroup.position.x = scrollMoveX * scrollPos;
+        rotateGroup.position.y = scrollMoveY * scrollPos;
+        rotateGroup.position.z = scrollMoveZ * scrollPos;
+
 
         // Update the camera's position
-        camera.updateProjectionMatrix();
+        // camera.updateProjectionMatrix();
 
         // Prevent the default scroll behavior
         if(event) event.preventDefault();

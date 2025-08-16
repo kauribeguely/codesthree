@@ -303,6 +303,8 @@ window.onload = () =>
   let sceneData = allSceneData.globalSettings;
   let allModels = allSceneData.models[0];
   let allMobileModels = allSceneData.models[1];
+
+  let initialCamera = { ...allSceneData.globalSettings.camera };
   
   // Map the string values from the HTML to the Three.js constants
   const blendModes = {
@@ -517,7 +519,6 @@ window.onload = () =>
     {
       camera = perspectiveCamera;
     }
-    // camera.position.set(cameraPos[0], cameraPos[1], cameraPos[2]);
     
     orbitControls = new OrbitControls(camera, renderer.domElement);
     orbitControls.enabled = false;
@@ -811,7 +812,8 @@ window.onload = () =>
     scrollAnimationLink = scrollAnimationLinkInput.checked;
     if(!scrollAnimationLink)
     {
-      camera.position.set(cameraPos[0], cameraPos[1], cameraPos[2]);
+      // camera.position.set(cameraPos[0], cameraPos[1], cameraPos[2]);
+      loadCameraFromSceneData();
     }
   };
 
@@ -996,7 +998,8 @@ function toggleCamera()
     controls.camera = camera;
     // groupControls.camera = camera;
 
-    camera.position.set(cameraPos[0], cameraPos[1], cameraPos[2]);
+    // camera.position.set(cameraPos[0], cameraPos[1], cameraPos[2]);
+    loadCameraFromSceneData();
     scene.add(camera);
 
     renderer.render(scene, camera);
@@ -2246,7 +2249,8 @@ function transformDragEnd(){
       function applyScrollTransforms(event)
       {
         // Get the normalized scroll position (0 - 1)
-        const scrollPos = getCanvasOffset();
+        const scrollPos = -getCanvasOffset();
+        // const scrollPos = getCanvasOffset();
 
         // Determine how much to move the camera based on scroll and position
         const scrollFactor = 0.1; // Adjust this value to change the sensitivity of the scroll
@@ -2255,12 +2259,26 @@ function transformDragEnd(){
         // camera.position.x += scrollMoveX * scrollPos * scrollFactor;
         // camera.position.y += scrollMoveY * scrollPos * scrollFactor;
         // camera.position.z += scrollMoveZ * scrollPos * scrollFactor;
-        camera.position.x = cameraPos[0] + scrollMoveX * scrollPos;
-        camera.position.y = cameraPos[1] + scrollMoveY * scrollPos;
-        camera.position.z = cameraPos[2] + scrollMoveZ * scrollPos;
-
+        // const savedCameraData = allSceneData.globalSettings.camera;
+        // const savedCameraData = initialCamera;
+        // camera.position.x = savedCameraData.position.x + scrollMoveX * scrollPos;
+        // camera.position.y = savedCameraData.position.y + scrollMoveY * scrollPos;
+        // console.log(savedCameraData.position.y, scrollPos, (savedCameraData.position.y + scrollMoveY * scrollPos));
+        // camera.position.z = savedCameraData.position.z + scrollMoveZ * scrollPos;
         // Update the camera's position
-        camera.updateProjectionMatrix();
+        // camera.updateProjectionMatrix();
+        
+        rotateGroup.position.x = scrollMoveX * scrollPos;
+        rotateGroup.position.y = scrollMoveY * scrollPos;
+        rotateGroup.position.z = scrollMoveZ * scrollPos;
+
+        
+
+        // camera.position.x = cameraPos[0] + scrollMoveX * scrollPos;
+        // camera.position.y = cameraPos[1] + scrollMoveY * scrollPos;
+        // camera.position.z = cameraPos[2] + scrollMoveZ * scrollPos;
+
+        
 
         // Prevent the default scroll behavior
         event.preventDefault();
