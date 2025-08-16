@@ -385,7 +385,7 @@ window.onload = () =>
   scene.add(rotateGroup);
   let camera;
   const perspectiveCamera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
-  const orthoCamera = new THREE.OrthographicCamera( container.clientWidth / - isoZoom, container.clientWidth / isoZoom, container.clientHeight / isoZoom, container.clientHeight / - isoZoom, 0, 1000 );
+  const orthoCamera = new THREE.OrthographicCamera( container.clientWidth / - isoZoom, container.clientWidth / isoZoom, container.clientHeight / isoZoom, container.clientHeight / - isoZoom, 1, 1000 );
 
   // camera: {
   //               position: { x: 10, y: 10, z: 10 },
@@ -480,6 +480,9 @@ window.onload = () =>
     const lightHelper = new THREE.DirectionalLightHelper(dlight, 2); // Helper size 2
     scene.add(lightHelper);
 
+    axesHelper.visible = false;
+    gridHelper.visible = false;
+   lightHelper.visible = false;
     // Load Environment Map (HDR)
     
     const lightIntensityInput = document.getElementById('lightIntensity');
@@ -996,11 +999,14 @@ function toggleCamera()
   scene.remove(camera);
     if (sceneData.isOrthoCamera) {
         camera = orthoCamera;
+
     } else {
         camera = perspectiveCamera;
     }
     controls.camera = camera;
-    // groupControls.camera = camera;
+    orbitControls.camera = camera;
+    orbitControls.object = camera;
+    orbitControls.update();
 
     // camera.position.set(cameraPos[0], cameraPos[1], cameraPos[2]);
     // loadCameraFromSceneData();
@@ -1008,6 +1014,30 @@ function toggleCamera()
 
     renderer.render(scene, camera);
 }
+
+  function syncCameras(sourceCamera, targetCamera) {
+      // Copy the position
+      targetCamera.position.copy(sourceCamera.position);
+
+      // Copy the rotation (or lookAt vector)
+      targetCamera.rotation.copy(sourceCamera.rotation);
+
+      // IMPORTANT: If you want both cameras to look at the same point,
+      // you also need to copy the controls' target.
+      // Assuming orbitControls.target is an instance of Vector3
+      targetCamera.lookAt(orbitControls.target);
+  }
+
+  orbitControls.addEventListener('change', () => {
+      // Only synchronize if we are currently using the perspective camera
+      if (camera === perspectiveCamera) {
+          syncCameras(perspectiveCamera, orthoCamera);
+      }
+      else
+      {
+          syncCameras(orthoCamera,  perspectiveCamera);
+      }
+  });
 
 
     
