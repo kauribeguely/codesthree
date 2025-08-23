@@ -1065,7 +1065,10 @@ function c33d_editor_page($post) {
                 <!-- Material Properties Panel (Initially hidden) -->
                 <div id="materialPropertiesPanel" class="properties-panel hidden">
                     <!-- Material Color Control -->
-                    <label for="materialColor" class="property-label">Texture</label>
+
+                     <input id="stencil-send" type="number">
+                     <input id="stencil-receive" type="number">
+                    <label for="materialColor" class="property-label">Base</label>
                     <div class="transform-group">
                         <input type="color" id="materialColor" class="color-picker">
                     <!-- </div> -->
@@ -1073,7 +1076,7 @@ function c33d_editor_page($post) {
                     <!-- Material Texture Button -->
                     <!-- <div class="texture-button-container"> -->
                         <button type="button" id="materialTextureBtn" class="texture-button">
-                            Base
+                            Texture
                         </button>
                         <button type="button" id="deleteTexture" class="texture-button">
                             <span class="dashicons dashicons-trash"></span>

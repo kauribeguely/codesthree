@@ -80,8 +80,27 @@ window.onload = () =>
         this.threeJsObject = null; // Reference to the actual THREE.Object3D instance
         this.materialProperties = data.materialProperties || {};
         
+        this.renderOrder = data.renderOrder || 0;
+
+        this.stencilRef = data.stencilRef || null;
+        this.isStencil = data.isStencil || false;
     }
 
+
+    applyStencilProperties()
+    {
+      if(this.stencilRef != null)
+      {
+        if(this.isStencil)
+        {
+
+        }
+        else
+        {
+
+        }
+      }
+    }
 
     setMaterialProperties(materialName, properties) {
         if (!materialName || !properties) {
@@ -116,9 +135,12 @@ window.onload = () =>
         console.warn('No Three.js object or explicit material properties available to apply.');
         return;
       }
-
+      console.log('Apply material to ' +this.modelName);
+      console.log('Render Order: ' +this.renderOrder);
       const textureLoader = new THREE.TextureLoader();
       const materialsByName = new Map();
+
+      if(this.renderOrder != 0) this.threeJsObject.renderOrder = this.renderOrder;
 
       // First, build a map of materials by their name for quick lookup.
       // This part remains the same and is a good practice.
@@ -138,6 +160,7 @@ window.onload = () =>
         }
       });
 
+      console.log('material before:', this.threeJsObject.material);
       this.materialProperties.forEach(savedMaterial => {
         const { materialName, ...properties } = savedMaterial;
         const material = materialsByName.get(materialName);
@@ -190,6 +213,7 @@ window.onload = () =>
               }
               else
               {
+                console.log(propName, propValue);
                 material[propName] = propValue;
               }
               material.needsUpdate = true;
@@ -201,6 +225,8 @@ window.onload = () =>
           console.warn(`Could not find a material with name: ${materialName} on the loaded object.`);
         }
       });
+      console.log('material after:', this.threeJsObject.material);
+
     }
     // updateSavedMaterials() {
     //     const textureData = [];
@@ -254,6 +280,7 @@ window.onload = () =>
             type: this.type,
             parentUuid: this.parentUuid,
             materialProperties: this.materialProperties,
+            renderOrder: this.renderOrder,
             // ... include all other properties
         };
     }
@@ -278,6 +305,7 @@ window.onload = () =>
             loopCountX: obj.loopCountX,
             parentUuid: obj.parentUuid,
             materialProperties: obj.materialProperties || [],
+            renderOrder: obj.renderOrder,
             // ... include all other properties
         });
     }
@@ -403,10 +431,12 @@ window.onload = () =>
     // let cameraData = sceneData.cameraData;
 
 
-    const renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
+    //should set stencil true only when it's used i.e. after first material set to stencil
+    const renderer = new THREE.WebGLRenderer({antialias: true, alpha: true, stencil: true});
     renderer.setSize(container.clientWidth, container.clientHeight);
     container.appendChild(renderer.domElement);
     renderer.outputColorSpace  = THREE.SRGBColorSpace;
+  
     // renderer.outputEncoding = THREE.sRGBEncoding;
     // renderer.outputColorSpace = THREE.SRGBColorSpace;
     // renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -1267,9 +1297,13 @@ function toggleCamera()
                   // const material = new THREE.MeshStandardMaterial({
                     const material = new THREE.MeshBasicMaterial({
                       map: texture,
-                      side: THREE.DoubleSide, 
-                      transparent: true 
+                      side: THREE.DoubleSide
                   });
+                  //   const material = new THREE.MeshBasicMaterial({
+                  //     map: texture,
+                  //     side: THREE.DoubleSide, 
+                  //     transparent: true 
+                  // });
 
                   // Step 6: Create the Mesh
                   const planeMesh = new THREE.Mesh(geometry, material);
@@ -1809,8 +1843,18 @@ function transformDragEnd(){
         }
     });
 
+    document.querySelector('#stencil-send').oninput = function()
+    {
+      setAsStencil(selectedMaterial, parseInt(this.value));
+    }
 
-  textureUploader.on('select', function () {
+    document.querySelector('#stencil-receive').oninput = function()
+    {
+      setAsReciever(selectedMaterial, parseInt(this.value), THREE.EqualStencilFunc);
+    }
+
+
+    textureUploader.on('select', function () {
       const attachment = textureUploader.state().get('selection').first().toJSON();
       const imageUrl = attachment.url;
 
@@ -2440,6 +2484,7 @@ function transformDragEnd(){
     // Render loop
     function animate() {
         requestAnimationFrame(animate);
+        
         renderer.render(scene, camera);
         // if(orbitActive) orbit.update(); // Call controls.update() in the animation loop
     }
@@ -2507,8 +2552,8 @@ function transformDragEnd(){
                 createObject('group');
                 break;  
           case 'h': 
-                // createObject('plane');
-                createObject('imageplane', {planeUrl: "http://localhost/wpLocalEdge/wp-content/uploads/2025/07/lapimg.jpg"});
+                createObject('plane');
+                // createObject('imageplane', {planeUrl: "http://localhost/wpLocalEdge/wp-content/uploads/2025/07/lapimg.jpg"});
                 break;  
           case 't': // Translate mode
                 setTransformMode('translate');
@@ -2557,9 +2602,6 @@ function transformDragEnd(){
           case 'p':
               copySceneDataToClipboard();
               break;
-          case 'v':
-              toggleHelpers()
-              break;
           case 'c':
               if(event.altKey)
               {
@@ -2571,8 +2613,96 @@ function transformDragEnd(){
             // initiateSceneConfigImport('https://c33d.kaurib.com/scenes/scene1.json', 'scene1');  
             // initFromJson();
               break;
+          case 'z':
+              // selectedObj.material = recMAt;
+              // selectedMaterial.stencilWrite = true;
+              // selectedMaterial.stencilRef = 1;
+              // selectedMaterial.stencilFunc = THREE.EqualStencilFunc;
+              // selectedObj.renderOrder = 2;
+              // console.log(selectedMaterial);
+              // selectedMaterialial.stencilWrite = true;
+              // selectedObj.material.stencilRef = 1;
+              // selectedObj.material.stencilFunc = THREE.EqualStencilFunc;
+              setAsReciever();
+              break;
+          case 'x':
+              // selectedObj.material = recMAt;
+              setAsStencil();
+              // selectedMaterial.colorWrite = false;
+              // selectedMaterial.depthWrite = false;
+              // selectedMaterial.stencilWrite = true;
+              // selectedMaterial.stencilRef = 1;
+              // selectedMaterial.stencilFunc = THREE.AlwaysStencilFunc;
+              // selectedMaterial.stencilZPass = THREE.ReplaceStencilOp;
+              // selectedObj.renderOrder = 1;
+              // console.log(selectedMaterial);
+              break;
+          case 'v':
+              // toggleHelpers();
+              selectedMaterial.stencilWrite = true;
+              selectedMaterial.stencilRef = 1;
+              selectedMaterial.stencilFunc = THREE.NotEqualStencilFunc;
+              break;
         }
     });
+
+    function setAllMaterialsAsStencilReceiver(object, stencilRef)
+    {
+      
+    }
+
+    // traverseAndModifyMaterials(threeobject, setAsReceiver, stencilRef, stencilFunc);
+
+    function traverseAndModifyMaterials(object, callback) 
+    {
+      // The .traverse() method will visit the object itself and all its children.
+      object.traverse(child => {
+          // Check if the child has a material property and is a mesh.
+          // It's important to check .isMesh to ensure it's a renderable object.
+          if (child.isMesh) {
+              // Check if the material is an array (for multi-material objects)
+              if (Array.isArray(child.material)) {
+                  child.material.forEach(mat => callback(mat, ...args));
+              } else {
+                  // Or if it's a single material
+                  callback(child.material, ...args);
+              }
+          }
+      });
+    }
+
+    function setAsStencil(material, stencilRef)
+    {
+      // let stencilMat = new THREE.MeshPhongMaterial({ color: 'green' });
+      // selectedObj.material = stencilMat;
+      // selectedMaterial = selectedObj.material;
+      material.colorWrite = false;
+      material.depthWrite = false;
+      material.stencilWrite = true;
+      // selectedMaterial.stencilRef = 1;
+      material.stencilRef = stencilRef;
+      material.stencilFunc = THREE.AlwaysStencilFunc;
+      material.stencilZPass = THREE.ReplaceStencilOp;
+
+      selectedObjData.setMaterialProperties(material.name, {colorWrite: false, depthWrite: false, stencilWrite: true, stencilRef: stencilRef, stencilFunc: THREE.AlwaysStencilFunc, stencilZPass: THREE.ReplaceStencilOp} );
+      selectedObjData.renderOrder = 1;    
+      selectedObj.renderOrder = 1;     
+      updateModelData(selectedObjData); 
+      updateSaveField();  
+    }
+
+    function setAsReciever(material, stencilRef, stencilFunc)
+    {
+      material.stencilWrite = true;
+      material.stencilRef = stencilRef;
+      material.stencilFunc = stencilFunc;
+      // selectedMaterial.stencilFunc = THREE.EqualStencilFunc;
+      selectedObjData.setMaterialProperties(material.name, {stencilWrite: true, stencilRef: stencilRef, stencilFunc: stencilFunc} );
+      selectedObjData.renderOrder = 2;
+      selectedObj.renderOrder = 2;
+      updateModelData(selectedObjData);
+      updateSaveField();  
+    }
 
     window.addEventListener('keyup', (event) => {
       switch (event.key.toLowerCase()) {
@@ -3716,11 +3846,9 @@ function getThreeJsObjectByUuid(modelId)
 
             // console.log("Camera position and rotation saved to allSceneData object.");
         }
-        
-
-
-    // }
 }
+
+
 
 
 
