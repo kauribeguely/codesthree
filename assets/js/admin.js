@@ -160,13 +160,15 @@ window.onload = () =>
         }
       });
 
-      console.log('material before:', this.threeJsObject.material);
+      // console.log('material before:', this.threeJsObject.material);
       this.materialProperties.forEach(savedMaterial => {
         const { materialName, ...properties } = savedMaterial;
         const material = materialsByName.get(materialName);
 
         if (material) {
           // Iterate through the properties of the current material.
+        console.log('material type:', material.type);
+          
           for (const propName in properties) {
             const propValue = properties[propName];
 
@@ -2627,7 +2629,8 @@ function transformDragEnd(){
               break;
           case 'x':
               // selectedObj.material = recMAt;
-              setAsStencil();
+              // setAsStencil();
+              stencilFullMatReplace(selectedMaterial, 1);
               // selectedMaterial.colorWrite = false;
               // selectedMaterial.depthWrite = false;
               // selectedMaterial.stencilWrite = true;
@@ -2686,23 +2689,60 @@ function transformDragEnd(){
 
       selectedObjData.setMaterialProperties(material.name, {colorWrite: false, depthWrite: false, stencilWrite: true, stencilRef: stencilRef, stencilFunc: THREE.AlwaysStencilFunc, stencilZPass: THREE.ReplaceStencilOp} );
       selectedObjData.renderOrder = 1;    
-      selectedObj.renderOrder = 1;     
+      selectedObj.renderOrder = 1;  
+
+      // material.transparent = false;
+
       updateModelData(selectedObjData); 
-      updateSaveField();  
+      updateSaveField(); 
+      console.log(material.name, material.type);
+      console.log(selectedObj);
+      console.log(material);
+      
+      return material;
     }
 
     function setAsReciever(material, stencilRef, stencilFunc)
     {
       material.stencilWrite = true;
       material.stencilRef = stencilRef;
-      material.stencilFunc = stencilFunc;
+      // material.stencilFunc = stencilFunc;
+      material.stencilFunc = THREE.EqualStencilFunc;
+      // material.stencilZPass = THREE.ReplaceStencilOp;
       // selectedMaterial.stencilFunc = THREE.EqualStencilFunc;
-      selectedObjData.setMaterialProperties(material.name, {stencilWrite: true, stencilRef: stencilRef, stencilFunc: stencilFunc} );
+      selectedObjData.setMaterialProperties(material.name, {stencilWrite: true, stencilRef: stencilRef, stencilFunc: THREE.EqualStencilFunc, transparent: true} );
       selectedObjData.renderOrder = 2;
       selectedObj.renderOrder = 2;
+
+      material.transparent = true;
+      
+      // material.depthWrite = false;
+
+      console.log(material.name, material.type);
+      console.log(selectedObj);
+      console.log(material);
+
       updateModelData(selectedObjData);
       updateSaveField();  
     }
+    
+    function stencilFullMatReplace(material, stencilRef)
+    {
+      let stencilMat = new THREE.MeshPhongMaterial({ color: 'green' });
+      stencilMat.colorWrite = false;
+      stencilMat.depthWrite = false;
+      stencilMat.stencilWrite = true;
+      stencilMat.stencilRef = stencilRef;
+      stencilMat.stencilFunc = THREE.AlwaysStencilFunc;
+      stencilMat.stencilZPass = THREE.ReplaceStencilOp;
+      selectedObj.material = stencilMat;
+      selectedMaterial = stencilMat;
+      // selectedObjData.setMaterialProperties(material.name, {colorWrite: false, depthWrite: false, stencilWrite: true, stencilRef: stencilRef, stencilFunc: THREE.AlwaysStencilFunc, stencilZPass: THREE.ReplaceStencilOp} );
+      // selectedObjData.renderOrder = 1;    
+      selectedObj.renderOrder = 1;  
+      console.log(material.type);
+    }
+
 
     window.addEventListener('keyup', (event) => {
       switch (event.key.toLowerCase()) {
@@ -2883,13 +2923,13 @@ function transformDragEnd(){
         renderer.setSize(container.clientWidth, container.clientHeight);
       }
 
-      window.onmousedown = function(e)
+      container.onmousedown = function(e)
       {
         sceneOnMouseDown(e);
         mouseDown = true;
       }
 
-      window.onmouseup = function(e)
+      container.onmouseup = function(e)
       {
         isDragging = false;
         mouseDown = false;
