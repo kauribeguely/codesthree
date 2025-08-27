@@ -276,10 +276,15 @@ window.onload = () =>
     toPlainObject() {
         const obj = {};
         for (const key of Object.keys(ModelConfig.schema)) {
-            if (key === "rotationX" || key === "rotationY" || key === "rotationZ") {
-                obj[key] = THREE.MathUtils.radToDeg(this.rotation[key.charAt(8).toLowerCase()]);
-            } else if (key.startsWith("position") || key.startsWith("scale")) {
-                obj[key] = this[key];
+            if (key.startsWith("position")) {
+                const axis = key.charAt(8).toLowerCase(); // X → 'x'
+                obj[key] = this.position[axis];
+            } else if (key.startsWith("scale")) {
+                const axis = key.charAt(5).toLowerCase();
+                obj[key] = this.scale[axis];
+            } else if (key.startsWith("rotation")) {
+                const axis = key.charAt(8).toLowerCase();
+                obj[key] = THREE.MathUtils.radToDeg(this.rotation[axis]);
             } else {
                 obj[key] = this[key];
             }
@@ -288,7 +293,18 @@ window.onload = () =>
     }
 
     static fromPlainObject(obj) {
-        return new ModelConfig(obj);
+        return new ModelConfig({
+            ...obj,
+            positionX: obj.positionX,
+            positionY: obj.positionY,
+            positionZ: obj.positionZ,
+            rotationX: obj.rotationX,
+            rotationY: obj.rotationY,
+            rotationZ: obj.rotationZ,
+            scaleX: obj.scaleX,
+            scaleY: obj.scaleY,
+            scaleZ: obj.scaleZ,
+        });
     }
 }
 
@@ -1214,8 +1230,6 @@ function toggleCamera()
           updateModelData(modelConfigInstance);
         }
       });
-
-
     }
 
     function cloneSelected()
@@ -1592,6 +1606,7 @@ function toggleCamera()
  
 
   //updates values of all inputs based on three object
+  //aka updatetransforms
   function updateTransforms()
   {
       let pos = selectedObj.position;
@@ -1692,6 +1707,8 @@ function toggleCamera()
       modelConfigInstance.position.copy(selectedObj.position);
       modelConfigInstance.rotation.copy(selectedObj.rotation);
       modelConfigInstance.scale.copy(selectedObj.scale);
+
+      linkInput.value = selectedObjData.link;
 
       updateModelData(modelConfigInstance);
 
@@ -3940,6 +3957,23 @@ function getThreeJsObjectByUuid(modelId)
 
             // console.log("Camera position and rotation saved to allSceneData object.");
         }
+
+
+
+
+        window.addEventListener('beforeunload', function (event) {
+        // Set the returnValue property to show a generic confirmation dialog
+        if(allThreeJsObj.length > 3)
+        {
+          event.preventDefault();
+          event.returnValue = ''; // Required for older browsers
+        }
+    });
+
+
+
+
+
 }
 
 

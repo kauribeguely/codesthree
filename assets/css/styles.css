@@ -77,7 +77,7 @@
         background-color: var(--c33d-v-light-blue);
     }
     
-    input[type="number"], select, textarea, button, .tab
+    input[type="number"], select, textarea, button, .tab, input[type="text"]
     {
         background-color: var(--c33d-light-dark-blue);
         border: none;
