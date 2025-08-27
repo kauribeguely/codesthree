@@ -39,6 +39,11 @@
         color: var(--c33d-text);
     }
 
+    #stencil-receive, #stencil-send
+    {
+        width: 70px;
+    }
+
     label
     {
         text-align: center;

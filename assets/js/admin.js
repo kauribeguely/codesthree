@@ -33,6 +33,8 @@ const materialColorPicker = document.getElementById('materialColor');
 const materialTextureBtn = document.getElementById('materialTextureBtn');
 const emissiveColorPicker = document.getElementById('emissiveColor');
 const emissiveTextureBtn = document.getElementById('emissiveTextureBtn');
+const stencilSendInput = document.getElementById('stencil-send');
+const stencilReceiveInput = document.getElementById('stencil-receive');
 let editingTextureType = null; // 'map' or 'emissiveMap'
 let selectedMaterials = null;
 let mediaModelOpen = false;
@@ -45,45 +47,59 @@ window.onload = () =>
 {
 
   class ModelConfig {
+    static schema = {
+        modelId: () => crypto.randomUUID(),
+        modelUrl: '',
+        planeUrl: '',
+        modelName: '',
+        type: null,
+        parentUuid: -1,
+        positionX: 0,
+        positionY: 0,
+        positionZ: 0,
+        rotationX: 0,
+        rotationY: 0,
+        rotationZ: 0,
+        scaleX: 1,
+        scaleY: 1,
+        scaleZ: 1,
+        loopActive: false,
+        loopCountX: 1,
+        isMobileConfig: false,
+        materialProperties: {},
+        renderOrder: 0,
+        stencilRef: null,
+        isStencil: false,
+        link: null,
+    };
+
     constructor(data = {}) {
-        this.modelId = data.modelId || crypto.randomUUID(); // Assign a new ID if not provided
-        this.modelUrl = data.modelUrl || '';
-        if(data.modelUrl || data.modelName)
-        {
-          this.modelName = data.modelName || data.modelUrl.split('/').pop();; //Allow changable via object list, default to filename (like object list)
+        for (const [key, defaultValue] of Object.entries(ModelConfig.schema)) {
+            let value = data[key] !== undefined 
+                ? (typeof defaultValue === "function" ? defaultValue() : data[key])
+                : (typeof defaultValue === "function" ? defaultValue() : defaultValue);
+
+            this[key] = value;
         }
 
-        this.planeUrl = data.planeUrl || '';
-        if(data.planeUrl)
-        {
-          this.modelName = data.planeUrl.split('/').pop();
+        // === Special logic for modelName ===
+        if (data.modelUrl || data.modelName) {
+            this.modelName = data.modelName || data.modelUrl.split('/').pop();
         }
-        this.type = data.type;
-        this.parentUuid = data.parentUuid || -1;
-        // this.groupListId = ;
-        // Store position, rotation, scale as THREE.Vector3/Euler for easier use with Three.js
-        this.position = new THREE.Vector3(data.positionX || 0, data.positionY || 0, data.positionZ || 0);
+        if (data.planeUrl) {
+            this.modelName = data.planeUrl.split('/').pop();
+        }
+
+        // Keep special derived properties
+        this.position = new THREE.Vector3(this.positionX, this.positionY, this.positionZ);
         this.rotation = new THREE.Euler(
-            THREE.MathUtils.degToRad(data.rotationX || 0),
-            THREE.MathUtils.degToRad(data.rotationY || 0),
-            THREE.MathUtils.degToRad(data.rotationZ || 0)
+            THREE.MathUtils.degToRad(this.rotationX),
+            THREE.MathUtils.degToRad(this.rotationY),
+            THREE.MathUtils.degToRad(this.rotationZ)
         );
-        this.scale = new THREE.Vector3(data.scaleX || 1, data.scaleY || 1, data.scaleZ || 1);
-        // this.scale = new THREE.Vector3(data.scale || 1, data.scale || 1, data.scale || 1); // Assuming uniform scale
+        this.scale = new THREE.Vector3(this.scaleX, this.scaleY, this.scaleZ);
 
-        this.loopActive = data.loopActive || false;
-        this.loopCountX = data.loopCountX || 1;
-        // ... other loop properties
-
-        this.isMobileConfig = data.isMobileConfig || false;
-
-        this.threeJsObject = null; // Reference to the actual THREE.Object3D instance
-        this.materialProperties = data.materialProperties || {};
-        
-        this.renderOrder = data.renderOrder || 0;
-
-        this.stencilRef = data.stencilRef || null;
-        this.isStencil = data.isStencil || false;
+        this.threeJsObject = null;
     }
 
 
@@ -167,7 +183,7 @@ window.onload = () =>
 
         if (material) {
           // Iterate through the properties of the current material.
-        console.log('material type:', material.type);
+        // console.log('material type:', material.type);
           
           for (const propName in properties) {
             const propValue = properties[propName];
@@ -215,7 +231,7 @@ window.onload = () =>
               }
               else
               {
-                console.log(propName, propValue);
+                // console.log(propName, propValue);
                 material[propName] = propValue;
               }
               material.needsUpdate = true;
@@ -258,58 +274,21 @@ window.onload = () =>
 
     // Method to convert this class instance back to a plain object for JSON stringification
     toPlainObject() {
-      // for (const key of allowedKeys) {
-      //       if (this.hasOwnProperty(key)) {
-      //           plainObject[key] = this[key];
-      //       }
-      //   }
-        return {
-            modelId: this.modelId,
-            modelUrl: this.modelUrl,
-            planeUrl: this.planeUrl,
-            modelName: this.modelName,
-            positionX: this.position.x,
-            positionY: this.position.y,
-            positionZ: this.position.z,
-            rotationX: THREE.MathUtils.radToDeg(this.rotation.x),
-            rotationY: THREE.MathUtils.radToDeg(this.rotation.y),
-            rotationZ: THREE.MathUtils.radToDeg(this.rotation.z),
-            scaleX: this.scale.x,
-            scaleY: this.scale.y,
-            scaleZ: this.scale.z,
-            loopActive: this.loopActive,
-            loopCountX: this.loopCountX,
-            type: this.type,
-            parentUuid: this.parentUuid,
-            materialProperties: this.materialProperties,
-            renderOrder: this.renderOrder,
-            // ... include all other properties
-        };
+        const obj = {};
+        for (const key of Object.keys(ModelConfig.schema)) {
+            if (key === "rotationX" || key === "rotationY" || key === "rotationZ") {
+                obj[key] = THREE.MathUtils.radToDeg(this.rotation[key.charAt(8).toLowerCase()]);
+            } else if (key.startsWith("position") || key.startsWith("scale")) {
+                obj[key] = this[key];
+            } else {
+                obj[key] = this[key];
+            }
+        }
+        return obj;
     }
 
-    // Static method to create a ModelConfig instance from a plain object (e.g., from loaded JSON)
     static fromPlainObject(obj) {
-        return new ModelConfig({
-            modelId: obj.modelId,
-            modelUrl: obj.modelUrl,
-            planeUrl: obj.planeUrl,
-            modelName: obj.modelName,
-            positionX: obj.positionX,
-            positionY: obj.positionY,
-            positionZ: obj.positionZ,
-            rotationX: obj.rotationX, // Already degrees in plain object
-            rotationY: obj.rotationY,
-            rotationZ: obj.rotationZ,
-            scaleX: obj.scaleX,
-            scaleY: obj.scaleY,
-            scaleZ: obj.scaleZ,
-            loopActive: obj.loopActive,
-            loopCountX: obj.loopCountX,
-            parentUuid: obj.parentUuid,
-            materialProperties: obj.materialProperties || [],
-            renderOrder: obj.renderOrder,
-            // ... include all other properties
-        });
+        return new ModelConfig(obj);
     }
 }
 
@@ -404,7 +383,7 @@ window.onload = () =>
   const loopCountZInput = document.getElementById('loopCountZ');
   const itemSpacingInput = document.getElementById('itemSpacing');
   const isOrthoCameraInput = document.getElementById('isOrthoCamera');
-  
+
 
   const container = document.getElementById('threejs-canvas');
   const labelContainer = document.getElementById('label'); // Label container for displaying object details
@@ -612,6 +591,7 @@ window.onload = () =>
 
 
   controls = new TransformControls(camera, renderer.domElement);
+  controls.renderOrder = 33;
   scene.add(controls);
   controls.visible = gizmoVisible;
 
@@ -1773,6 +1753,7 @@ function transformDragEnd(){
     
     const parentInput = document.getElementById('parentSelector');
     const currentGroupLabel = document.getElementById('current-group-label');
+    const linkInput = document.getElementById('link_input');
 
 
     let popupOpen = false;
@@ -1845,14 +1826,22 @@ function transformDragEnd(){
         }
     });
 
-    document.querySelector('#stencil-send').oninput = function()
+    linkInput.oninput = function()
+    {
+      selectedObjData.link = linkInput.value;
+      updateModelData(selectedObjData);
+      updateSaveField();
+    }
+
+    stencilSendInput.oninput = function()
     {
       setAsStencil(selectedMaterial, parseInt(this.value));
     }
 
-    document.querySelector('#stencil-receive').oninput = function()
+    stencilReceiveInput.oninput = function()
     {
-      setAsReciever(selectedMaterial, parseInt(this.value), THREE.EqualStencilFunc);
+      // setAsReciever(selectedMaterial, parseInt(this.value), THREE.EqualStencilFunc);
+      setAllMatAsReceiver(selectedObj, parseInt(this.value));
     }
 
 
@@ -2153,7 +2142,7 @@ function transformDragEnd(){
         if(!orbitControls.enabled)
         {
           //Animation link
-          if (mouseAnimationLink && !(isTransforming || keyXRot || keyYRot || keyZRot || isDragging)) {
+          if (mouseAnimationLink && !(isTransforming || keyXRot || keyYRot || keyZRot || isDragging || keyZTrans)) {
               // Smoothly interpolate to the target rotation
               // const easing = 0.1; // Adjust this value for speed (lower = slower)
               const easing = 0.1 + (1 - 0.1) * 0.05; // Increase easing slightly on each move to simulate ease-out.  Adjust 0.05 for strength.
@@ -2191,9 +2180,15 @@ function transformDragEnd(){
               newIntersectPoint.z + offset.z
             );
             
+            if(selectedObjData.link != null)
+            {
+              //set to pointer cursor, must reset if no intersects, check if = cursor reset
+
+            }
             // selectedObj.getWorldPosition(new THREE.Vector3()).z // Keep current world Z
             // Convert world position to local position relative to selectedObj's parent
             const newLocalPosition = selectedObj.parent.worldToLocal(newWorldPosition.clone());
+
 
             // Apply new local position
             selectedObj.position.copy(newLocalPosition);
@@ -2674,6 +2669,36 @@ function transformDragEnd(){
       });
     }
 
+
+    function setAllMatAsReceiver(object, stencilRef)
+    {  
+      object.traverse((node) => {
+        // We only want to modify materials, so we check if the node is a Mesh.
+        if (node.isMesh) {
+            // A mesh can have a single material or an array of materials.
+            const materials = Array.isArray(node.material) ? node.material : [node.material];
+
+            materials.forEach(material => {
+                if (material) { // Ensure the material exists
+                    setAsReciever(material, stencilRef);
+                }
+            });
+        }
+      });    
+      // if (object.material) {
+      //   // If it's an array, loop through each material
+      //   if (Array.isArray(object.material)) {
+      //     object.material.forEach(mat => {
+      //       setAsReciever(mat, stencilRef);
+      //     });
+      //   } else {
+      //     // If it's a single material, apply properties directly
+      //     setAsReciever(object.material, stencilRef);
+      //   }
+      // }
+    }
+
+
     function setAsStencil(material, stencilRef)
     {
       // let stencilMat = new THREE.MeshPhongMaterial({ color: 'green' });
@@ -2695,32 +2720,36 @@ function transformDragEnd(){
 
       updateModelData(selectedObjData); 
       updateSaveField(); 
-      console.log(material.name, material.type);
-      console.log(selectedObj);
-      console.log(material);
+      // console.log(material.name, material.type);
+      // console.log(selectedObj);
+      // console.log(material);
       
       return material;
     }
 
+    // function setAsReciever(object)
     function setAsReciever(material, stencilRef, stencilFunc)
     {
       material.stencilWrite = true;
       material.stencilRef = stencilRef;
       // material.stencilFunc = stencilFunc;
       material.stencilFunc = THREE.EqualStencilFunc;
+      material.transparent = true;
+      material.colorWrite = true;
+      material.depthWrite = true;
       // material.stencilZPass = THREE.ReplaceStencilOp;
       // selectedMaterial.stencilFunc = THREE.EqualStencilFunc;
-      selectedObjData.setMaterialProperties(material.name, {stencilWrite: true, stencilRef: stencilRef, stencilFunc: THREE.EqualStencilFunc, transparent: true} );
+      selectedObjData.setMaterialProperties(material.name, {stencilWrite: true, stencilRef: stencilRef, stencilFunc: THREE.EqualStencilFunc, transparent: true, colorWrite: true, depthWrite: true} );
+      
       selectedObjData.renderOrder = 2;
       selectedObj.renderOrder = 2;
 
-      material.transparent = true;
       
       // material.depthWrite = false;
 
-      console.log(material.name, material.type);
-      console.log(selectedObj);
-      console.log(material);
+      // console.log(material.name, material.type);
+      // console.log(selectedObj);
+      // console.log(material);
 
       updateModelData(selectedObjData);
       updateSaveField();  
@@ -2828,8 +2857,8 @@ function transformDragEnd(){
               // targetWorldPosition.z -= scrollMultiplier * 0.5;
               selectedObj.parent.worldToLocal(targetWorldPosition);
               selectedObj.position.copy(targetWorldPosition);
-          } 
-          else 
+            } 
+            else 
           {
               // If there's no parent or the parent is the scene, the object's position is already in world coordinates.
               // selectedObj.position.z -= scrollMultiplier * 0.5;
@@ -2981,12 +3010,21 @@ function transformDragEnd(){
             }
 
 
-                plane.setFromNormalAndCoplanarPoint(
+            plane.setFromNormalAndCoplanarPoint(
                 camera.getWorldDirection(plane.normal), // Plane perpendicular to camera's view
                 clickedObject.position // Or the intersection point itself, if you want a different drag feel
             );
+
+            // if(selectedObjData.link != null)
+            // {
+            //   // window.location.href = "https://www.example.com";
+            //   window.open(selectedObjData.link, '_blank');
+            // }
+
             selectModelForEditing(selectableObject); // Call your existing selection function
             
+           
+
             const worldPos = selectedObj.getWorldPosition(new THREE.Vector3());
             // const intersectPoint = new THREE.Vector3();
             raycaster.ray.intersectPlane(plane, initialIntersectionPoint);
@@ -3701,6 +3739,22 @@ function getThreeJsObjectByUuid(modelId)
                     blendModeSelect.value = key;
                     break; // Exit the loop once a match is found
                   }
+                }
+
+                if(selectedObj.renderOrder == 1)
+                {
+                  stencilSendInput.value = selectedMaterial.stencilRef;
+                  stencilReceiveInput.value = 0;
+                }
+                else if(selectedObj.renderOrder == 2)
+                {
+                  stencilSendInput.value = 0;
+                  stencilReceiveInput.value = selectedMaterial.stencilRef;
+                }
+                else
+                {
+                  stencilSendInput.value = selectedMaterial.stencilRef;
+                  stencilReceiveInput.value = selectedMaterial.stencilRef;
                 }
 
                 propertiesPanel.classList.remove('hidden');

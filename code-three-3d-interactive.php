@@ -1054,10 +1054,15 @@ function c33d_editor_page($post) {
                 <label>Current group: <span id='current-group-label'></span></label>
                 </div>
 
+                <div style="">
+                    <label for="parentSelector">On Click Link</label>
+                    <input type="text" id="link_input" placeholder="Add Link"/>
+                </div>
+
                 <hr>
 
                 <label>Materials</label>
-                        
+
                 <select id="materialSelector" class="select-input">
                     <!-- Options will be populated by JavaScript -->
                 </select>
@@ -1066,8 +1071,8 @@ function c33d_editor_page($post) {
                 <div id="materialPropertiesPanel" class="properties-panel hidden">
                     <!-- Material Color Control -->
 
-                     <input id="stencil-send" type="number">
-                     <input id="stencil-receive" type="number">
+                    
+
                     <label for="materialColor" class="property-label">Base</label>
                     <div class="transform-group">
                         <input type="color" id="materialColor" class="color-picker">
@@ -1109,6 +1114,15 @@ function c33d_editor_page($post) {
                             <!-- <option value="CustomBlending">Custom Blending</option> -->
                         </select>
 
+                    </div>
+
+                    <div class="transform-group">
+                        <label for="stencil-send">Stencil Send</label>
+                        <input id="stencil-send" type="number">
+                    </div>
+                    <div class="transform-group">
+                        <label for="stencil-receive">Stencil Recieve</label>
+                        <input id="stencil-receive" type="number">
                     </div>
                 </div>
             </div>

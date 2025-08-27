@@ -117,6 +117,7 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
       return rect.top / container.offsetHeight; // Returns a value between 0 and 1
     };
 
+
     //backward compatibility
     // if(allSceneData.models[1] == undefined)
     if(!Array.isArray(allSceneData.models[1]))    
@@ -141,6 +142,10 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
     const mouseRotationY = sceneData.mouseRotationY; // Maximum rotation range in degrees
     const mouseRotationZ = sceneData.mouseRotationZ; // Maximum rotation range in degrees
     let mouseAnimationLink = sceneData.mouseAnimationLink;
+
+    let mouse = new THREE.Vector2();
+    //only need if any object has link, also only need mouse down for that too
+    const raycaster = new THREE.Raycaster();
     // Mousemove listener
     const targetRotation = new THREE.Vector3(); // Store the target rotation
     const currentRotation = new THREE.Vector3(); // Store the current rotation
@@ -159,7 +164,7 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
     const perspectiveCamera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
 
     let isoZoom = 250;
-    const orthoCamera = new THREE.OrthographicCamera( container.clientWidth / - isoZoom, container.clientWidth / isoZoom, container.clientHeight / isoZoom, container.clientHeight / - isoZoom, 1, 1000 );
+    const orthoCamera = new THREE.OrthographicCamera( container.clientWidth / - isoZoom, container.clientWidth / isoZoom, container.clientHeight / isoZoom, container.clientHeight / - isoZoom, 0.1, 1000 );
 
 
 
@@ -178,7 +183,7 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
     loadCameraFromSceneData();
     scene.add( camera );
 
-    const renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
+    const renderer = new THREE.WebGLRenderer({antialias: true, alpha: true, stencil:true});
     renderer.setSize(container.clientWidth, container.clientHeight);
 
     // renderer.outputEncoding = THREE.sRGBEncoding;
@@ -280,6 +285,11 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
           newThreeJsObject.userData.mobObjData = mobObjData; 
           allThreeJsObj.push(newThreeJsObject);
 
+          if(objData.link != null)
+          {
+            newThreeJsObject.userData.link = objData.link;
+          }
+
           if(isMobile)
           {
             applyTransformFromConfig(newThreeJsObject, mobObjData);
@@ -320,6 +330,8 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
       
             const textureLoader = new THREE.TextureLoader();
             const materialsByName = new Map();
+
+            if(objData.renderOrder != 0) threeJsObject.renderOrder = objData.renderOrder;
       
             // First, build a map of materials by their name for quick lookup.
             // This part remains the same and is a good practice.
@@ -566,43 +578,44 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
   let initialRotationZ = 0;
   const rotationRange = 10; // Maximum rotation range in degrees
     // Mousemove listener
-    const onMouseMove = (event) => {
-      const mouseX = (event.clientX / window.innerWidth) * 2 - 1; // Normalized between -1 and 1
-      const mouseY = -(event.clientY / window.innerHeight) * 2 + 1; // Normalized between -1 and 1
+  const onMouseMove = (event) => {
+    const mouseX = (event.clientX / window.innerWidth) * 2 - 1; // Normalized between -1 and 1
+    const mouseY = -(event.clientY / window.innerHeight) * 2 + 1; // Normalized between -1 and 1
 
-      // Map mouse position to rotation range
-      // model.rotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * rotationRange);
-      // model.rotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * rotationRange);
-      const easing = 0.1 + (1 - 0.1) * 0.05; // Increase easing slightly on each move to simulate ease-out.  Adjust 0.05 for strength.
+    // Map mouse position to rotation range
+    // model.rotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * rotationRange);
+    // model.rotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * rotationRange);
+    const easing = 0.1 + (1 - 0.1) * 0.05; // Increase easing slightly on each move to simulate ease-out.  Adjust 0.05 for strength.
 
-      targetRotation.x = degToRad(initialRotationX + -mouseY * mouseRotationX);
-      targetRotation.y = degToRad(initialRotationY + -mouseX * mouseRotationY);
-      targetRotation.z = degToRad(initialRotationZ + -mouseX * mouseRotationZ);
+    targetRotation.x = degToRad(initialRotationX + -mouseY * mouseRotationX);
+    targetRotation.y = degToRad(initialRotationY + -mouseX * mouseRotationY);
+    targetRotation.z = degToRad(initialRotationZ + -mouseX * mouseRotationZ);
 
 
-      currentRotation.x = THREE.MathUtils.lerp(currentRotation.x, targetRotation.x, easing);
-      currentRotation.y = THREE.MathUtils.lerp(currentRotation.y, targetRotation.y, easing);
-      currentRotation.z = THREE.MathUtils.lerp(currentRotation.z, targetRotation.z, easing);
+    currentRotation.x = THREE.MathUtils.lerp(currentRotation.x, targetRotation.x, easing);
+    currentRotation.y = THREE.MathUtils.lerp(currentRotation.y, targetRotation.y, easing);
+    currentRotation.z = THREE.MathUtils.lerp(currentRotation.z, targetRotation.z, easing);
 
-      // if(loopActive)
-      // {
-      //   fullLoopGroup.rotation.x = currentRotation.x;
-      //   fullLoopGroup.rotation.y = currentRotation.y;
-      //   fullLoopGroup.rotation.z = currentRotation.z;
-      // }
-      // else
-      // {
-        // const rotCalc = THREE.MathUtils.degToRad(initialRotationX + -mouseY * mouseRotationX);
-        // rotateGroup.rotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * mouseRotationX);
-        rotateGroup.rotation.x = currentRotation.x;
-        rotateGroup.rotation.y = currentRotation.y;
-        rotateGroup.rotation.z = currentRotation.z;
-      // }
-      // console.log(rotCalc, mouseY, rotateGroup.rotation.x, mouseRotationX, initialRotationX, mouseAnimationLink);
+    // if(loopActive)
+    // {
+    //   fullLoopGroup.rotation.x = currentRotation.x;
+    //   fullLoopGroup.rotation.y = currentRotation.y;
+    //   fullLoopGroup.rotation.z = currentRotation.z;
+    // }
+    // else
+    // {
+      // const rotCalc = THREE.MathUtils.degToRad(initialRotationX + -mouseY * mouseRotationX);
+      // rotateGroup.rotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * mouseRotationX);
+      rotateGroup.rotation.x = currentRotation.x;
+      rotateGroup.rotation.y = currentRotation.y;
+      rotateGroup.rotation.z = currentRotation.z;
+    // }
+    // console.log(rotCalc, mouseY, rotateGroup.rotation.x, mouseRotationX, initialRotationX, mouseAnimationLink);
 
-      // console.log(initialRotationX + mouseY * rotationRange);
-    };
-    if(mouseAnimationLink) window.addEventListener('mousemove', onMouseMove);
+    // console.log(initialRotationX + mouseY * rotationRange);
+  };
+
+  if(mouseAnimationLink) window.addEventListener('mousemove', onMouseMove);
 
 
 
@@ -864,5 +877,44 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
 
       
   }
+
+  
+    container.onmousedown = function(e)
+    {
+      sceneOnMouseDown(e);
+    }
+
+    function sceneOnMouseDown(event)
+    {
+      const rect = renderer.domElement.getBoundingClientRect();
+      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, camera);
+
+      const intersects = raycaster.intersectObjects(allThreeJsObj, true); // `true` for recursive (checks children)
+
+
+      if (intersects.length > 0) {
+          // An object was clicked! Get the first (closest) intersected object.
+          let clickedObject = intersects[0].object;
+
+          // Find the top-level object in `modelsInScene` that this clicked object belongs to.
+          // This is crucial because `TransformControls` needs to attach to the top-level group/model.
+          let selectableObject = null;
+          while (clickedObject) {
+              if (allThreeJsObj.includes(clickedObject)) {
+                  selectableObject = clickedObject;
+                  break;
+              }
+              clickedObject = clickedObject.parent;
+          }
+
+          if(clickedObject.userData.link != null)
+          {
+            window.open(clickedObject.userData.link, '_blank');
+          }
+      }
+    }
 
 }
