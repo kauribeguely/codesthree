@@ -1124,6 +1124,10 @@ function c33d_editor_page($post) {
                         <label for="stencil-receive">Stencil Recieve</label>
                         <input id="stencil-receive" type="number">
                     </div>
+                    <div class="transform-group">
+                        <label for="stencil-receive">Equal Stencil</label>
+                        <input type="checkbox" id="stencilShowHide" checked class="form-checkbox h-5 w-5 text-indigo-600 rounded focus:ring-indigo-500 transition duration-150 ease-in-out">
+                    </div>
                 </div>
             </div>
             

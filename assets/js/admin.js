@@ -35,6 +35,7 @@ const emissiveColorPicker = document.getElementById('emissiveColor');
 const emissiveTextureBtn = document.getElementById('emissiveTextureBtn');
 const stencilSendInput = document.getElementById('stencil-send');
 const stencilReceiveInput = document.getElementById('stencil-receive');
+const stencilShowHide = document.getElementById('stencilShowHide');
 let editingTextureType = null; // 'map' or 'emissiveMap'
 let selectedMaterials = null;
 let mediaModelOpen = false;
@@ -1858,7 +1859,25 @@ function transformDragEnd(){
     stencilReceiveInput.oninput = function()
     {
       // setAsReciever(selectedMaterial, parseInt(this.value), THREE.EqualStencilFunc);
-      setAllMatAsReceiver(selectedObj, parseInt(this.value));
+      setAllMatAsReceiver(selectedObj, parseInt(this.value), getStencilFuncFromCheckbox());
+    }
+
+    stencilShowHide.onchange = function()
+    {
+      setAllMatAsReceiver(selectedObj, parseInt(stencilReceiveInput.value), getStencilFuncFromCheckbox());
+    }
+
+    function getStencilFuncFromCheckbox()
+    {
+      let stencilFunc;
+      if (stencilShowHide.checked) {
+          // If the checkbox is checked, set the function to Equal
+          stencilFunc = THREE.EqualStencilFunc;
+      } else {
+          // If unchecked, set it to NotEqual
+          stencilFunc = THREE.NotEqualStencilFunc;
+      }
+      return stencilFunc;
     }
 
 
@@ -2687,7 +2706,7 @@ function transformDragEnd(){
     }
 
 
-    function setAllMatAsReceiver(object, stencilRef)
+    function setAllMatAsReceiver(object, stencilRef, stencilFunc)
     {  
       object.traverse((node) => {
         // We only want to modify materials, so we check if the node is a Mesh.
@@ -2697,7 +2716,7 @@ function transformDragEnd(){
 
             materials.forEach(material => {
                 if (material) { // Ensure the material exists
-                    setAsReciever(material, stencilRef);
+                    setAsReciever(material, stencilRef, stencilFunc);
                 }
             });
         }
@@ -2749,14 +2768,14 @@ function transformDragEnd(){
     {
       material.stencilWrite = true;
       material.stencilRef = stencilRef;
-      // material.stencilFunc = stencilFunc;
-      material.stencilFunc = THREE.EqualStencilFunc;
+      material.stencilFunc = stencilFunc;
+      // material.stencilFunc = THREE.EqualStencilFunc;
       material.transparent = true;
       material.colorWrite = true;
       material.depthWrite = true;
       // material.stencilZPass = THREE.ReplaceStencilOp;
       // selectedMaterial.stencilFunc = THREE.EqualStencilFunc;
-      selectedObjData.setMaterialProperties(material.name, {stencilWrite: true, stencilRef: stencilRef, stencilFunc: THREE.EqualStencilFunc, transparent: true, colorWrite: true, depthWrite: true} );
+      selectedObjData.setMaterialProperties(material.name, {stencilWrite: true, stencilRef: stencilRef, stencilFunc: stencilFunc, transparent: true, colorWrite: true, depthWrite: true} );
       
       selectedObjData.renderOrder = 2;
       selectedObj.renderOrder = 2;
@@ -3758,21 +3777,30 @@ function getThreeJsObjectByUuid(modelId)
                   }
                 }
 
-                if(selectedObj.renderOrder == 1)
+                if(selectedObj.renderOrder == 1) //stencil/sender
                 {
                   stencilSendInput.value = selectedMaterial.stencilRef;
                   stencilReceiveInput.value = 0;
                 }
                 else if(selectedObj.renderOrder == 2)
-                {
-                  stencilSendInput.value = 0;
-                  stencilReceiveInput.value = selectedMaterial.stencilRef;
+                  {
+                    stencilSendInput.value = 0;
+                    stencilReceiveInput.value = selectedMaterial.stencilRef;
+                    if(selectedMaterial.stencilFunc == THREE.EqualStencilFunc)
+                    {
+                      stencilShowHide.checked = true;
+                    }
+                    else
+                    {
+                      stencilShowHide.checked = false;
+                    }
                 }
                 else
                 {
                   stencilSendInput.value = selectedMaterial.stencilRef;
                   stencilReceiveInput.value = selectedMaterial.stencilRef;
                 }
+
 
                 propertiesPanel.classList.remove('hidden');
             } else {
