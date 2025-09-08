@@ -153,8 +153,6 @@ window.onload = () =>
         console.warn('No Three.js object or explicit material properties available to apply.');
         return;
       }
-      console.log('Apply material to ' +this.modelName);
-      console.log('Render Order: ' +this.renderOrder);
       const textureLoader = new THREE.TextureLoader();
       const materialsByName = new Map();
 
@@ -245,7 +243,6 @@ window.onload = () =>
           console.warn(`Could not find a material with name: ${materialName} on the loaded object.`);
         }
       });
-      console.log('material after:', this.threeJsObject.material);
 
     }
     // updateSavedMaterials() {
@@ -387,6 +384,8 @@ window.onload = () =>
   let scrollAnimationLink;
 
   let useEnvLight;
+
+  let isSaving = false;
 
   let loopActive = sceneData.loopActive || false;
   let loopCountX = sceneData.loopCountX || 3;
@@ -593,6 +592,7 @@ window.onload = () =>
 
   function updateDataFromUi()
   {
+    isSaving = true;
     sceneData.scrollMoveX = parseFloat(scrollXInput.value);
     sceneData.scrollMoveY = parseFloat(scrollYInput.value);
     sceneData.scrollMoveZ = parseFloat(scrollZInput.value);
@@ -2842,6 +2842,7 @@ function transformDragEnd(){
 
     function saveButtonClicked()
     {
+      isSaving = true;
       saveButton.style.opacity = '0.5';
       saveButton.innerText = 'Saving...';
       wpPublishButton.click();
@@ -3390,6 +3391,7 @@ function getThreeJsObjectByUuid(modelId)
         wpSaveDraftButton.addEventListener('click', updateDataFromUi);
     }
     if (wpPublishButton) {
+
         wpPublishButton.addEventListener('click', updateDataFromUi);
     }
 
@@ -4004,7 +4006,7 @@ function getThreeJsObjectByUuid(modelId)
 
         window.addEventListener('beforeunload', function (event) {
         // Set the returnValue property to show a generic confirmation dialog
-        if(allThreeJsObj.length > 3)
+        if(allThreeJsObj.length > 3 && !isSaving)
         {
           event.preventDefault();
           event.returnValue = ''; // Required for older browsers
