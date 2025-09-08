@@ -26,6 +26,7 @@ let itemsLoaded = 0;
 const hiddenInputField = document.getElementById('threejs_scene_config_json');
 const saveButton = document.querySelector('#c3SaveButton');
 // const materialListDiv = document.getElementById('material-list');
+const bgColorPicker = document.getElementById('backgroundColor');
 
 const materialSelector = document.getElementById('materialSelector');
 const propertiesPanel = document.getElementById('materialPropertiesPanel');
@@ -407,6 +408,8 @@ window.onload = () =>
 
   let isoZoom = 250;
   const scene = new THREE.Scene();
+  // scene.background = new THREE.Color(0x000000); 
+  scene.background = new THREE.Color(allSceneData.globalSettings.bgColor) || new THREE.Color(0x000000); 
   let rotateGroup = new THREE.Group();
   scene.add(rotateGroup);
   let camera;
@@ -1709,7 +1712,7 @@ function toggleCamera()
       modelConfigInstance.rotation.copy(selectedObj.rotation);
       modelConfigInstance.scale.copy(selectedObj.scale);
 
-      linkInput.value = selectedObjData.link;
+      if(selectedObjData.link) linkInput.value = selectedObjData.link;
 
       updateModelData(modelConfigInstance);
 
@@ -3680,6 +3683,13 @@ function getThreeJsObjectByUuid(modelId)
             });
           });
         }
+
+        bgColorPicker.addEventListener('input', (event) => {
+            const newColor = hexToThreeColor(event.target.value);
+            scene.background = new THREE.Color(newColor);
+            allSceneData.globalSettings.bgColor = newColor;
+            updateSaveField();
+        });
 
         function getMaterialsFromObject(object) {
             const materials = [];
