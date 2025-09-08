@@ -11,6 +11,8 @@ const localisedData = window.c33dlocaliseddata;
 // const isAdmin = localisedData.isAdmin === 'true';
 const isAdmin = localisedData.isAdmin === 'true';
 
+let blendModes;
+
 if(allShortCodeContainers.length > 0)
 {  
   initializeAllScenes();
@@ -70,6 +72,14 @@ async function loadThreeJs()
     GLTFLoader = gltf.GLTFLoader;
     // RGBELoader = rgbe.RGBELoader;
     threeJsLoaded = true;
+    blendModes = {
+      NormalBlending: THREE.NormalBlending,
+      AdditiveBlending: THREE.AdditiveBlending,
+      SubtractiveBlending: THREE.SubtractiveBlending,
+      MultiplyBlending: THREE.MultiplyBlending,
+      NoBlending: THREE.NoBlending,
+      CustomBlending: THREE.CustomBlending
+    };
   }
 }
 
