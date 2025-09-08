@@ -1134,9 +1134,13 @@ function c33d_editor_page($post) {
             <div class='tabContent csettings'>
                 <label>Breakpoint (px) </label>
                 <input id="breakPoint" class="" type="number" value="<?php echo esc_attr($breakpoint); ?>">
-                
-                <label>Breakpoint (px) </label>
-                <input type="color" id="backgroundColor" class="color-picker">
+
+                <div class="transform-group" style="">
+
+                    <p>Background</p>
+                    <input type="color" id="backgroundColor" class="color-picker">
+                </div>
+
             </div>
 
             <div class='tabContent canimation'>

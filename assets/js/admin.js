@@ -410,6 +410,9 @@ window.onload = () =>
   const scene = new THREE.Scene();
   // scene.background = new THREE.Color(0x000000); 
   scene.background = new THREE.Color(allSceneData.globalSettings.bgColor) || new THREE.Color(0x000000); 
+  bgColorPicker.value = '#' + allSceneData.globalSettings.bgColor.toString(16).padStart(6, '0');
+
+  
   let rotateGroup = new THREE.Group();
   scene.add(rotateGroup);
   let camera;
