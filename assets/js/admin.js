@@ -417,7 +417,7 @@ window.onload = () =>
   // scene.background = new THREE.Color(allSceneData.globalSettings.bgColor) || new THREE.Color(0x000000); 
   if(allSceneData.globalSettings.bgColor) bgColorPicker.value = '#' + allSceneData.globalSettings.bgColor.toString(16).padStart(6, '0');
 
-  
+
   let rotateGroup = new THREE.Group();
   scene.add(rotateGroup);
   let camera;
@@ -1563,20 +1563,22 @@ function toggleCamera()
           updateParentList();
           updateSaveField(); //more for new objects
         }
-        updateObjectList();
         if(isInitialLoad)
-        {
-          //can add scene size via here, add whenever new model loaded
-          itemsLoaded++;
-          if(itemsLoaded == allModels.length)
           {
-            isInitialLoad = false;
-            loadAllMobileData();
-            moveAllObjectsToGroups();
-          }
-        }
+            //can add scene size via here, add whenever new model loaded
+            itemsLoaded++;
+            if(itemsLoaded == allModels.length)
+              {
+                isInitialLoad = false;
+                loadAllMobileData();
+                moveAllObjectsToGroups();
+                updateObjectList();
+
+              }
+            }
         else
         {
+          updateObjectList();
         }
 
         if(callback)
@@ -3161,58 +3163,132 @@ function updateObjectList() {
     allThreeJsObj.forEach(obj => {
         // Create the list item for each object
         const listItem = document.createElement('li');
-        listItem.classList.add('object-list-item'); // Add a class for styling
+        listItem.classList.add('object-list-item');
+        listItem.draggable = true; // ✅ Make list item draggable
 
-        // let objDisplayName;
         let objDisplayName = obj.userData.modelConfigRef.modelName;
-        // --- Create the clickable text (for selection) ---
+
         const objectNameSpan = document.createElement('span');
         objectNameSpan.textContent = objDisplayName;
         objectNameSpan.classList.add('object-name-span');
-        objectNameSpan.style.cursor = 'pointer'; // Indicate it's clickable
+        objectNameSpan.style.cursor = 'pointer';
 
-        // Attach the Three.js object directly to the DOM element for easy access
-        objectNameSpan.dataset.objectId = obj.uuid; // Store UUID for lookup
+        objectNameSpan.dataset.objectId = obj.uuid;
+        listItem.dataset.modelId = obj.userData.modelConfigRef.modelId; // ✅ store stable modelId
+        listItem.dataset.objectId = obj.uuid;
 
-        // --- Create the Eye button (for visibility toggle) ---
+        // Eye button
         const eyeButton = document.createElement('button');
         eyeButton.classList.add('eye-button');
-        eyeButton.textContent = '👁️'; // Eye emoji or an icon
+        eyeButton.textContent = obj.visible ? '👁️' : '🙈';
         eyeButton.style.background = 'none';
         eyeButton.style.border = 'none';
-        eyeButton.style.color = 'white';
+        eyeButton.style.color = obj.visible ? 'white' : 'gray';
         eyeButton.style.cursor = 'pointer';
         eyeButton.style.fontSize = '1.2em';
+        eyeButton.dataset.modelId = obj.userData.modelConfigRef.modelId;
 
-        // Set initial eye button state based on object visibility
-        if (!obj.visible) {
-            eyeButton.textContent = '🙈'; // Hidden eye emoji
-            eyeButton.style.color = 'gray'; // Indicate it's hidden
-        }
-
-        eyeButton.dataset.objectId = obj.uuid; // Store UUID for lookup
-
-
-        // Append elements to the list item
+        // Append
         listItem.appendChild(objectNameSpan);
         listItem.appendChild(eyeButton);
-
-        // Add to the main list
         sceneObjectList.appendChild(listItem);
 
-        // Add click listener to the object name span
+        // Selection
         objectNameSpan.addEventListener('click', () => {
-            selectObjectFromList(obj.uuid); // Call our selection function
+            selectObjectFromList(obj.uuid);
         });
 
-        // Add click listener to the eye button
+        // Toggle visibility
         eyeButton.addEventListener('click', (e) => {
-          e.preventDefault(); // Prevents the default action (e.g., form submission, page reload)
-  
-          toggleObjectVisibility(obj.uuid, e.target); // Pass the button element to update its text
+            e.preventDefault();
+            toggleObjectVisibility(obj.uuid, e.target);
+        });
+
+        // Prevent children from being draggable
+        objectNameSpan.addEventListener("dragstart", (e) => e.preventDefault());
+        eyeButton.addEventListener("dragstart", (e) => e.preventDefault());
+
+        // === DRAG EVENTS ===
+        listItem.addEventListener('dragstart', (e) => {
+            e.stopPropagation();
+            e.dataTransfer.setData("text/plain", obj.uuid);
+        });
+
+        listItem.addEventListener('dragover', (e) => {
+            e.preventDefault(); // Needed to allow drop
+        });
+
+        listItem.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const draggedUuid = e.dataTransfer.getData("text/plain");
+            const targetUuid = obj.uuid;
+            if (!draggedUuid || draggedUuid === targetUuid) return;
+
+            // Get the actual Three.js objects
+            const draggedObj = allThreeJsObj.find(o => o.uuid === draggedUuid);
+            const targetObj = allThreeJsObj.find(o => o.uuid === targetUuid);
+
+            if (targetObj && targetObj.isGroup && draggedObj) {
+                // Move in 3D scene
+                moveObjectToGroup(draggedObj, targetObj);
+
+                // Get LI of dragged object
+                const draggedElement = sceneObjectList.querySelector(`[data-object-id="${draggedUuid}"]`);
+
+                // Also collect its children (all lis whose parentUuid == draggedObj.modelId)
+                const draggedModelId = draggedObj.userData.modelConfigRef.modelId;
+                const childElements = Array.from(sceneObjectList.querySelectorAll('li'))
+                    .filter(li => {
+                        const liModelId = li.dataset.modelId;
+                        const liObj = allThreeJsObj.find(o => o.userData.modelConfigRef.modelId === liModelId);
+                        return liObj?.userData?.modelConfigRef?.parentUuid === draggedModelId;
+                    });
+
+                // Insert dragged LI after target LI
+                listItem.insertAdjacentElement('afterend', draggedElement);
+                draggedElement.style.paddingLeft = "20px";
+
+                // Insert children immediately after dragged element, preserving hierarchy
+                childElements.forEach(child => {
+                    draggedElement.insertAdjacentElement('afterend', child);
+                    child.style.paddingLeft = "40px";
+                });
+
+                // Update parentUuid reference
+                draggedObj.userData.modelConfigRef.parentUuid = targetObj.userData.modelConfigRef.modelId;
+
+                console.log(`Moved ${draggedObj.userData.modelConfigRef.modelName} → ${targetObj.userData.modelConfigRef.modelName}`);
+            }
         });
     });
+
+    updateGroupsInObjList();
 }
+
+
+function updateGroupsInObjList()
+{
+   const items = Array.from(sceneObjectList.querySelectorAll('li'));
+
+    items.forEach(item => {
+        const modelId = item.dataset.modelId; // we'll store modelId instead of uuid
+        const obj = allThreeJsObj.find(o => o.userData?.modelConfigRef?.modelId === modelId);
+        if (!obj) return;
+
+        const parentId = obj.userData?.modelConfigRef?.parentUuid;
+        if (!parentId || parentId === -1) return; // no parent → skip
+
+        const parentItem = sceneObjectList.querySelector(`li[data-model-id="${parentId}"]`);
+        if (parentItem && parentItem !== item) {
+            // ✅ Move child directly after its parent in the list
+            parentItem.insertAdjacentElement("afterend", item);
+
+            // ✅ Optional: indent children visually
+            item.style.paddingLeft = "20px";
+        }
+    });
+}
+
 
 function updateParentList()
 {
