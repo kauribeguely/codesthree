@@ -77,11 +77,11 @@ window.onload = () =>
 
     constructor(data = {}) {
         for (const [key, defaultValue] of Object.entries(ModelConfig.schema)) {
-            let value = data[key] !== undefined 
-                ? (typeof defaultValue === "function" ? defaultValue() : data[key])
-                : (typeof defaultValue === "function" ? defaultValue() : defaultValue);
-
-            this[key] = value;
+            if (data[key] !== undefined) {
+                this[key] = data[key]; // use provided value
+            } else {
+                this[key] = (typeof defaultValue === "function" ? defaultValue() : defaultValue);
+            }
         }
 
         // === Special logic for modelName ===
@@ -408,8 +408,14 @@ window.onload = () =>
   let isoZoom = 250;
   const scene = new THREE.Scene();
   // scene.background = new THREE.Color(0x000000); 
-  scene.background = new THREE.Color(allSceneData.globalSettings.bgColor) || new THREE.Color(0x000000); 
-  bgColorPicker.value = '#' + allSceneData.globalSettings.bgColor.toString(16).padStart(6, '0');
+  if(allSceneData.globalSettings.bgColor !== undefined) {
+    scene.background = new THREE.Color(allSceneData.globalSettings.bgColor);
+  } else {
+      // Fallback to a default color if bgColor is not defined
+      scene.background = new THREE.Color(0x000000); // Black
+  }
+  // scene.background = new THREE.Color(allSceneData.globalSettings.bgColor) || new THREE.Color(0x000000); 
+  if(allSceneData.globalSettings.bgColor) bgColorPicker.value = '#' + allSceneData.globalSettings.bgColor.toString(16).padStart(6, '0');
 
   
   let rotateGroup = new THREE.Group();
@@ -1423,16 +1429,19 @@ function toggleCamera()
             // (e.g., if modelUrl changed).
             
             
-
+            
+            // if(!isInitialLoad)
+            // {
             const existingModelIndex = allModels.findIndex(m => m.modelId === modelConfigInstance.modelId);
-            if (existingModelIndex !== -1) {
-                allModels[existingModelIndex] = modelConfigInstance.toPlainObject();
-            } else {
-                // This scenario suggests a logic error if objData was provided but not found.
-                // For robustness, add it as new.
-                console.warn(`ModelConfig with ID ${modelConfigInstance.modelId} not found in sceneData.models during update; adding as new.`);
-                allModels.push(modelConfigInstance.toPlainObject());
-            }
+              if (existingModelIndex !== -1) {
+                  allModels[existingModelIndex] = modelConfigInstance.toPlainObject();
+              } else {
+                  // This scenario suggests a logic error if objData was provided but not found.
+                  // For robustness, add it as new.
+                  console.warn(`ModelConfig with ID ${modelConfigInstance.modelId} not found in sceneData.models during update; adding as new.`);
+                  allModels.push(modelConfigInstance.toPlainObject());
+              }
+            // }
         } 
         else //no obj data provided i.e. new object
         {
