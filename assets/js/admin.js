@@ -3455,7 +3455,8 @@ function getThreeJsObjectByUuid(modelId)
       });
 
       // Add highlight to the new selection
-      const selectedItem = sceneObjectList.querySelector(`[data-object-id="${uuid}"]`).parentNode;
+      // const selectedItem = sceneObjectList.querySelector(`[data-object-id="${uuid}"]`).parentNode;
+      const selectedItem = sceneObjectList.querySelector(`[data-object-id="${uuid}"]`);
       if (selectedItem) {
           selectedItem.style.fontWeight = 'bold';
           selectedItem.style.backgroundColor = 'var(--c33d-v-light-blue)';
