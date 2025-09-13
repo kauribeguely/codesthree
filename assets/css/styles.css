@@ -131,6 +131,7 @@
         flex-direction: column;
         gap: 16px;
         padding: 12px;
+        overflow: hidden auto;
     }
 
     .activeTab

@@ -3603,6 +3603,7 @@ function getThreeJsObjectByUuid(modelId)
             } else {
                 console.warn("Hidden input field with ID 'threejs_scene_config_json' not found!");
             }
+            console.log(hiddenInputField.value);
       }
 
         const allTabs = document.querySelectorAll('.tab');
@@ -4043,10 +4044,16 @@ function getThreeJsObjectByUuid(modelId)
               camera.position.set(savedCameraData.position.x, savedCameraData.position.y, savedCameraData.position.z);
               camera.quaternion.set(savedCameraData.rotation.x, savedCameraData.rotation.y, savedCameraData.rotation.z, savedCameraData.rotation.w);
               camera.zoom = savedCameraData.zoom;
-              camera.updateProjectionMatrix();
-
+              
               // Crucially, update the controls to reflect the new camera state
-              orbitControls.update();
+              
+              if(savedCameraData.target)
+              {
+                orbitControls.target.set(savedCameraData.target.x, savedCameraData.target.y, savedCameraData.target.z);
+                orbitControls.update();
+              }
+              
+              camera.updateProjectionMatrix();
 
               console.log("Camera position and rotation loaded from allSceneData object.");
             }
@@ -4068,7 +4075,7 @@ function getThreeJsObjectByUuid(modelId)
                 y: camera.position.y,
                 z: camera.position.z
             };
-
+            // console.log('before', allSceneData.globalSettings.camera.position.x, 'after', cameraPos.x);
             // Use the camera's quaternion for rotation
             const cameraRot = {
                 x: camera.quaternion.x,
@@ -4077,10 +4084,19 @@ function getThreeJsObjectByUuid(modelId)
                 w: camera.quaternion.w
             };
 
+            const target = {
+                x: orbitControls.target.x,
+                y: orbitControls.target.y,
+                z: orbitControls.target.z
+            };
+            
+            console.log('target', target);
+            console.log('pos', cameraPos);
             // Update the allSceneData object
             allSceneData.globalSettings.camera = {
                 position: cameraPos,
                 rotation: cameraRot,
+                target: target,
                 zoom: camera.zoom
             };
 
