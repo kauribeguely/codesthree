@@ -948,6 +948,15 @@ function c33d_editor_page($post) {
                     <button style="" type="button" class="button" id="add_image_button" >Image <span class="dashicons dashicons-format-image"></span></button>
                     <button style="" type="button" class="button" id="add_group_button" >Group <span class="dashicons dashicons-open-folder"></span></button>
                 </div>
+                <!-- <div style="position: absolute; top: 10px; right: 10px; z-index: 100;"> -->
+                    <select id="light-selector" style="padding: 5px; border-radius: 5px; font-family: sans-serif;">
+                        <option value="">Add Light</option>
+                        <option value="lightA">Ambient</option>
+                        <option value="lightD">Directional</option>
+                        <option value="lightP">Point</option>
+                        <option value="lightS">Spot</option>
+                    </select>
+                <!-- </div> -->
                 <hr>
                 <!-- <h2> Scene Objects</h2> -->
                 <div id="objectListContainer" style="">   

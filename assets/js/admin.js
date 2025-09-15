@@ -37,6 +37,7 @@ const emissiveTextureBtn = document.getElementById('emissiveTextureBtn');
 const stencilSendInput = document.getElementById('stencil-send');
 const stencilReceiveInput = document.getElementById('stencil-receive');
 const stencilShowHide = document.getElementById('stencilShowHide');
+const lightSelector = document.getElementById('light-selector');
 let editingTextureType = null; // 'map' or 'emissiveMap'
 let selectedMaterials = null;
 let mediaModelOpen = false;
@@ -73,6 +74,7 @@ window.onload = () =>
         stencilRef: null,
         isStencil: false,
         link: null,
+        lightSettings: {},
     };
 
     constructor(data = {}) {
@@ -521,7 +523,7 @@ window.onload = () =>
 
     axesHelper.visible = false;
     gridHelper.visible = false;
-   lightHelper.visible = false;
+  //  lightHelper.visible = false;
     // Load Environment Map (HDR)
     
     const lightIntensityInput = document.getElementById('lightIntensity');
@@ -1370,17 +1372,58 @@ function toggleCamera()
       {
         loadModel(objData.modelUrl, objData, callback, index);
       }
+      else if(type.startsWith('light') ) //e.g. lightA lightD lightP
+      {
+        newThreeJsObject = createLight(objData, type.slice(-1));
+      }
       else
       {
         // console.log('Type not defined/handled');
       }
 
-      //model calls add after loaded
+      //these call add after resources loaded
       if(type != 'model' && type != undefined && type != "imageplane")
       {
         newThreeJsObject.userData.type = type;
         addObject(newThreeJsObject, objData, false, index);
       }
+    }
+
+    function createLight(objData, lightType)
+    {
+      let newLight, newHelper;
+      let intensity = 1;
+      if(objData)
+      {
+        intensity = objData.lightSettings.intensity;
+      }
+      if(lightType == 'A')
+      // if(lightType == 'ambient')
+      {
+        newLight = new THREE.AmbientLight(0xffffff, 1);  
+        newHelper = new THREE.PointLightHelper(newLight);
+      }
+      else if(lightType == 'D')
+      // else if(lightType == 'directional')
+      {
+        newLight = new THREE.DirectionalLight(0xffffff, 1);  
+        newHelper = new THREE.DirectionalLightHelper(newLight);
+      }
+      else if(lightType == 'S')
+      // else if(lightType == 'spotlight')
+      {
+        newLight = new THREE.SpotLight(0xffffff, 1);  
+        newHelper = new THREE.SpotLightHelper(newLight);
+      }
+      else if(lightType == 'P')
+      // else if(lightType == 'pointlight')
+      {
+        newLight = new THREE.PointLight(0xffffff, 1);  
+        newHelper = new THREE.PointLightHelper(newLight);
+      }
+      newLight.add(newHelper);
+      // scene.add(newHelper);
+      return newLight;
     }
 
     //add to scene and scenedata
@@ -1471,7 +1514,7 @@ function toggleCamera()
               modelConfigInstance = new ModelConfig({ });
               modelConfigInstanceMob = new ModelConfig({  isMobileConfig: true});
             }
-            
+
             let type = newThreeJsObject.userData.type;
             if(type == 'model')
             {
@@ -1485,7 +1528,7 @@ function toggleCamera()
             }
             else if(type == 'imageplane')
             {
-              modelConfigInstance.modelName = 'Image' + allGroups.length;
+              // modelConfigInstance.modelName = 'Image' + allGroups.length;
             }
             else
             {
@@ -2602,7 +2645,8 @@ function transformDragEnd(){
                 createObject('group');
                 break;  
           case 'h': 
-                createObject('plane');
+                createObject('lightP');
+                // createObject('plane');
                 // createObject('imageplane', {planeUrl: "http://localhost/wpLocalEdge/wp-content/uploads/2025/07/lapimg.jpg"});
                 break;  
           case 't': // Translate mode
@@ -3603,7 +3647,7 @@ function getThreeJsObjectByUuid(modelId)
             } else {
                 console.warn("Hidden input field with ID 'threejs_scene_config_json' not found!");
             }
-            console.log(hiddenInputField.value);
+            // console.log(hiddenInputField.value);
       }
 
         const allTabs = document.querySelectorAll('.tab');
@@ -4068,44 +4112,52 @@ function getThreeJsObjectByUuid(modelId)
             
         }
 
+        
         function saveCameraToSceneData() {
             // Convert Vector3 and Quaternion to simple objects
             const cameraPos = {
-                x: camera.position.x,
+              x: camera.position.x,
                 y: camera.position.y,
                 z: camera.position.z
             };
             // console.log('before', allSceneData.globalSettings.camera.position.x, 'after', cameraPos.x);
             // Use the camera's quaternion for rotation
             const cameraRot = {
-                x: camera.quaternion.x,
+              x: camera.quaternion.x,
                 y: camera.quaternion.y,
                 z: camera.quaternion.z,
                 w: camera.quaternion.w
             };
-
+            
             const target = {
-                x: orbitControls.target.x,
-                y: orbitControls.target.y,
-                z: orbitControls.target.z
+              x: orbitControls.target.x,
+              y: orbitControls.target.y,
+              z: orbitControls.target.z
             };
             
-            console.log('target', target);
-            console.log('pos', cameraPos);
             // Update the allSceneData object
             allSceneData.globalSettings.camera = {
-                position: cameraPos,
-                rotation: cameraRot,
-                target: target,
-                zoom: camera.zoom
+              position: cameraPos,
+              rotation: cameraRot,
+              target: target,
+              zoom: camera.zoom
             };
 
             // console.log("Camera position and rotation saved to allSceneData object.");
-        }
+          }
+          
+          
+          
+        lightSelector.addEventListener('change', (event) => {
+            const selectedType = event.target.value;
+            if (selectedType) {
+                createObject(selectedType);
+                // Reset the dropdown to its initial state
+                event.target.value = '';
+            }
+        });
 
-
-
-
+        //are you sure before closing
         window.addEventListener('beforeunload', function (event) {
         // Set the returnValue property to show a generic confirmation dialog
         if(allThreeJsObj.length > 3 && !isSaving)
