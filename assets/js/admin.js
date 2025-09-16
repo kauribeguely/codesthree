@@ -461,6 +461,23 @@ window.onload = () =>
     scene.add(alight);
 
     // Get the sliders by their IDs
+    const lightIntensitySlider = document.getElementById('light_intensity');
+    const lightIntValue = document.getElementById('light_intensity_span');
+
+    // Event listener to change the intensity of the ambient light
+    lightIntensitySlider.addEventListener('input', function() {
+      if (selectedObj && selectedObj.isLight) {
+        selectedObj.intensity = parseFloat(lightIntensitySlider.value);
+        // setLightIntensity(alight, lightIntensitySlider.value);
+        lightIntValue.textContent = lightIntensitySlider.value;
+        selectedObjData.lightSettings.intensity = lightIntensitySlider.value;
+        updateModelData(selectedObjData); 
+
+      }
+    });
+    
+    
+    
     const ambientLightSlider = document.getElementById('ambient_light_intensity');
     const lightValue = document.getElementById('light_intensity_value');
 
@@ -468,7 +485,8 @@ window.onload = () =>
     const directionalLightSlider = document.getElementById('directionalLightIntensity');
     const dirLightValue = document.getElementById('directional_intensity_value');
 
-    // Event listener to change the intensity of the ambient light
+
+
     ambientLightSlider.addEventListener('input', function() {
         alight.intensity = parseFloat(ambientLightSlider.value);
         setLightIntensity(alight, ambientLightSlider.value);
@@ -1403,25 +1421,25 @@ function toggleCamera()
       if(lightType == 'A')
       // if(lightType == 'ambient')
       {
-        newLight = new THREE.AmbientLight(color, 1);  
+        newLight = new THREE.AmbientLight(color, intensity);  
         newHelper = new THREE.PointLightHelper(newLight);
       }
       else if(lightType == 'D')
       // else if(lightType == 'directional')
       {
-        newLight = new THREE.DirectionalLight(color, 1);  
+        newLight = new THREE.DirectionalLight(color, intensity);  
         newHelper = new THREE.DirectionalLightHelper(newLight);
       }
       else if(lightType == 'S')
       // else if(lightType == 'spotlight')
       {
-        newLight = new THREE.SpotLight(color, 1);  
+        newLight = new THREE.SpotLight(color, intensity);  
         newHelper = new THREE.SpotLightHelper(newLight);
       }
       else if(lightType == 'P')
       // else if(lightType == 'pointlight')
       {
-        newLight = new THREE.PointLight(color, 1);  
+        newLight = new THREE.PointLight(color, intensity);  
         newHelper = new THREE.PointLightHelper(newLight);
       }
       newLight.add(newHelper);

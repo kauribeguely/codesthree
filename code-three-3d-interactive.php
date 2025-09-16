@@ -1233,9 +1233,16 @@ function c33d_editor_page($post) {
                         <input type="number" name="lightPosZ" id="lightPosZ" step="0.1" value="<?php echo esc_attr($light_pos_z); ?>">
                     </div>
                 </div>
+
                 <div class="transform-group">
                     <label>Colour</label>
                     <input type="color" id="lightColor" class="color-picker">
+                </div>
+
+                <label for="light_intensity">Intensity</label>
+                <div class="rangeWithValue">
+                    <input type="range" name="light_intensity" id="light_intensity" max="3" step="0.05" value="" />
+                    <span id="light_intensity_span">1</span>
                 </div>
 
                 <!-- <label>
