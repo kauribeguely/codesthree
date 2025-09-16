@@ -38,6 +38,7 @@ const stencilSendInput = document.getElementById('stencil-send');
 const stencilReceiveInput = document.getElementById('stencil-receive');
 const stencilShowHide = document.getElementById('stencilShowHide');
 const lightSelector = document.getElementById('light-selector');
+const lightColor = document.getElementById('lightColor');
 let editingTextureType = null; // 'map' or 'emissiveMap'
 let selectedMaterials = null;
 let mediaModelOpen = false;
@@ -1393,32 +1394,34 @@ function toggleCamera()
     {
       let newLight, newHelper;
       let intensity = 1;
+      let color = 0xffffff;
       if(objData)
       {
         intensity = objData.lightSettings.intensity;
+        color = objData.lightSettings.color;
       }
       if(lightType == 'A')
       // if(lightType == 'ambient')
       {
-        newLight = new THREE.AmbientLight(0xffffff, 1);  
+        newLight = new THREE.AmbientLight(color, 1);  
         newHelper = new THREE.PointLightHelper(newLight);
       }
       else if(lightType == 'D')
       // else if(lightType == 'directional')
       {
-        newLight = new THREE.DirectionalLight(0xffffff, 1);  
+        newLight = new THREE.DirectionalLight(color, 1);  
         newHelper = new THREE.DirectionalLightHelper(newLight);
       }
       else if(lightType == 'S')
       // else if(lightType == 'spotlight')
       {
-        newLight = new THREE.SpotLight(0xffffff, 1);  
+        newLight = new THREE.SpotLight(color, 1);  
         newHelper = new THREE.SpotLightHelper(newLight);
       }
       else if(lightType == 'P')
       // else if(lightType == 'pointlight')
       {
-        newLight = new THREE.PointLight(0xffffff, 1);  
+        newLight = new THREE.PointLight(color, 1);  
         newHelper = new THREE.PointLightHelper(newLight);
       }
       newLight.add(newHelper);
@@ -1788,7 +1791,10 @@ function toggleCamera()
     else
     {
       existingModelIndex = allModels.findIndex(m => m.modelId === modelConfigInstance.modelId);
+      // console.log('bef', allModels[existingModelIndex].lightSettings);
       allModels[existingModelIndex] = modelConfigInstance.toPlainObject();
+      // console.log('aft', allModels[existingModelIndex].lightSettings);
+      
     }
   }
 
@@ -3636,9 +3642,11 @@ function getThreeJsObjectByUuid(modelId)
         saveCameraToSceneData();
         if (hiddenInputField) 
           {
+            // if(hiddenInputField.value) console.log('bb', JSON.parse(hiddenInputField.value).models[0][1].lightSettings);
                 try {
                     // Stringify the entire sceneData object
                     hiddenInputField.value = JSON.stringify(allSceneData);
+                    // console.log('aa', JSON.parse(hiddenInputField.value).models[0][1].lightSettings);
                 } catch (e) {
                     console.error("Error stringifying sceneData:", e);
                     // Optionally, clear the field or revert to a safe state if stringification fails
@@ -4156,6 +4164,21 @@ function getThreeJsObjectByUuid(modelId)
                 event.target.value = '';
             }
         });
+
+
+        lightColor.addEventListener('input', (event) => {
+            // Check if a light object is selected
+            // The .isLight property is a standard THREE.js way to identify a light object
+            if (selectedObj && selectedObj.isLight) {
+                selectedObj.color.set(event.target.value);
+                // console.log('b1', allSceneData.models[0][1].lightSettings);
+                selectedObjData.lightSettings.color = event.target.value;
+                updateModelData(selectedObjData); 
+                // console.log('b2', allSceneData.models[0][1].lightSettings);
+
+            }
+        });
+
 
         //are you sure before closing
         window.addEventListener('beforeunload', function (event) {

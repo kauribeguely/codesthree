@@ -1080,7 +1080,7 @@ function c33d_editor_page($post) {
                 <div id="materialPropertiesPanel" class="properties-panel hidden">
                     <!-- Material Color Control -->
 
-                    
+
 
                     <label for="materialColor" class="property-label">Base</label>
                     <div class="transform-group">
@@ -1232,6 +1232,10 @@ function c33d_editor_page($post) {
                         <label for="lightPosZ">Z</label>
                         <input type="number" name="lightPosZ" id="lightPosZ" step="0.1" value="<?php echo esc_attr($light_pos_z); ?>">
                     </div>
+                </div>
+                <div class="transform-group">
+                    <label>Colour</label>
+                    <input type="color" id="lightColor" class="color-picker">
                 </div>
 
                 <!-- <label>
