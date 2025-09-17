@@ -454,11 +454,11 @@ window.onload = () =>
     // renderer.toneMapping = THREE.ACESFilmicToneMapping;
     // renderer.toneMappingExposure = 0.5; // Adjust exposure as needed
 
-    const dlight = new THREE.DirectionalLight(0xffffff, 1);    
-    scene.add(dlight);
+    // const dlight = new THREE.DirectionalLight(0xffffff, 1);    
+    // scene.add(dlight);
 
-    const alight = new THREE.AmbientLight(0xffffff, 1);
-    scene.add(alight);
+    // const alight = new THREE.AmbientLight(0xffffff, 1);
+    // scene.add(alight);
 
     // Get the sliders by their IDs
     const lightIntensitySlider = document.getElementById('light_intensity');
@@ -475,8 +475,8 @@ window.onload = () =>
 
       }
     });
-    
-    
+
+
     
     const ambientLightSlider = document.getElementById('ambient_light_intensity');
     const lightValue = document.getElementById('light_intensity_value');
@@ -537,8 +537,8 @@ window.onload = () =>
     scene.add(gridHelper);
 
     // Directional Light Helper (already there, just ensuring its log is here for context)
-    const lightHelper = new THREE.DirectionalLightHelper(dlight, 2); // Helper size 2
-    scene.add(lightHelper);
+    // const lightHelper = new THREE.DirectionalLightHelper(dlight, 2); // Helper size 2
+    // scene.add(lightHelper);
 
     axesHelper.visible = false;
     gridHelper.visible = false;
@@ -555,8 +555,9 @@ window.onload = () =>
     
     const breakPoint = document.getElementById('breakPoint');
 
+    
 
-  applyGlobalSettings();
+    applyGlobalSettings();
   function applyGlobalSettings()
   {
     scrollMoveX = sceneData.scrollMoveX;
@@ -584,16 +585,26 @@ window.onload = () =>
     }
     
     orbitControls = new OrbitControls(camera, renderer.domElement);
-    orbitControls.enabled = false;
+      orbitControls.enabled = false;
+      orbitControls.addEventListener('change', () => {
+          // Only synchronize if we are currently using the perspective camera
+          if (camera === perspectiveCamera) {
+              syncCameras(perspectiveCamera, orthoCamera);
+          }
+          else
+          {
+              syncCameras(orthoCamera,  perspectiveCamera);
+          }
+      });
     loadCameraFromSceneData();
 
-    dlight.position.set(sceneData.lightPosX, sceneData.lightPosY, sceneData.lightPosZ);
-    dlight.intensity = sceneData.directionalLightIntensity;
+    // dlight.position.set(sceneData.lightPosX, sceneData.lightPosY, sceneData.lightPosZ);
+    // dlight.intensity = sceneData.directionalLightIntensity;
 
-    alight.intensity = sceneData.ambientLightIntensity;
+    // alight.intensity = sceneData.ambientLightIntensity;
 
-    setLightIntensity(alight, sceneData.ambientLightIntensity);
-    updateDLightPos(); //uses sceneData object values
+    // setLightIntensity(alight, sceneData.ambientLightIntensity);
+    // updateDLightPos(); //uses sceneData object values
     updateUiToFromData();
   }
 
@@ -1087,16 +1098,6 @@ function toggleCamera()
       targetCamera.lookAt(orbitControls.target);
   }
 
-  orbitControls.addEventListener('change', () => {
-      // Only synchronize if we are currently using the perspective camera
-      if (camera === perspectiveCamera) {
-          syncCameras(perspectiveCamera, orthoCamera);
-      }
-      else
-      {
-          syncCameras(orthoCamera,  perspectiveCamera);
-      }
-  });
 
 
     
@@ -1115,7 +1116,7 @@ function toggleCamera()
       groupControls.attach(fullLoopGroup);
       groupControls.setSpace('local');  // Ensure local space is used
 
-
+      
       // if(sceneData.modelUrl != "")
       //check if any models exist
       if(allModels.length != 0)
@@ -1129,22 +1130,35 @@ function toggleCamera()
       {
         //when intiate new scene, show the open popup
         isInitialLoad = false;
+        createObject('lightD')
+          .then(dlight => {
+            dlight.position.set(1.66, 1.66, 0);
+            // You can now use dlight here, as it's guaranteed to be created
+          })
+          .catch(error => {
+            console.error("Failed to create light object:", error);
+          });
+        createObject('lightA');
         showIntroPopup();
       }
+      // applyGlobalSettings();
 
       scene.add(groupControls);
       // if(sceneData.loopActive)
       // {
       //   sceneDataLoop();
       //   document.querySelector('#codesScaleButton').disabled = true;
-
+      
       // }
       // else
-      // {
+        // {
       //   groupControls.visible = false;
       // }
-
+      
+      
       updateSaveField();
+      animate();
+
     }
 
     function showIntroPopup()
@@ -1406,6 +1420,7 @@ function toggleCamera()
         newThreeJsObject.userData.type = type;
         addObject(newThreeJsObject, objData, false, index);
       }
+      return newThreeJsObject;
     }
 
     function createLight(objData, lightType)
@@ -1422,28 +1437,28 @@ function toggleCamera()
       // if(lightType == 'ambient')
       {
         newLight = new THREE.AmbientLight(color, intensity);  
-        newHelper = new THREE.PointLightHelper(newLight);
+        newHelper = new THREE.PointLightHelper(newLight, 0.5);
       }
       else if(lightType == 'D')
       // else if(lightType == 'directional')
       {
         newLight = new THREE.DirectionalLight(color, intensity);  
-        newHelper = new THREE.DirectionalLightHelper(newLight);
+        newHelper = new THREE.DirectionalLightHelper(newLight, 0.5);
       }
       else if(lightType == 'S')
       // else if(lightType == 'spotlight')
       {
         newLight = new THREE.SpotLight(color, intensity);  
-        newHelper = new THREE.SpotLightHelper(newLight);
+        newHelper = new THREE.SpotLightHelper(newLight, 0.5);
       }
       else if(lightType == 'P')
       // else if(lightType == 'pointlight')
       {
         newLight = new THREE.PointLight(color, intensity);  
-        newHelper = new THREE.PointLightHelper(newLight);
+        newHelper = new THREE.PointLightHelper(newLight, 0.5);
       }
-      newLight.add(newHelper);
-      // scene.add(newHelper);
+      // newLight.add(newHelper);
+      scene.add(newHelper);
       return newLight;
     }
 
@@ -1628,18 +1643,18 @@ function toggleCamera()
           updateSaveField(); //more for new objects
         }
         if(isInitialLoad)
-          {
-            //can add scene size via here, add whenever new model loaded
-            itemsLoaded++;
-            if(itemsLoaded == allModels.length)
-              {
-                isInitialLoad = false;
-                loadAllMobileData();
-                moveAllObjectsToGroups();
-                updateObjectList();
+        {
+          //can add scene size via here, add whenever new model loaded
+          itemsLoaded++;
+          if(itemsLoaded == allModels.length)
+            {
+              isInitialLoad = false;
+              loadAllMobileData();
+              moveAllObjectsToGroups();
+              updateObjectList();
 
-              }
             }
+          }
         else
         {
           updateObjectList();
@@ -2605,7 +2620,6 @@ function transformDragEnd(){
         renderer.render(scene, camera);
         // if(orbitActive) orbit.update(); // Call controls.update() in the animation loop
     }
-    animate();
     // updateLabel();//show initial values
 
 
@@ -3212,10 +3226,37 @@ function transformDragEnd(){
           {
             // materialListDiv.innerHTML = 'None'; 
           }
+
+          
+          if(selectedObj.isLight)
+          {
+            updateLightUI();
+          }
+          else
+          {
+            updateLightUI(true);
+          }
   
           highlightSelectedListItem(obj.uuid);        
           updateParentList();
         }
+      }
+
+      function updateLightUI(notLight)
+      {
+        if(notLight)
+        {
+          lightColor.value = '#000000';
+          lightIntensitySlider.value = 0;
+          lightIntValue.value = 0;
+        }
+        else
+        {
+          lightColor.value = '#'+selectedObj.color.getHexString();
+          lightIntensitySlider.value = selectedObj.intensity;
+          lightIntValue.value = selectedObj.intensity;
+        }
+        
       }
 
       // Get references to your HTML elements
@@ -3641,6 +3682,7 @@ function getThreeJsObjectByUuid(modelId)
       if(allThreeJsObj.length == 0)
       {
         controls.attach(rotateGroup);
+
         showIntroPopup();
       }
       else
