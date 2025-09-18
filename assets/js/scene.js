@@ -210,14 +210,14 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
 
     container.appendChild(renderer.domElement);
 
-    const alight = new THREE.AmbientLight(0xffffff, sceneData.lightIntensity);
-    scene.add(alight);
+    // const alight = new THREE.AmbientLight(0xffffff, sceneData.lightIntensity);
+    // scene.add(alight);
 
 
-    const dlight = new THREE.DirectionalLight(0xffffff, sceneData.directionalLightIntensity);
-    let ddirectionalLightIntes = 1;
-    dlight.position.set(sceneData.lightPosX, sceneData.lightPosY, sceneData.lightPosZ);
-    scene.add(dlight);
+    // const dlight = new THREE.DirectionalLight(0xffffff, sceneData.directionalLightIntensity);
+    // let ddirectionalLightIntes = 1;
+    // dlight.position.set(sceneData.lightPosX, sceneData.lightPosY, sceneData.lightPosZ);
+    // scene.add(dlight);
 
 
     let model, loopGroup, loopable;
@@ -277,9 +277,13 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
       {
         loadModel(objData.modelUrl, objData, callback, index);
       }
+      else if(type.startsWith('light') ) //e.g. lightA lightD lightP
+      {
+        newThreeJsObject = createLight(objData, type.slice(-1));
+      }
       else
       {
-        console.log('Type not defined/handled');
+        console.log('Type not defined/handled: ' + type);
       }     
 
       //model calls add after loaded
@@ -289,6 +293,48 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
         addObject(newThreeJsObject, objData, false, index);
       }
     }
+
+    function createLight(objData, lightType)
+    {
+      let newLight, newHelper;
+      let intensity = 1;
+      let color = 0xffffff;
+      if(objData)
+      {
+        intensity = objData.lightSettings.intensity;
+        color = objData.lightSettings.color;
+      }
+      if(lightType == 'A')
+      // if(lightType == 'ambient')
+      {
+        newLight = new THREE.AmbientLight(color, intensity);  
+        // newHelper = new THREE.PointLightHelper(newLight, 0.5);
+      }
+      else if(lightType == 'D')
+      // else if(lightType == 'directional')
+      {
+        newLight = new THREE.DirectionalLight(color, intensity);  
+        // newHelper = new THREE.DirectionalLightHelper(newLight, 0.5);
+      }
+      else if(lightType == 'S')
+      // else if(lightType == 'spotlight')
+      {
+        newLight = new THREE.SpotLight(color, intensity);  
+        // newHelper = new THREE.SpotLightHelper(newLight);
+        // newLight.map = new THREE.TextureLoader().load( 'http://localhost/wpLocalEdge/wp-content/uploads/2025/09/alien-paper.jpg' );
+
+      }
+      else if(lightType == 'P')
+      // else if(lightType == 'pointlight')
+      {
+        newLight = new THREE.PointLight(color, intensity);  
+        // newHelper = new THREE.PointLightHelper(newLight, 0.5);
+      }
+      // newLight.add(newHelper);
+      // scene.add(newHelper);
+      return newLight;
+    }
+    
 
     function addObject(newThreeJsObject, objData, callback, index, url)
     {
