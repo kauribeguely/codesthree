@@ -1170,7 +1170,7 @@ function toggleCamera()
     {
       allMobileModels.forEach(function(model, index)
       {
-        addMobDataToConfigRef(model, index);
+        if(model != null) addMobDataToConfigRef(model, index);
       });
     }
 
@@ -4103,7 +4103,7 @@ function getThreeJsObjectByUuid(modelId)
             setGizmoVisible(!orbitControls.enabled);
             axesHelper.visible = orbitControls.enabled;
             gridHelper.visible = orbitControls.enabled;
-            lightHelper.visible = orbitControls.enabled;
+            // lightHelper.visible = orbitControls.enabled;
             if (orbitControls.enabled) {
                 // toggleControlsButton.textContent = 'Disable Controls';
                 console.log('Controls enabled');

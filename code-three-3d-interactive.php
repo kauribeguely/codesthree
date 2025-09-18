@@ -1057,18 +1057,7 @@ function c33d_editor_page($post) {
                 </fieldset>
                 
                 <hr>
-                <div style="">
-                    <label for="parentSelector">Move to group:</label>
-                    <select id="parentSelector" style="width: 100%; padding: 5px;"></select>
-                <label>Current group: <span id='current-group-label'></span></label>
-                </div>
-
-                <div style="">
-                    <label for="parentSelector">On Click Link</label>
-                    <input type="text" id="link_input" placeholder="Add Link"/>
-                </div>
-
-                <hr>
+                
 
                 <label>Materials</label>
 
@@ -1137,6 +1126,23 @@ function c33d_editor_page($post) {
                         <label for="stencil-receive">Equal Stencil</label>
                         <input type="checkbox" id="stencilShowHide" checked class="form-checkbox h-5 w-5 text-indigo-600 rounded focus:ring-indigo-500 transition duration-150 ease-in-out">
                     </div>
+
+
+                    <hr>
+
+                    
+                    <div style="">
+                        <label for="parentSelector">Move to group:</label>
+                        <select id="parentSelector" style="width: 100%; padding: 5px;"></select>
+                    <label>Current group: <span id='current-group-label'></span></label>
+                    </div>
+
+                    <div style="">
+                        <label for="parentSelector">On Click Link</label>
+                        <input type="text" id="link_input" placeholder="Add Link"/>
+                    </div>
+
+
                 </div>
             </div>
             
