@@ -426,7 +426,7 @@
 
   /* Utility to hide the modal */
   .hidden-modal, .hidden {
-      display: none;
+      display: none!important;
   }
 
   /* Styles for the "Open Model Import" button */

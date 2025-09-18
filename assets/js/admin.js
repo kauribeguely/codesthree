@@ -39,6 +39,8 @@ const stencilReceiveInput = document.getElementById('stencil-receive');
 const stencilShowHide = document.getElementById('stencilShowHide');
 const lightSelector = document.getElementById('light-selector');
 const lightColor = document.getElementById('lightColor');
+const selectedLightInputs = document.getElementById('selectedLightInputs');
+
 let editingTextureType = null; // 'map' or 'emissiveMap'
 let selectedMaterials = null;
 let mediaModelOpen = false;
@@ -477,27 +479,7 @@ window.onload = () =>
     });
 
 
-    
-    const ambientLightSlider = document.getElementById('ambient_light_intensity');
-    const lightValue = document.getElementById('light_intensity_value');
-
-
-    const directionalLightSlider = document.getElementById('directionalLightIntensity');
-    const dirLightValue = document.getElementById('directional_intensity_value');
-
-
-
-    ambientLightSlider.addEventListener('input', function() {
-        alight.intensity = parseFloat(ambientLightSlider.value);
-        setLightIntensity(alight, ambientLightSlider.value);
-        lightValue.textContent = ambientLightSlider.value;
-    });
-
-    directionalLightSlider.addEventListener('input', function() {
-        dlight.intensity = parseFloat(directionalLightSlider.value);
-        setLightIntensity(dlight, directionalLightSlider.value);
-        dirLightValue.textContent = directionalLightSlider.value;
-    });
+  
 
     function setLightIntensity(light, intensity)
     {
@@ -546,10 +528,7 @@ window.onload = () =>
     // Load Environment Map (HDR)
     
     const lightIntensityInput = document.getElementById('lightIntensity');
-    const lightPosXInput = document.getElementById('lightPosX');
-    const lightPosYInput = document.getElementById('lightPosY');
-    const lightPosZInput = document.getElementById('lightPosZ');
-
+    
     const useEnvLightInput = document.getElementById('useEnvLight');
 
     
@@ -619,12 +598,7 @@ window.onload = () =>
     mouseAnimationLinkInput.checked = mouseAnimationLink;
     scrollAnimationLinkInput.checked = scrollAnimationLink;
     // useEnvLightInput.checked = useEnvLight;
-    isOrthoCameraInput.checked = isOrthoCamera;
-    ambientLightSlider.value = sceneData.ambientLightIntensity;
-    directionalLightSlider.value = sceneData.directionalLightIntensity;
-    lightPosXInput.value = sceneData.lightPosX;
-    lightPosYInput.value = sceneData.lightPosY;
-    lightPosZInput.value = sceneData.lightPosZ;    
+    isOrthoCameraInput.checked = isOrthoCamera;  
     breakPoint.value = sceneData.breakPoint;
   }
 
@@ -641,11 +615,6 @@ window.onload = () =>
     sceneData.scrollAnimationLink = scrollAnimationLinkInput.checked;
     // sceneData.useEnvLight = useEnvLightInput.checked;
     sceneData.isOrthoCamera = isOrthoCameraInput.checked;
-    sceneData.ambientLightIntensity = parseFloat(ambientLightSlider.value);
-    sceneData.directionalLightIntensity = parseFloat(directionalLightSlider.value);
-    sceneData.lightPosX = parseFloat(lightPosXInput.value);
-    sceneData.lightPosY = parseFloat(lightPosYInput.value);
-    sceneData.lightPosZ = parseFloat(lightPosZInput.value);  
     sceneData.breakPoint = parseFloat(breakPoint.value);
     updateSaveField();
   }
@@ -786,27 +755,6 @@ window.onload = () =>
   };
 
 
-  // let loopGroupScale = sceneData.loopGroupScale || 1.0;
-
-  lightPosXInput.oninput = () => {
-      sceneData.lightPosX = parseFloat(lightPosXInput.value) || 0;
-      updateDLightPos();
-  };
-
-  lightPosYInput.oninput = () => {
-      sceneData.lightPosY = parseFloat(lightPosYInput.value) || 0;
-      updateDLightPos();
-  };
-
-  lightPosZInput.oninput = () => {
-      sceneData.lightPosZ = parseFloat(lightPosZInput.value) || 0;
-      updateDLightPos();
-  };
-
-  function updateDLightPos()
-  {
-    dlight.position.set(sceneData.lightPosX, sceneData.lightPosY, sceneData.lightPosZ);
-  }
 
   // useEnvLightInput.oninput = () => {
       
@@ -1449,7 +1397,9 @@ function toggleCamera()
       // else if(lightType == 'spotlight')
       {
         newLight = new THREE.SpotLight(color, intensity);  
-        newHelper = new THREE.SpotLightHelper(newLight, 0.5);
+        newHelper = new THREE.SpotLightHelper(newLight);
+        // newLight.map = new THREE.TextureLoader().load( 'http://localhost/wpLocalEdge/wp-content/uploads/2025/09/alien-paper.jpg' );
+
       }
       else if(lightType == 'P')
       // else if(lightType == 'pointlight')
@@ -3220,10 +3170,12 @@ function transformDragEnd(){
           {
             // renderMaterialList(getMaterialsFromObject(selectedObj));
             selectedMaterials = getMaterialsFromObject(selectedObj);
+            switchMaterialPanel(true);
             populateMaterialSelector(selectedMaterials);
           }
-          else
+          else //light, group
           {
+            switchMaterialPanel(false);
             // materialListDiv.innerHTML = 'None'; 
           }
 
@@ -3249,12 +3201,14 @@ function transformDragEnd(){
           lightColor.value = '#000000';
           lightIntensitySlider.value = 0;
           lightIntValue.value = 0;
+          selectedLightInputs.style.display = 'none';
         }
         else
         {
           lightColor.value = '#'+selectedObj.color.getHexString();
           lightIntensitySlider.value = selectedObj.intensity;
           lightIntValue.value = selectedObj.intensity;
+          selectedLightInputs.style.display = 'block';
         }
         
       }
@@ -3962,11 +3916,25 @@ function getThreeJsObjectByUuid(modelId)
                 // Auto-select the first material
                 selectMaterial(materials[0].name);
             } else {
-                propertiesPanel.classList.add('hidden');
+                // propertiesPanel.classList.add('hidden');
+                switchMaterialPanel(false);
                 console.warn('No materials available to populate the selector.');
             }
         }
 
+        //false turn off
+        function switchMaterialPanel(on)
+        {
+          if(on)
+          {
+            propertiesPanel.classList.remove('hidden');
+          }
+          else
+          {
+            propertiesPanel.classList.add('hidden');            
+          }
+        }
+        
         /**
          * Selects a material by name, updates the UI, and the selectedMaterial object.
          * @param {string} materialName The name of the material to select.

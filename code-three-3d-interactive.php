@@ -1072,12 +1072,12 @@ function c33d_editor_page($post) {
 
                 <label>Materials</label>
 
+                <div id="materialPropertiesPanel" class="hidden">
                 <select id="materialSelector" class="select-input">
                     <!-- Options will be populated by JavaScript -->
                 </select>
 
                 <!-- Material Properties Panel (Initially hidden) -->
-                <div id="materialPropertiesPanel" class="properties-panel hidden">
                     <!-- Material Color Control -->
 
 
@@ -1206,97 +1206,38 @@ function c33d_editor_page($post) {
 
             
             <div class='tabContent clights'>
-                <label for="ambient-light-slider">Ambient Intensity:</label>
-                <div class="rangeWithValue">
-                    <input type="range" name="ambient_light_intensity" id="ambient_light_intensity" max="3" step="0.05" value="<?php echo esc_attr($light_intensity); ?>" />
-                    <span id="light_intensity_value"><?php echo esc_attr($light_intensity); ?></span>
-                </div>
-                <!-- Directional Light Intensity -->
-                <label>Directional Intensity: </label>
-                <div class="rangeWithValue">
-                    <input type="range" name="directionalLightIntensity" id="directionalLightIntensity" max="3" step="0.05" value="<?php echo esc_attr($directional_light_intensity); ?>">
-                    <span id="directional_intensity_value"><?php echo esc_attr($directional_light_intensity); ?></span>
-                </div>
-                <!-- Directional Light Position -->
-                <label>Directional Light Position</label>
-                <div class="transform-group">
-                    <div class="transform-field">
-                        <label for="lightPosX">X</label>
-                        <input type="number" name="lightPosX" id="lightPosX" step="0.1" value="<?php echo esc_attr($light_pos_x); ?>">
+
+                
+
+                <!-- Toggle for isOrthoCamera -->
+                <label>
+                    <input type="checkbox" name="isOrthoCamera" id="isOrthoCamera" <?php checked($is_ortho_camera, 'on'); ?>>
+                    Use Orthographic Camera
+                </label>
+
+                <hr>
+
+                <button type="button" id="orbitToggle">Toggle Camera Control</button>
+
+                
+                <hr>
+
+                <div id="selectedLightInputs" style="display:none">
+                    <div class="transform-group">
+                            <label style="width:30%">Colour</label>
+                            <input type="color" id="lightColor" class="color-picker">
                     </div>
-                    <div class="transform-field">
-                        <label for="lightPosY">Y</label>
-                        <input type="number" name="lightPosY" id="lightPosY" step="0.1" value="<?php echo esc_attr($light_pos_y); ?>">
-                    </div>
-                    <div class="transform-field">
-                        <label for="lightPosZ">Z</label>
-                        <input type="number" name="lightPosZ" id="lightPosZ" step="0.1" value="<?php echo esc_attr($light_pos_z); ?>">
+
+                    <label for="light_intensity">Intensity</label>
+                    <div class="rangeWithValue">
+                        <input type="range" name="light_intensity" id="light_intensity" max="3" step="0.05" value="" />
+                        <span id="light_intensity_span">1</span>
                     </div>
                 </div>
-
-                <div class="transform-group">
-                    <label>Colour</label>
-                    <input type="color" id="lightColor" class="color-picker">
-                </div>
-
-                <label for="light_intensity">Intensity</label>
-                <div class="rangeWithValue">
-                    <input type="range" name="light_intensity" id="light_intensity" max="3" step="0.05" value="" />
-                    <span id="light_intensity_span">1</span>
-                </div>
-
-                <!-- <label>
-                    <input type="checkbox" name="useEnvLight" id="useEnvLight" <?php checked($use_env_light, 'on'); ?>>
-                    Use Environment Light (HDR)
-                </label> -->
-            <hr>
-
-            <!-- Toggle for isOrthoCamera -->
-            <label>
-                <input type="checkbox" name="isOrthoCamera" id="isOrthoCamera" <?php checked($is_ortho_camera, 'on'); ?>>
-                Use Orthographic Camera
-            </label>
-
-            <hr>
-
-            <button type="button" id="orbitToggle">Toggle Camera Control</button>
 
             </div>
-                <!-- <hr> -->
-            <!-- Toggle for Activating Loop -->
-             <div id="loopComingSoon" style="display:none">
-                    <label>
-                    <input type="checkbox" name="loopActive" id="loopActive" <?php checked($loop_active, true); ?>>
-                    Activate Loop
-                    </label>
+        </div>
 
-                    <!-- Loop Count -->
-                    <fieldset>
-                        <legend>Loop Count</legend>
-                        <div class="transform-group">
-                            <div class="transform-field">
-                                <label for="loopCountX">X Count</label>
-                                <input type="number" name="loopCountX" id="loopCountX" step="1" value="<?php echo esc_attr($loop_count_x); ?>">
-                            </div>
-                            <div class="transform-field">
-                                <label for="loopCountY">Y Count</label>
-                                <input type="number" name="loopCountY" id="loopCountY" step="1" value="<?php echo esc_attr($loop_count_y); ?>">
-                            </div>
-                            <div class="transform-field">
-                                <label for="loopCountZ">Z Count</label>
-                                <input type="number" name="loopCountZ" id="loopCountZ" step="1" value="<?php echo esc_attr($loop_count_z); ?>">
-                            </div>
-                        </div>
-                    </fieldset>
-                    <!-- Number Input for Spacing -->
-                    <label>Item Spacing: <input type="number" name="itemSpacing" id="itemSpacing" step="0.1" value="0.5"></label>
-                    <!-- <label>Item Spacing: <input type="number" name="itemSpacing" id="itemSpacing" step="0.1" value="<?php echo esc_attr($item_spacing); ?>"></label> -->
-                    <label>Loop Group Scale: <input type="number" name="loopGroupScale" id="loopGroupScale" step="0.01" value="<?php echo esc_attr($loop_group_scale); ?>"></label>
-
-
-
-            </div>
-          </div>
           
         </div>
 
@@ -1365,7 +1306,40 @@ function c33d_editor_page($post) {
                     </div>
             </div>
         </div>
+    <!-- <hr> -->
+                <!-- Toggle for Activating Loop -->
+                <div id="loopComingSoon" style="display:none">
+                        <label>
+                        <input type="checkbox" name="loopActive" id="loopActive" <?php checked($loop_active, true); ?>>
+                        Activate Loop
+                        </label>
 
+                        <!-- Loop Count -->
+                        <fieldset>
+                            <legend>Loop Count</legend>
+                            <div class="transform-group">
+                                <div class="transform-field">
+                                    <label for="loopCountX">X Count</label>
+                                    <input type="number" name="loopCountX" id="loopCountX" step="1" value="<?php echo esc_attr($loop_count_x); ?>">
+                                </div>
+                                <div class="transform-field">
+                                    <label for="loopCountY">Y Count</label>
+                                    <input type="number" name="loopCountY" id="loopCountY" step="1" value="<?php echo esc_attr($loop_count_y); ?>">
+                                </div>
+                                <div class="transform-field">
+                                    <label for="loopCountZ">Z Count</label>
+                                    <input type="number" name="loopCountZ" id="loopCountZ" step="1" value="<?php echo esc_attr($loop_count_z); ?>">
+                                </div>
+                            </div>
+                        </fieldset>
+                        <!-- Number Input for Spacing -->
+                        <label>Item Spacing: <input type="number" name="itemSpacing" id="itemSpacing" step="0.1" value="0.5"></label>
+                        <!-- <label>Item Spacing: <input type="number" name="itemSpacing" id="itemSpacing" step="0.1" value="<?php echo esc_attr($item_spacing); ?>"></label> -->
+                        <label>Loop Group Scale: <input type="number" name="loopGroupScale" id="loopGroupScale" step="0.01" value="<?php echo esc_attr($loop_group_scale); ?>"></label>
+
+
+
+                </div>
     </div>
     <?php
 }
