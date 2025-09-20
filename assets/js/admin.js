@@ -1604,7 +1604,7 @@ function toggleCamera()
           // renderMaterialList(getMaterialsFromObject(selectedObj));
           selectedMaterials = getMaterialsFromObject(selectedObj);
           populateMaterialSelector(selectedMaterials);
-
+          if(selectedObj.isLight) updateLightUI(true);
 
         //when last model added (i.e. last in load all or adding a new one)
         if(allModels.length == allThreeJsObj.length)
@@ -3200,23 +3200,18 @@ function transformDragEnd(){
           }
 
           
-          if(selectedObj.isLight)
-          {
-            updateLightUI();
-          }
-          else
-          {
-            updateLightUI(true);
-          }
+
+          updateLightUI(selectedObj.isLight);
+
   
           highlightSelectedListItem(obj.uuid);        
           updateParentList();
         }
       }
 
-      function updateLightUI(notLight)
+      function updateLightUI(lightSelected)
       {
-        if(notLight)
+        if(!lightSelected)
         {
           lightColor.value = '#000000';
           lightIntensitySlider.value = 0;
