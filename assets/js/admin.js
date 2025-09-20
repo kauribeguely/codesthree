@@ -1765,6 +1765,11 @@ function toggleCamera()
       scaleInputZ.value = round(scale.z, 2);
       // sceneData.scale = round(scale.x, 2);
       
+      
+        if(selectedObj.isLight)
+        {
+          selectedObj.helper.update();
+        }
 
       let modelConfigInstance;
       if(isMobileView)
@@ -3014,6 +3019,7 @@ function transformDragEnd(){
           // transformObjectToSceneData(selectedObj);
           updateTransforms();
         }
+
         //refactor
         // set modifier based on wheel data > 0 then multiply the transform
       }
