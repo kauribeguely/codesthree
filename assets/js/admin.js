@@ -1213,19 +1213,35 @@ function toggleCamera()
 
       // }
 
-      createObject(objData.type, objData, function()
+      const type = sceneObj.userData.type;
+
+      //only needs callback if needs to wait for loading e.g. texture, model
+      if(type != 'model' && type != "imageplane")
       {
-        addMobDataToConfigRef(objDataMob, allThreeJsObj.length-1);
-        // if(objData.parentUuid != -1 || objData.parentUuid != undefined)
-        if(objData.parentUuid != -1)
+        createObject(objData.type, objData);
+        postDuplicateUpdates(objData, objDataMob);        
+      }
+      else
+      {
+        createObject(objData.type, objData, function()
         {
-          const newParent = getThreeJsObjectByUuid(objData.parentUuid);
-          // moveObjectToGroup(selectedObj, newParent);
-          // duplicateObjectInGroup(selectedObj, newParent);
-          moveToGroupKeepLocalPosition(selectedObj, newParent);
-          updateModelData(modelConfigInstance);
-        }
-      });
+          postDuplicateUpdates(objData, objDataMob);
+        });
+      }
+    }
+
+    function postDuplicateUpdates(objData, objDataMob)
+    {
+      addMobDataToConfigRef(objDataMob, allThreeJsObj.length-1);
+      // if(objData.parentUuid != -1 || objData.parentUuid != undefined)
+      if(objData.parentUuid != -1)
+      {
+        const newParent = getThreeJsObjectByUuid(objData.parentUuid);
+        // moveObjectToGroup(selectedObj, newParent);
+        // duplicateObjectInGroup(selectedObj, newParent);
+        moveToGroupKeepLocalPosition(selectedObj, newParent);
+        updateModelData(modelConfigInstance);
+      }
     }
 
     function cloneSelected()
@@ -1368,10 +1384,14 @@ function toggleCamera()
         newThreeJsObject.userData.type = type;
         addObject(newThreeJsObject, objData, false, index);
       }
+      else
+      {
+        
+      }
       return newThreeJsObject;
     }
 
-    function createLight(objData, lightType)
+    function createLight(objData, lightType, callback)
     {
       let newLight, newHelper;
       let intensity = 1;
