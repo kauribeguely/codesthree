@@ -1853,7 +1853,10 @@ function transformDragEnd(){
     let popupOpen = false;
     let demoModelPopupOpen = false;
     //TODO: check whether it's replace selected url or add new model
-    deleteModelButton.addEventListener('click', deleteObject);
+    deleteModelButton.addEventListener('click', function()
+    {
+      deleteObject(selectedObj);
+    });
 
 
     mediaLibraryButtons.forEach(button => {
