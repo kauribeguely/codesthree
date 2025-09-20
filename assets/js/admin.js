@@ -1858,6 +1858,8 @@ function transformDragEnd(){
     // const popupMediaButton = document.getElementById('mediaLibraryBtn');
     const addModelButton = document.getElementById('add_model_button');
     const addImageButton = document.getElementById('add_image_button');
+    const addPlaneButton = document.getElementById('add_plane_button');
+    const addCubeButton = document.getElementById('add_cube_button');
     const addGroupButton = document.getElementById('add_group_button');
     const deleteModelButton = document.getElementById('delete_model_button');
     const popup = document.getElementById('newScenePopup');
@@ -1928,6 +1930,14 @@ function transformDragEnd(){
     
     addImageButton.addEventListener('click', function (e) {
         handleMediaButtonClick(e);
+    });
+
+    addPlaneButton.addEventListener('click', function (e) {
+        createObject('plane');
+    });
+
+    addCubeButton.addEventListener('click', function (e) {
+        createObject('cube');
     });
 
     closeModalBtn.addEventListener('click', toggleMediaModal);

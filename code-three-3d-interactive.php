@@ -948,6 +948,10 @@ function c33d_editor_page($post) {
                     <button style="" type="button" class="button" id="add_image_button" >Image <span class="dashicons dashicons-format-image"></span></button>
                     <button style="" type="button" class="button" id="add_group_button" >Group <span class="dashicons dashicons-open-folder"></span></button>
                 </div>
+                <div class="transform-group">
+                    <button style="" type="button" class="button" id="add_plane_button" >Plane <span class="dashicons dashicons-format-image"></span></button>
+                    <button style="" type="button" class="button" id="add_cube_button" >Cube <span class="dashicons dashicons-open-folder"></span></button>
+                </div>
                 <!-- <div style="position: absolute; top: 10px; right: 10px; z-index: 100;"> -->
                     <select id="light-selector" style="padding: 5px; border-radius: 5px; font-family: sans-serif;">
                         <option value="">Add Light</option>
