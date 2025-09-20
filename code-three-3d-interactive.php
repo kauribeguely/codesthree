@@ -1130,7 +1130,7 @@ function c33d_editor_page($post) {
 
                     <hr>
 
-                    
+
                     <div style="">
                         <label for="parentSelector">Move to group:</label>
                         <select id="parentSelector" style="width: 100%; padding: 5px;"></select>
@@ -1219,6 +1219,11 @@ function c33d_editor_page($post) {
                 <label>
                     <input type="checkbox" name="isOrthoCamera" id="isOrthoCamera" <?php checked($is_ortho_camera, 'on'); ?>>
                     Use Orthographic Camera
+                </label>
+
+                <label>
+                    <input type="checkbox" name="showLightHelpers" id="showLightHelpers" checked <?php checked($is_ortho_camera, 'on'); ?>>
+                    Show Light Helpers
                 </label>
 
                 <hr>

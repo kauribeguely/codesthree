@@ -48,6 +48,8 @@ let mediaModelOpen = false;
 const deleteTextureBtn = document.getElementById('deleteTexture'); 
 const deleteEmissiveBtn = document.getElementById('deleteEmissive'); 
 
+let allLightHelpers = [];
+
 // document.addEventListener('DOMContentLoaded', () => {
 window.onload = () =>
 {
@@ -410,6 +412,9 @@ window.onload = () =>
   const isOrthoCameraInput = document.getElementById('isOrthoCamera');
 
 
+  const showLightHelpers = document.getElementById('showLightHelpers');
+
+
   const container = document.getElementById('threejs-canvas');
   const labelContainer = document.getElementById('label'); // Label container for displaying object details
 
@@ -641,7 +646,10 @@ window.onload = () =>
       groupControls.visible = isControlsVisible;
       axesHelper.visible = isControlsVisible;
       gridHelper.visible = isControlsVisible;
-      lightHelper.visible = isControlsVisible;
+      // lightHelper.visible = isControlsVisible;
+
+      switchLightHelpers(isControlsVisible);
+      // showLightHelpers.checked = isControlsVisible;
 
       if(isControlsVisible)
       {
@@ -1038,6 +1046,10 @@ function toggleCamera()
 
     renderer.render(scene, camera);
 }
+
+showLightHelpers.oninput = () => {
+    switchLightHelpers(showLightHelpers.checked);
+};
 
   function syncCameras(sourceCamera, targetCamera) {
       // Copy the position
@@ -1441,6 +1453,7 @@ function toggleCamera()
       newLight.helper = newHelper;
       // newLight.add(newHelper);
       scene.add(newHelper);
+      allLightHelpers.push(newHelper);
       return newLight;
     }
 
@@ -3648,6 +3661,12 @@ function getThreeJsObjectByUuid(modelId)
             {
               // objectToDelete.helper.geometry.dispose();
               // objectToDelete.helper.material.dispose();
+              
+
+              const helperIndex = allLightHelpers.indexOf(objectToDelete.helper);
+              if (helperIndex > -1) {
+                allLightHelpers.splice(helperIndex, 1);
+              }
               scene.remove(objectToDelete.helper);
               rotateGroup.remove(objectToDelete);
 
@@ -3694,6 +3713,13 @@ function getThreeJsObjectByUuid(modelId)
         selectModelForEditing(lastObjectInList);
         updateObjectList();
         updateParentList();
+      }
+    }
+
+    function switchLightHelpers(on)
+    {
+      for (const helper of allLightHelpers) {
+        helper.visible = on;
       }
     }
 
