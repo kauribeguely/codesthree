@@ -474,7 +474,7 @@ window.onload = () =>
         lightIntValue.textContent = lightIntensitySlider.value;
         selectedObjData.lightSettings.intensity = lightIntensitySlider.value;
         updateModelData(selectedObjData); 
-
+        updateSaveField();
       }
     });
 
@@ -1360,10 +1360,17 @@ function toggleCamera()
         //add to scene, add to sceneData
         const planeGeo = new THREE.PlaneGeometry(1, 1); 
         const planeMaterial = new THREE.MeshStandardMaterial({
-                color: 0x00ff00, // Green color
+                color: 0xffffff, // Green color
                 side: THREE.DoubleSide // Render both sides of the plane
             });
         newThreeJsObject = new THREE.Mesh(planeGeo, planeMaterial);
+      }
+      else if(type == 'cube')
+      {
+        const cubeGeo = new THREE.BoxGeometry(1, 1, 1);
+        const cubeMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
+        // const cube = new Mesh(cubeGeo, cubeMaterial);
+        newThreeJsObject = new THREE.Mesh(cubeGeo, cubeMaterial);
       }
       else if(type == 'model' )
       {
@@ -2653,8 +2660,9 @@ function transformDragEnd(){
                 createObject('group');
                 break;  
           case 'h': 
-                createObject('lightP');
+                // createObject('lightP');
                 // createObject('plane');
+                createObject('cube');
                 // createObject('imageplane', {planeUrl: "http://localhost/wpLocalEdge/wp-content/uploads/2025/07/lapimg.jpg"});
                 break;  
           case 't': // Translate mode
@@ -3186,7 +3194,11 @@ function transformDragEnd(){
           controls.visible = gizmoVisible;
           controls.enabled = gizmoVisible;
   
-          if(selectedObj.userData.modelConfigRef.type == "model" || selectedObj.userData.modelConfigRef.type == "imageplane") 
+          if(selectedObj.userData.modelConfigRef.type == "model" || 
+            selectedObj.userData.modelConfigRef.type == "imageplane"|| 
+            selectedObj.userData.modelConfigRef.type == "plane" ||
+            selectedObj.userData.modelConfigRef.type == "cube")
+            
           {
             // renderMaterialList(getMaterialsFromObject(selectedObj));
             selectedMaterials = getMaterialsFromObject(selectedObj);
@@ -4217,6 +4229,7 @@ function getThreeJsObjectByUuid(modelId)
                 // console.log('b1', allSceneData.models[0][1].lightSettings);
                 selectedObjData.lightSettings.color = event.target.value;
                 updateModelData(selectedObjData); 
+                updateSaveField();
                 // console.log('b2', allSceneData.models[0][1].lightSettings);
 
             }
