@@ -1437,6 +1437,8 @@ function toggleCamera()
         newLight = new THREE.PointLight(color, intensity);  
         newHelper = new THREE.PointLightHelper(newLight, 0.5);
       }
+
+      newLight.helper = newHelper;
       // newLight.add(newHelper);
       scene.add(newHelper);
       return newLight;
@@ -3636,6 +3638,14 @@ function getThreeJsObjectByUuid(modelId)
           }
           else
           {
+            if(deleteObjData.type.startsWith('light'))
+            {
+              // objectToDelete.helper.geometry.dispose();
+              // objectToDelete.helper.material.dispose();
+              scene.remove(objectToDelete.helper);
+              rotateGroup.remove(objectToDelete);
+
+            }
             rotateGroup.remove(objectToDelete);
           }
         } 
@@ -4234,6 +4244,8 @@ function getThreeJsObjectByUuid(modelId)
                 selectedObj.color.set(event.target.value);
                 // console.log('b1', allSceneData.models[0][1].lightSettings);
                 selectedObjData.lightSettings.color = event.target.value;
+                // selectedObj.helper.color.set(event.target.value);
+                selectedObj.helper.update();
                 updateModelData(selectedObjData); 
                 updateSaveField();
                 // console.log('b2', allSceneData.models[0][1].lightSettings);
