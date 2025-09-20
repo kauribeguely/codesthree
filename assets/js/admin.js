@@ -97,6 +97,8 @@ window.onload = () =>
             this.modelName = data.planeUrl.split('/').pop();
         }
 
+        this.lightSettings = data.lightSettings ? { ...data.lightSettings } : {};
+
         // Keep special derived properties
         this.position = new THREE.Vector3(this.positionX, this.positionY, this.positionZ);
         this.rotation = new THREE.Euler(
@@ -308,6 +310,7 @@ window.onload = () =>
             scaleX: obj.scaleX,
             scaleY: obj.scaleY,
             scaleZ: obj.scaleZ,
+            lightSettings: obj.lightSettings
         });
     }
 }
