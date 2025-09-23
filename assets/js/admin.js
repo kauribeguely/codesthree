@@ -185,21 +185,18 @@ window.onload = () =>
         }
       });
 
-      // console.log('material before:', this.threeJsObject.material);
       this.materialProperties.forEach(savedMaterial => {
         const { materialName, ...properties } = savedMaterial;
         const material = materialsByName.get(materialName);
 
         if (material) {
           // Iterate through the properties of the current material.
-        // console.log('material type:', material.type);
           
           for (const propName in properties) {
             const propValue = properties[propName];
 
             // Special handling for textureUrl
             if (propName === 'map' || propName === 'emissiveMap') {
-              // console.log(`Loading texture for material name: ${materialName} from ${propValue}`);
               textureLoader.load(
                 propValue,
                 (texture) => {
@@ -208,7 +205,6 @@ window.onload = () =>
                   material[propName] = texture;
                   // material.map = texture;
                   material.needsUpdate = true;
-                  // console.log(`Successfully applied texture to material name: ${materialName}`);
                 },
                 undefined,
                 (error) => {
@@ -221,13 +217,11 @@ window.onload = () =>
             }
             // else if (propName === 'materialColor' && material.color) {
             //   // Specific handling for color
-            //   console.log(`Applying color to material '${materialName}' with value: ${propValue}`);
             //   material.color.setHex(propValue);
             //   material.needsUpdate = true;
             // } 
             // else if (propName === 'emissiveColor' && material.emissive) {
             //   // Specific handling for color
-            //   console.log(`Applying color to material '${materialName}' with value: ${propValue}`);
             //   material.color.setHex(propValue);
             //   material.needsUpdate = true;
             // } 
@@ -1201,7 +1195,7 @@ showLightHelpers.oninput = () => {
       // }
       // else
       // {
-      //   console.log('no user data found');
+      //   
       // }
 
 
@@ -1397,7 +1391,7 @@ showLightHelpers.oninput = () => {
       }
       else
       {
-        // console.log('Type not defined/handled');
+        console.log('Type not defined/handled');
       }
 
       //these call add after resources loaded
@@ -1490,7 +1484,7 @@ showLightHelpers.oninput = () => {
             //     scene.remove(oldThreeJsObject);
             //     // Remove from our active tracking array
             //     allThreeJsObj = allThreeJsObj.filter(obj => obj.userData.modelId !== modelConfigInstance.modelId);
-            //     console.log(`Removed old Three.js object for modelId: ${modelConfigInstance.modelId}`);
+            //     
             // }
 
             // Apply saved transforms to the new Three.js object
@@ -1824,9 +1818,7 @@ showLightHelpers.oninput = () => {
     else
     {
       existingModelIndex = allModels.findIndex(m => m.modelId === modelConfigInstance.modelId);
-      // console.log('bef', allModels[existingModelIndex].lightSettings);
       allModels[existingModelIndex] = modelConfigInstance.toPlainObject();
-      // console.log('aft', allModels[existingModelIndex].lightSettings);
       
     }
   }
@@ -1997,7 +1989,6 @@ function transformDragEnd(){
       const attachment = textureUploader.state().get('selection').first().toJSON();
       const imageUrl = attachment.url;
 
-      console.log(`Loading texture for ${editingTextureType} from: ${imageUrl}`);
       
       if (selectedMaterial) {
           // Use the globally scoped 'selectedMaterial' variable
@@ -2047,7 +2038,6 @@ function transformDragEnd(){
                   updateModelData(selectedObjData);
                   updateSaveField();
                   
-                  console.log(`Successfully applied texture to material: "${selectedMaterial.name}" on property: "${editingTextureType}"`);
               },
               undefined, // Progress callback
               (error) => {
@@ -2148,7 +2138,6 @@ function transformDragEnd(){
                 }
               }
             });
-          // console.log('Demo modal listeners setup complete.');
       });
     }
 
