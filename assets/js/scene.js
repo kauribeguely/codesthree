@@ -88,6 +88,8 @@ async function initializeSceneFromContainer(container)
   await loadThreeJs();
   const containerID = container.id;
   const allSceneData = JSON.parse(container.dataset.sceneData);
+console.log(allSceneData);
+
   const pluginUrl = container.dataset.pluginUrl;
   //may have to add to front end also if implementing lazy load of scenes
   // if (document.body.classList.contains('wp-admin')) 
@@ -238,6 +240,7 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
     if(allModels.length != 0)
     {
       loadAllModels();
+      
     }
 
     function loadAllModels()

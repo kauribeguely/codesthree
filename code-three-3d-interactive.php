@@ -1135,7 +1135,13 @@ function c33d_editor_page($post) {
                     <hr>
 
 
-                    <div style="">
+                    
+
+
+                </div>
+            </div>
+
+            <div style="">
                         <label for="parentSelector">Move to group:</label>
                         <select id="parentSelector" style="width: 100%; padding: 5px;"></select>
                     <label>Current group: <span id='current-group-label'></span></label>
@@ -1145,10 +1151,6 @@ function c33d_editor_page($post) {
                         <label for="parentSelector">On Click Link</label>
                         <input type="text" id="link_input" placeholder="Add Link"/>
                     </div>
-
-
-                </div>
-            </div>
             
             <div class='tabContent csettings'>
                 <label>Breakpoint (px) </label>
