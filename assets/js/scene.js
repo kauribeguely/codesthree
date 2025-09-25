@@ -230,6 +230,33 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
     scene.add(fullLoopGroup);
     fullLoopGroup.scale.set(sceneData.loopGroupScale, sceneData.loopGroupScale, sceneData.loopGroupScale);
 
+    let lights = [];
+    let hover1 = document.getElementById('hover1');
+    let hover2 = document.getElementById('hover2');
+
+    function toggleLight(light, isOn) 
+    {
+        // Use getObjectByName to find a specific light
+        // const light = scene.getObjectByName(lightName);
+        if (light) {
+            light.intensity = isOn ? 5 : 0;
+        }
+    }
+
+    function findLights()
+    {
+      scene.traverse((child) => {
+          if (child.isLight) {
+              lights.push(child);
+          }
+      });
+    }
+
+    hover1.addEventListener('mouseenter', () => toggleLight(lights[1], true));
+    hover1.addEventListener('mouseleave', () => toggleLight(lights[1], false));
+
+    hover2.addEventListener('mouseenter', () => toggleLight(lights[0], true));
+    hover2.addEventListener('mouseleave', () => toggleLight(lights[0], false));
 
     // Load 3D Model
     const loader = new GLTFLoader();
@@ -240,7 +267,7 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
     if(allModels.length != 0)
     {
       loadAllModels();
-      
+      findLights();
     }
 
     function loadAllModels()
