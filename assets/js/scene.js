@@ -239,7 +239,7 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
         // Use getObjectByName to find a specific light
         // const light = scene.getObjectByName(lightName);
         if (light) {
-            light.intensity = isOn ? 5 : 0;
+            light.intensity = isOn ? 3 : 0;
         }
     }
 
@@ -252,11 +252,11 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
       });
     }
 
-    hover1.addEventListener('mouseenter', () => toggleLight(lights[1], true));
-    hover1.addEventListener('mouseleave', () => toggleLight(lights[1], false));
+    if(hover1) hover1.addEventListener('mouseenter', () => toggleLight(lights[1], true));
+    if(hover1) hover1.addEventListener('mouseleave', () => toggleLight(lights[1], false));
 
-    hover2.addEventListener('mouseenter', () => toggleLight(lights[0], true));
-    hover2.addEventListener('mouseleave', () => toggleLight(lights[0], false));
+    if(hover2) hover2.addEventListener('mouseenter', () => toggleLight(lights[0], true));
+    if(hover2) hover2.addEventListener('mouseleave', () => toggleLight(lights[0], false));
 
     // Load 3D Model
     const loader = new GLTFLoader();
@@ -302,6 +302,13 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
                 side: THREE.DoubleSide // Render both sides of the plane
             });
         newThreeJsObject = new THREE.Mesh(planeGeo, planeMaterial);
+      }
+      else if(type == 'cube')
+      {
+        const cubeGeo = new THREE.BoxGeometry(1, 1, 1);
+        const cubeMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
+        // const cube = new Mesh(cubeGeo, cubeMaterial);
+        newThreeJsObject = new THREE.Mesh(cubeGeo, cubeMaterial);
       }
       else if(type == 'model' )
       {

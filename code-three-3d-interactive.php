@@ -1063,85 +1063,79 @@ function c33d_editor_page($post) {
                 <hr>
                 
 
-                <label>Materials</label>
-
+                
                 <div id="materialPropertiesPanel" class="hidden">
-                <select id="materialSelector" class="select-input">
-                    <!-- Options will be populated by JavaScript -->
-                </select>
+                    <label>Materials</label>
+                    <select id="materialSelector" class="select-input">
+                        <!-- Options will be populated by JavaScript -->
+                    </select>
 
-                <!-- Material Properties Panel (Initially hidden) -->
-                    <!-- Material Color Control -->
-
-
-
-                    <label for="materialColor" class="property-label">Base</label>
-                    <div class="transform-group">
-                        <input type="color" id="materialColor" class="color-picker">
-                    <!-- </div> -->
-
-                    <!-- Material Texture Button -->
-                    <!-- <div class="texture-button-container"> -->
-                        <button type="button" id="materialTextureBtn" class="texture-button">
-                            Texture
-                        </button>
-                        <button type="button" id="deleteTexture" class="texture-button">
-                            <span class="dashicons dashicons-trash"></span>
-                        </button>
-                    </div>
-
-                    <!-- Emissive Color Control -->
-                    <label for="emissiveColor" class="property-label">Emissive</label>
-                    <div class="transform-group">
-                        <input type="color" id="emissiveColor" class="color-picker">
-                    <!-- </div> -->
-
-                        <button type="button" id="emissiveTextureBtn" class="texture-button">
-                            Texture
-                        </button>
-
-                        <button type="button" id="deleteEmissive" class="texture-button">
-                            <span class="dashicons dashicons-trash"></span>
-                        </button>
-                    </div>
-
-                    <div class="transform-group">
-                        <label for="blendMode" class="property-label">Blending</label>
-                        <select id="blendMode">
-                            <option value="NormalBlending">Normal</option>
-                            <option value="AdditiveBlending">Additive</option>
-                            <option value="SubtractiveBlending">Subtractive</option>
-                            <option value="MultiplyBlending">Multiply</option>
-                            <option value="NoBlending">None</option>
-                            <!-- <option value="CustomBlending">Custom Blending</option> -->
-                        </select>
-
-                    </div>
-
-                    <div class="transform-group">
-                        <label for="stencil-send">Stencil Send</label>
-                        <input id="stencil-send" type="number">
-                    </div>
-                    <div class="transform-group">
-                        <label for="stencil-receive">Stencil Recieve</label>
-                        <input id="stencil-receive" type="number">
-                    </div>
-                    <div class="transform-group">
-                        <label for="stencil-receive">Equal Stencil</label>
-                        <input type="checkbox" id="stencilShowHide" checked class="form-checkbox h-5 w-5 text-indigo-600 rounded focus:ring-indigo-500 transition duration-150 ease-in-out">
-                    </div>
+                    <!-- Material Properties Panel (Initially hidden) -->
+                        <!-- Material Color Control -->
 
 
-                    <hr>
+
+                        <label for="materialColor" class="property-label">Base</label>
+                        <div class="transform-group">
+                            <input type="color" id="materialColor" class="color-picker">
+                        <!-- </div> -->
+
+                        <!-- Material Texture Button -->
+                        <!-- <div class="texture-button-container"> -->
+                            <button type="button" id="materialTextureBtn" class="texture-button">
+                                Texture
+                            </button>
+                            <button type="button" id="deleteTexture" class="texture-button">
+                                <span class="dashicons dashicons-trash"></span>
+                            </button>
+                        </div>
+
+                        <!-- Emissive Color Control -->
+                        <label for="emissiveColor" class="property-label">Emissive</label>
+                        <div class="transform-group">
+                            <input type="color" id="emissiveColor" class="color-picker">
+                        <!-- </div> -->
+
+                            <button type="button" id="emissiveTextureBtn" class="texture-button">
+                                Texture
+                            </button>
+
+                            <button type="button" id="deleteEmissive" class="texture-button">
+                                <span class="dashicons dashicons-trash"></span>
+                            </button>
+                        </div>
+
+                        <div class="transform-group">
+                            <label for="blendMode" class="property-label">Blending</label>
+                            <select id="blendMode">
+                                <option value="NormalBlending">Normal</option>
+                                <option value="AdditiveBlending">Additive</option>
+                                <option value="SubtractiveBlending">Subtractive</option>
+                                <option value="MultiplyBlending">Multiply</option>
+                                <option value="NoBlending">None</option>
+                                <!-- <option value="CustomBlending">Custom Blending</option> -->
+                            </select>
+
+                        </div>
+
+                        <div class="transform-group">
+                            <label for="stencil-send">Stencil Send</label>
+                            <input id="stencil-send" type="number">
+                        </div>
+                        <div class="transform-group">
+                            <label for="stencil-receive">Stencil Recieve</label>
+                            <input id="stencil-receive" type="number">
+                        </div>
+                        <div class="transform-group">
+                            <label for="stencil-receive">Equal Stencil</label>
+                            <input type="checkbox" id="stencilShowHide" checked class="form-checkbox h-5 w-5 text-indigo-600 rounded focus:ring-indigo-500 transition duration-150 ease-in-out">
+                        </div>
 
 
-                    
-
+                        <hr>              
 
                 </div>
-            </div>
-
-            <div style="">
+                <div style="">
                         <label for="parentSelector">Move to group:</label>
                         <select id="parentSelector" style="width: 100%; padding: 5px;"></select>
                     <label>Current group: <span id='current-group-label'></span></label>
@@ -1151,6 +1145,9 @@ function c33d_editor_page($post) {
                         <label for="parentSelector">On Click Link</label>
                         <input type="text" id="link_input" placeholder="Add Link"/>
                     </div>
+            </div> 
+
+            
             
             <div class='tabContent csettings'>
                 <label>Breakpoint (px) </label>
