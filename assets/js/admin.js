@@ -1555,9 +1555,14 @@ showLightHelpers.oninput = () => {
             {
               // modelConfigInstance.modelName = 'Image' + allGroups.length;
             }
-            else
+            else if(type.startsWith('light'))
             {
               modelConfigInstance.modelName = newThreeJsObject.type + allThreeJsObj.length;
+            }
+            else
+            {
+              modelConfigInstance.modelName = type + allThreeJsObj.length;
+              // modelConfigInstance.modelName = newThreeJsObject.type + allThreeJsObj.length;
             }
             // Apply default (or initial UI) transforms to the new Three.js object.
             // The ModelConfig constructor already sets defaults for position, rotation, scale.
