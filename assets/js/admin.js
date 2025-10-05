@@ -3255,7 +3255,7 @@ function transformDragEnd(){
             // materialListDiv.innerHTML = 'None'; 
           }
 
-          
+          updateShadowUI();
 
           updateLightUI(selectedObj.isLight);
 
@@ -4337,6 +4337,12 @@ function getThreeJsObjectByUuid(modelId)
             checkShadowsEnabled();
           }
       });
+
+      function updateShadowUI()
+      {
+        recieveInput.checked = selectedObj.receiveShadow;
+        castInput.checked = selectedObj.castShadow;
+      }
 
 
       // todo, disable if all shadow settings set back to false
