@@ -454,7 +454,7 @@ window.onload = () =>
 
     //should set stencil true only when it's used i.e. after first material set to stencil
     const renderer = new THREE.WebGLRenderer({antialias: true, alpha: true, stencil: true});
-    renderer.shadowMap.enabled = true;
+    // renderer.shadowMap.enabled = true;
     renderer.setSize(container.clientWidth, container.clientHeight);
     container.appendChild(renderer.domElement);
     renderer.outputColorSpace  = THREE.SRGBColorSpace;
@@ -1498,9 +1498,13 @@ showLightHelpers.oninput = () => {
             newThreeJsObject.rotation.copy(modelConfigInstance.rotation);
             newThreeJsObject.scale.copy(modelConfigInstance.scale);
 
-
             newThreeJsObject.castShadow = modelConfigInstance.castShadow;
             newThreeJsObject.receiveShadow = modelConfigInstance.receiveShadow;
+
+            if(modelConfigInstance.castShadow || modelConfigInstance.receiveShadow)
+            {
+              checkShadowsEnabled();
+            }
             // Find the corresponding plain object in sceneData.models and update it
             // This ensures sceneData.models is kept in sync with the current instance state
             // (e.g., if modelUrl changed).
@@ -4311,7 +4315,10 @@ function getThreeJsObjectByUuid(modelId)
             console.log(`Three.js Object Shadow Update: castShadow set to ${isCasting}`);
             updateModelData(selectedObjData); 
             updateSaveField();
-
+            if(isCasting)
+            {
+              checkShadowsEnabled();
+            }
         });
 
         recieveInput.addEventListener('change', function() {
@@ -4325,8 +4332,22 @@ function getThreeJsObjectByUuid(modelId)
           console.log(`Three.js Object Shadow Update: receive shadow set to ${isReceiving}`);
           updateModelData(selectedObjData); 
           updateSaveField();
+          if(isReceiving)
+          {
+            checkShadowsEnabled();
+          }
       });
 
+
+      // todo, disable if all shadow settings set back to false
+      function checkShadowsEnabled()
+      {
+        if (!renderer.shadowMap.enabled) 
+        {
+          // Only enable if the user is turning a shadow-related setting ON
+          renderer.shadowMap.enabled = true;
+        }
+      }
 
         //are you sure before closing
         window.addEventListener('beforeunload', function (event) {
