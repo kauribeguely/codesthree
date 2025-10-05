@@ -1235,8 +1235,31 @@ function c33d_editor_page($post) {
 
                 
                 <hr>
+                
+                <label for="recieve_shadows">Shadows</label>
+                <div class="transform-group">
+                    <label for="cast_shadows">Cast</label>
+                    <input type="checkbox" name="cast_shadows" id="cast_shadows" />
+                    <label for="recieve_shadows">Recieve</label>
+                    <input type="checkbox" name="recieve_shadows" id="recieve_shadows" />
+                </div>
 
                 <div id="selectedLightInputs" style="display:none">
+
+                    <label for="shadow_intensity">Shadow Intensity</label>
+                    <div class="rangeWithValue">
+                        <input type="range" name="shadow_intensity" id="shadow_intensity" max="1" step="0.01" value="" />
+                        <span id="shadow_intensity_span">1</span>
+                    </div>
+
+                    <label for="shadow_radius">Shadow Radius</label>
+                    <div class="rangeWithValue">
+                        <input type="range" name="shadow_radius" id="shadow_radius" max="5" step="0.01" value="" />
+                        <span id="shadow_radius_span">1</span>
+                    </div>
+
+                    <hr>
+
                     <div class="transform-group">
                             <label style="width:30%">Colour</label>
                             <input type="color" id="lightColor" class="color-picker">
@@ -1249,6 +1272,9 @@ function c33d_editor_page($post) {
                     </div>
                 </div>
 
+
+
+            <!-- end light tab -->
             </div>
         </div>
 

@@ -41,6 +41,9 @@ const lightSelector = document.getElementById('light-selector');
 const lightColor = document.getElementById('lightColor');
 const selectedLightInputs = document.getElementById('selectedLightInputs');
 
+const castInput = document.getElementById('cast_shadows');
+const recieveInput = document.getElementById('recieve_shadows'); 
+
 let editingTextureType = null; // 'map' or 'emissiveMap'
 let selectedMaterials = null;
 let mediaModelOpen = false;
@@ -80,6 +83,8 @@ window.onload = () =>
         isStencil: false,
         link: null,
         lightSettings: {},
+        castShadow: false,
+        receiveShadow: false,
     };
 
     constructor(data = {}) {
@@ -449,6 +454,7 @@ window.onload = () =>
 
     //should set stencil true only when it's used i.e. after first material set to stencil
     const renderer = new THREE.WebGLRenderer({antialias: true, alpha: true, stencil: true});
+    renderer.shadowMap.enabled = true;
     renderer.setSize(container.clientWidth, container.clientHeight);
     container.appendChild(renderer.domElement);
     renderer.outputColorSpace  = THREE.SRGBColorSpace;
@@ -1492,6 +1498,9 @@ showLightHelpers.oninput = () => {
             newThreeJsObject.rotation.copy(modelConfigInstance.rotation);
             newThreeJsObject.scale.copy(modelConfigInstance.scale);
 
+
+            newThreeJsObject.castShadow = modelConfigInstance.castShadow;
+            newThreeJsObject.receiveShadow = modelConfigInstance.receiveShadow;
             // Find the corresponding plain object in sceneData.models and update it
             // This ensures sceneData.models is kept in sync with the current instance state
             // (e.g., if modelUrl changed).
@@ -4288,6 +4297,35 @@ function getThreeJsObjectByUuid(modelId)
 
             }
         });
+
+        castInput.addEventListener('change', function() {
+            const isCasting = this.checked;
+            
+            selectedObj.castShadow = isCasting;
+            
+            selectedObjData.castShadow = isCasting;
+            
+            if (selectedObj.material) {
+                selectedObj.material.needsUpdate = true;
+            }
+            console.log(`Three.js Object Shadow Update: castShadow set to ${isCasting}`);
+            updateModelData(selectedObjData); 
+            updateSaveField();
+
+        });
+
+        recieveInput.addEventListener('change', function() {
+          const isReceiving = this.checked;
+          selectedObj.receiveShadow = isReceiving; 
+          selectedObjData.receiveShadow = isReceiving;
+        
+          if (selectedObj.material) {
+              selectedObj.material.needsUpdate = true;
+          }
+          console.log(`Three.js Object Shadow Update: receive shadow set to ${isReceiving}`);
+          updateModelData(selectedObjData); 
+          updateSaveField();
+      });
 
 
         //are you sure before closing
