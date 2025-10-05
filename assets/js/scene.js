@@ -298,7 +298,7 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
         //add to scene, add to sceneData
         const planeGeo = new THREE.PlaneGeometry(1, 1); 
         const planeMaterial = new THREE.MeshStandardMaterial({
-                color: 0x00ff00, // Green color
+                color: 0xffffff, // Green color
                 side: THREE.DoubleSide // Render both sides of the plane
             });
         newThreeJsObject = new THREE.Mesh(planeGeo, planeMaterial);
@@ -400,7 +400,12 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
 
           objData.threeJsObject = newThreeJsObject;
           if(objData && Object.keys(objData.materialProperties).length != 0) applyMaterialPropertiesToModel(newThreeJsObject, objData);
-
+          newThreeJsObject.castShadow = objData.castShadow;
+          newThreeJsObject.receiveShadow = objData.receiveShadow;
+          if(objData.castShadow || objData.receiveShadow)
+          {
+            checkShadowsEnabled();
+          }
           currentRotation.copy(lastAddedObject.rotation); // The most direct way
 
           renderer.render(scene, camera);
@@ -975,6 +980,15 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
       }
 
       
+  }
+
+  function checkShadowsEnabled()
+  {
+    if (!renderer.shadowMap.enabled) 
+    {
+      // Only enable if the user is turning a shadow-related setting ON
+      renderer.shadowMap.enabled = true;
+    }
   }
 
   

@@ -1498,10 +1498,10 @@ showLightHelpers.oninput = () => {
             newThreeJsObject.rotation.copy(modelConfigInstance.rotation);
             newThreeJsObject.scale.copy(modelConfigInstance.scale);
 
-            newThreeJsObject.castShadow = modelConfigInstance.castShadow;
-            newThreeJsObject.receiveShadow = modelConfigInstance.receiveShadow;
+            newThreeJsObject.castShadow = objData.castShadow;
+            newThreeJsObject.receiveShadow = objData.receiveShadow;
 
-            if(modelConfigInstance.castShadow || modelConfigInstance.receiveShadow)
+            if(objData.castShadow || objData.receiveShadow)
             {
               checkShadowsEnabled();
             }
