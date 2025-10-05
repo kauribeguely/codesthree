@@ -4312,6 +4312,11 @@ function getThreeJsObjectByUuid(modelId)
             if (selectedObj.material) {
                 selectedObj.material.needsUpdate = true;
             }
+
+            if (selectedObj.children && selectedObj.children.length > 0) {
+                applyShadowProperties(selectedObj, 'castShadow', isCasting);
+            }
+
             console.log(`Three.js Object Shadow Update: castShadow set to ${isCasting}`);
             updateModelData(selectedObjData); 
             updateSaveField();
@@ -4329,6 +4334,11 @@ function getThreeJsObjectByUuid(modelId)
           if (selectedObj.material) {
               selectedObj.material.needsUpdate = true;
           }
+
+          if (selectedObj.children && selectedObj.children.length > 0) {
+              applyShadowProperties(selectedObj, 'receiveShadow', isReceiving);
+          }
+
           console.log(`Three.js Object Shadow Update: receive shadow set to ${isReceiving}`);
           updateModelData(selectedObjData); 
           updateSaveField();
@@ -4353,6 +4363,23 @@ function getThreeJsObjectByUuid(modelId)
           // Only enable if the user is turning a shadow-related setting ON
           renderer.shadowMap.enabled = true;
         }
+      }
+
+      function applyShadowProperties(object, propertyName, value) {
+          object.traverse((child) => {
+              if (child.isMesh) {
+                  // 💡 Use bracket notation to access the property by its string name
+                  child[propertyName] = value; 
+                  
+                  // Log for debugging 
+                  // console.log(`Setting ${child.name}.${propertyName} to ${value}`);
+
+                  // Always set needsUpdate when changing object visibility/shadow properties
+                  if (child.material) {
+                      child.material.needsUpdate = true;
+                  }
+              }
+          });
       }
 
         //are you sure before closing
