@@ -1387,6 +1387,13 @@ showLightHelpers.oninput = () => {
         // const cube = new Mesh(cubeGeo, cubeMaterial);
         newThreeJsObject = new THREE.Mesh(cubeGeo, cubeMaterial);
       }
+      else if(type == 'sphere')
+      {
+        const sphereGeo = new THREE.SphereGeometry(1, 32, 16);
+        const sphereMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
+        // const cube = new Mesh(cubeGeo, cubeMaterial);
+        newThreeJsObject = new THREE.Mesh(sphereGeo, sphereMaterial);
+      }
       else if(type == 'model' )
       {
         loadModel(objData.modelUrl, objData, callback, index);
@@ -1499,7 +1506,14 @@ showLightHelpers.oninput = () => {
             newThreeJsObject.scale.copy(modelConfigInstance.scale);
 
             newThreeJsObject.castShadow = objData.castShadow;
+            if (newThreeJsObject.children && newThreeJsObject.children.length > 0) {
+              applyShadowProperties(newThreeJsObject, 'castShadow', objData.castShadow);
+            }
+            
             newThreeJsObject.receiveShadow = objData.receiveShadow;
+            if (newThreeJsObject.children && newThreeJsObject.children.length > 0) {
+              applyShadowProperties(newThreeJsObject, 'receiveShadow', objData.receiveShadow);
+            }
 
             if(objData.castShadow || objData.receiveShadow)
             {
@@ -1870,6 +1884,7 @@ function transformDragEnd(){
     const addImageButton = document.getElementById('add_image_button');
     const addPlaneButton = document.getElementById('add_plane_button');
     const addCubeButton = document.getElementById('add_cube_button');
+    const addSphereButton = document.getElementById('add_sphere_button');
     const addGroupButton = document.getElementById('add_group_button');
     const deleteModelButton = document.getElementById('delete_model_button');
     const popup = document.getElementById('newScenePopup');
@@ -1948,6 +1963,10 @@ function transformDragEnd(){
 
     addCubeButton.addEventListener('click', function (e) {
         createObject('cube');
+    });
+
+    addSphereButton.addEventListener('click', function (e) {
+        createObject('sphere');
     });
 
     closeModalBtn.addEventListener('click', toggleMediaModal);
@@ -4362,6 +4381,7 @@ function getThreeJsObjectByUuid(modelId)
         {
           // Only enable if the user is turning a shadow-related setting ON
           renderer.shadowMap.enabled = true;
+          renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         }
       }
 

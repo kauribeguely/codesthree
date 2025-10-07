@@ -951,6 +951,7 @@ function c33d_editor_page($post) {
                 <div class="transform-group">
                     <button style="" type="button" class="button" id="add_plane_button" >Plane</button>
                     <button style="" type="button" class="button" id="add_cube_button" >Cube</button>
+                    <button style="" type="button" class="button" id="add_sphere_button" >Sphere</button>
                 </div>
                 <!-- <div style="position: absolute; top: 10px; right: 10px; z-index: 100;"> -->
                     <select id="light-selector" style="padding: 5px; border-radius: 5px; font-family: sans-serif;">
