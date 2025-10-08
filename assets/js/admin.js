@@ -1454,6 +1454,8 @@ showLightHelpers.oninput = () => {
       // else if(lightType == 'pointlight')
       {
         newLight = new THREE.PointLight(color, intensity);  
+        newLight.angle = 0.2; 
+        newLight.penumbra = 0.5;
         newHelper = new THREE.PointLightHelper(newLight, 0.5);
       }
 
@@ -3171,9 +3173,6 @@ function transformDragEnd(){
         }
 
         if (intersects.length > 0) {
-          // An object was clicked! Get the first (closest) intersected sub-object.
-          let intersectedSubObject = intersects[0].object;
-          
           // Check if TransformControls is active/dragging. If so, don't re-select. 
           if (controls.dragging) { 
               return; 
@@ -3183,35 +3182,51 @@ function transformDragEnd(){
           // controls.visible = true;
           isDragging = true;
 
-          // Find the actual top-level object (Model or Light Helper).
           let selectableObject = null;
-          let currentObject = intersectedSubObject; // Start with the sub-object hit
+          let selectedIntersection = null;
 
-          while (currentObject) {
+          // Iterate through all intersections to find the first selectable object.
+          for (let i = 0; i < intersects.length; i++) {
+              let intersectedSubObject = intersects[i].object;
+              let currentObject = intersectedSubObject;
               
-              // 1. **PRIORITY CHECK: Is the current object the top-level Light Helper?**
-              //    We check this first because if we hit a helper's child, we need to find the helper parent.
-              if (allLightHelpers.includes(currentObject)) {
-                  // Found the top-level LightHelper group! Select the actual Light object.
-                  selectableObject = currentObject.light;
+              // Traverse up the parent chain to find the top-level object or helper
+              while (currentObject) {
+                  
+                  // 1. **Check for Light Helper:**
+                  if (allLightHelpers.includes(currentObject)) {
+                      
+                      // If light helpers are CHECKED, select the light and break the loop.
+                      if (showLightHelpers.checked) {
+                          selectableObject = currentObject.light;
+                          selectedIntersection = intersects[i];
+                      }
+                      // If light helpers are NOT checked, we IGNORE this intersection 
+                      // and break the INNER (while) loop to check the next object in the intersects array.
+                      break; 
+                  }
+
+                  // 2. **Check for Model/Group:**
+                  if (allThreeJsObj.includes(currentObject)) {
+                      selectableObject = currentObject;
+                      selectedIntersection = intersects[i];
+                      break; 
+                  }
+                  
+                  // Move up the scene graph
+                  currentObject = currentObject.parent;
+              }
+
+              // If we found a selectable object (light OR model), stop searching
+              if (selectableObject) {
                   break; 
               }
-
-              // 2. **SECONDARY CHECK: Is the current object the top-level Model/Group?**
-              if (allThreeJsObj.includes(currentObject)) {
-                  selectableObject = currentObject;
-                  break;
-              }
-              
-              // Move up the scene graph hierarchy
-              currentObject = currentObject.parent;
           }
           
-          // Ensure an object was successfully found before proceeding
+          // Process the selected object
           if (selectableObject) {
               
-              // Update the plane for TransformControls based on the selected object's position
-              // This is necessary whether it's a Light or a Model.
+              // Use the position of the selected object for the plane
               plane.setFromNormalAndCoplanarPoint(
                   camera.getWorldDirection(plane.normal), // Plane perpendicular to camera's view
                   selectableObject.position 
