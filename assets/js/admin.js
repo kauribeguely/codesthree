@@ -3141,6 +3141,7 @@ function transformDragEnd(){
         mouseDown = false;
       }
 
+
       function sceneOnMouseDown(event)
       {
         // 1. Calculate mouse position in normalized device coordinates (-1 to +1)
@@ -3157,7 +3158,11 @@ function transformDragEnd(){
         // 3. Find intersecting objects.
         //    Only intersect with objects you want to be selectable.
         //    `modelsInScene` should contain your top-level loaded models/groups.
-        const intersects = raycaster.intersectObjects(allThreeJsObj, true); // `true` for recursive (checks children)
+        // const intersects = raycaster.intersectObjects(allThreeJsObj, true); // `true` for recursive (checks children)
+
+        // Combine your selectable models and light helpers for intersection testing
+        const selectableObjects = [...allThreeJsObj, ...allLightHelpers];
+        const intersects = raycaster.intersectObjects(selectableObjects, true); // true for recursive
 
         // Check if TransformControls is active/dragging. If so, don't re-select.
         // This is important to prevent accidental re-selection when trying to drag an object.
@@ -3166,40 +3171,55 @@ function transformDragEnd(){
         }
 
         if (intersects.length > 0) {
-            // An object was clicked! Get the first (closest) intersected object.
-            let clickedObject = intersects[0].object;
-            // controls.enabled = true;
-            // controls.visible = true;
+          // An object was clicked! Get the first (closest) intersected sub-object.
+          let intersectedSubObject = intersects[0].object;
+          
+          // Check if TransformControls is active/dragging. If so, don't re-select. 
+          if (controls.dragging) { 
+              return; 
+          }
 
-            isDragging = true;
+          // controls.enabled = true;
+          // controls.visible = true;
+          isDragging = true;
 
-            
+          // Find the actual top-level object (Model or Light Helper).
+          let selectableObject = null;
+          let currentObject = intersectedSubObject; // Start with the sub-object hit
 
-            // Find the top-level object in `modelsInScene` that this clicked object belongs to.
-            // This is crucial because `TransformControls` needs to attach to the top-level group/model.
-            let selectableObject = null;
-            while (clickedObject) {
-                if (allThreeJsObj.includes(clickedObject)) {
-                    selectableObject = clickedObject;
-                    break;
-                }
-                clickedObject = clickedObject.parent;
-            }
+          while (currentObject) {
+              
+              // 1. **PRIORITY CHECK: Is the current object the top-level Light Helper?**
+              //    We check this first because if we hit a helper's child, we need to find the helper parent.
+              if (allLightHelpers.includes(currentObject)) {
+                  // Found the top-level LightHelper group! Select the actual Light object.
+                  selectableObject = currentObject.light;
+                  break; 
+              }
 
+              // 2. **SECONDARY CHECK: Is the current object the top-level Model/Group?**
+              if (allThreeJsObj.includes(currentObject)) {
+                  selectableObject = currentObject;
+                  break;
+              }
+              
+              // Move up the scene graph hierarchy
+              currentObject = currentObject.parent;
+          }
+          
+          // Ensure an object was successfully found before proceeding
+          if (selectableObject) {
+              
+              // Update the plane for TransformControls based on the selected object's position
+              // This is necessary whether it's a Light or a Model.
+              plane.setFromNormalAndCoplanarPoint(
+                  camera.getWorldDirection(plane.normal), // Plane perpendicular to camera's view
+                  selectableObject.position 
+              );
 
-            plane.setFromNormalAndCoplanarPoint(
-                camera.getWorldDirection(plane.normal), // Plane perpendicular to camera's view
-                clickedObject.position // Or the intersection point itself, if you want a different drag feel
-            );
-
-            // if(selectedObjData.link != null)
-            // {
-            //   // window.location.href = "https://www.example.com";
-            //   window.open(selectedObjData.link, '_blank');
-            // }
-
-            selectModelForEditing(selectableObject); // Call your existing selection function
-            
+              // Your selection/editing function
+              selectModelForEditing(selectableObject); 
+          }
            
 
             const worldPos = selectedObj.getWorldPosition(new THREE.Vector3());
