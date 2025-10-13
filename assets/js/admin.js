@@ -53,6 +53,15 @@ const deleteEmissiveBtn = document.getElementById('deleteEmissive');
 
 let allLightHelpers = [];
 
+let mouseFollowObj = [];
+
+const targetZ = 3; // Fixed Z position for the light (how far it is from the scene)
+const rangeX = 10; // How far the light can move horizontally (X-axis)
+const rangeY = 10; // How far the light can move vertically (Y-axis)
+let lastLight;
+let lastLightFollow = false;
+
+
 // document.addEventListener('DOMContentLoaded', () => {
 window.onload = () =>
 {
@@ -1463,6 +1472,7 @@ showLightHelpers.oninput = () => {
       // newLight.add(newHelper);
       scene.add(newHelper);
       allLightHelpers.push(newHelper);
+      lastLight = newLight;
       return newLight;
     }
 
@@ -2372,7 +2382,22 @@ function transformDragEnd(){
             // Update any necessary transforms
             updateTransforms();
 
-          }            
+          
+          }
+          
+
+          if(lastLightFollow)
+          {
+            // light link to mouse
+            const newX = mouse.x * (rangeX / 2);      
+            // 2. Map the mouse.y (-1 to 1) to the scene's Y range (Z-axis in scene space)
+            // We use the scene's Z-axis to move the light forward/backward relative to the camera
+            const newZ = mouse.y * (rangeY / 2);
+            lastLight.position.x = newX;
+            // lastLight.position.z = newZ + targetZ; 
+            lastLight.position.y = newZ; 
+          }
+
         }
       };
       window.addEventListener('mousemove', onMouseMove);
@@ -2729,6 +2754,9 @@ function transformDragEnd(){
                 createObject('cube');
                 // createObject('imageplane', {planeUrl: "http://localhost/wpLocalEdge/wp-content/uploads/2025/07/lapimg.jpg"});
                 break;  
+          case 'i': 
+              lastLightFollow = !lastLightFollow;  
+              break;  
           case 't': // Translate mode
                 setTransformMode('translate');
                 break;
