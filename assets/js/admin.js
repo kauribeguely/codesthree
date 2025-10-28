@@ -1633,7 +1633,10 @@ showLightHelpers.oninput = () => {
 
         // Load any changed textures
         // if(newThreeJsObject.userData.type == 'model' && objData) modelConfigInstance.applyMaterialPropertiesToModel();
-        if(objData && Object.keys(objData.materialProperties).length != 0) modelConfigInstance.applyMaterialPropertiesToModel();
+        if(objData && objData.materialProperties)
+        {
+          if(Object.keys(objData.materialProperties).length != 0) modelConfigInstance.applyMaterialPropertiesToModel();
+        }
 
         // Add the new Three.js object to our active tracking array and the scene.
         selectedObj = newThreeJsObject;
