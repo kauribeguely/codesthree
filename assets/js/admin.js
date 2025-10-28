@@ -1102,15 +1102,7 @@ showLightHelpers.oninput = () => {
       {
         //when intiate new scene, show the open popup
         isInitialLoad = false;
-        createObject('lightD')
-          .then(dlight => {
-            dlight.position.set(1.66, 1.66, 0);
-            // You can now use dlight here, as it's guaranteed to be created
-          })
-          .catch(error => {
-            console.error("Failed to create light object:", error);
-          });
-        createObject('lightA');
+        
         showIntroPopup();
       }
       // applyGlobalSettings();
@@ -1131,6 +1123,19 @@ showLightHelpers.oninput = () => {
       updateSaveField();
       animate();
 
+    }
+
+    function addDefaultLights()
+    {
+      createObject('lightD')
+          .then(dlight => {
+            dlight.position.set(1.66, 1.66, 0);
+            // You can now use dlight here, as it's guaranteed to be created
+          })
+          .catch(error => {
+            console.error("Failed to create light object:", error);
+          });
+        createObject('lightA');
     }
 
     function showIntroPopup()
@@ -1169,6 +1174,8 @@ showLightHelpers.oninput = () => {
     
     function initFromJson(importJson)
     {
+      isFullSceneInit = true;
+      deleteAllObjects();
       // allSceneData = JSON.parse(importString);
       // const importedSceneData = JSON.parse(importJson.scene_data);
       // const importedSceneData = importJson.scene_data;
@@ -1188,6 +1195,19 @@ showLightHelpers.oninput = () => {
       isInitialLoad = true; 
       itemsLoaded = 0;
       loadAllModels();
+      isFullSceneInit = false;
+    }
+
+    function deleteAllObjects() {
+        
+        // Use forEach for a clean, direct iteration
+        allThreeJsObj.forEach(threeJsObject => {
+            deleteObject(threeJsObject);
+        });
+
+        // Optionally, clear the array after all objects have been deleted
+        // allThreeJsObj.length = 0; 
+        
     }
 
     function loadAllMobileData()
@@ -1275,6 +1295,13 @@ showLightHelpers.oninput = () => {
 
     function loadModel(url, objData, callback, index)
     {
+      
+      // if(allThreeJsObj.length == 0 && !type.startsWith('light'))
+      if(allThreeJsObj.length == 0 && !isFullSceneInit)
+      {
+        addDefaultLights();
+      }
+      
       loader.load(url, (gltf) =>
       {
           gltf.scene.userData.type = 'model';
@@ -1367,6 +1394,8 @@ showLightHelpers.oninput = () => {
     async function createObject(type, objData, callback, index)
     {
       let newThreeJsObject;
+
+
       if(type == 'group')
       {
         //add to scene, add to sceneData
@@ -3920,6 +3949,7 @@ function getThreeJsObjectByUuid(modelId)
 
       // async function initiateSceneConfigImport(sceneUrl, sceneId, buttonElement = null) {
       // async function downloadInitFullScene(sceneName, modelList) 
+      let isFullSceneInit = false;
       async function downloadInitFullScene(sceneName, button) 
       {
 
