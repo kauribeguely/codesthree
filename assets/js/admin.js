@@ -61,6 +61,9 @@ const rangeY = 10; // How far the light can move vertically (Y-axis)
 let lastLight;
 let lastLightFollow = false;
 
+      let isFullSceneInit = false;
+
+
 
 // document.addEventListener('DOMContentLoaded', () => {
 window.onload = () =>
@@ -1226,7 +1229,7 @@ showLightHelpers.oninput = () => {
       const threeJsObject = allThreeJsObj[index];
       // if(threeJsObject.userData.modelConfigRefMob != undefined)
       // {
-        threeJsObject.userData.modelConfigRefMob = ModelConfig.fromPlainObject(data);
+      if(threeJsObject) threeJsObject.userData.modelConfigRefMob = ModelConfig.fromPlainObject(data);
       // }
       // else
       // {
@@ -1293,14 +1296,32 @@ showLightHelpers.oninput = () => {
       duplicateObject(selectedObj);
     }
 
+    function randomAllLightIntensities()
+    {
+      // Loop through every object in your array
+    allThreeJsObj.forEach(threeJsObject => {
+        
+        // Check if the object is a type of light that has an 'intensity' property.
+        // The property 'isLight' is a standard feature in most Three.js light classes (e.g., PointLight, DirectionalLight).
+        if (threeJsObject.isLight) {
+            
+            // Get a new random intensity value
+            const newIntensity = Math.random() * (3 - 0) + 0;
+            
+            // Apply the new intensity
+            threeJsObject.intensity = newIntensity;
+        }
+    });
+    }
+
     function loadModel(url, objData, callback, index)
     {
       
       // if(allThreeJsObj.length == 0 && !type.startsWith('light'))
-      if(allThreeJsObj.length == 0 && !isFullSceneInit)
-      {
-        addDefaultLights();
-      }
+      // if(allThreeJsObj.length == 0 && !isFullSceneInit)
+      // {
+      //   addDefaultLights();
+      // }
       
       loader.load(url, (gltf) =>
       {
@@ -2783,7 +2804,8 @@ function transformDragEnd(){
           case 'h': 
                 // createObject('lightP');
                 // createObject('plane');
-                createObject('cube');
+                // createObject('cube');
+                setInterval(randomAllLightIntensities, 100);
                 // createObject('imageplane', {planeUrl: "http://localhost/wpLocalEdge/wp-content/uploads/2025/07/lapimg.jpg"});
                 break;  
           case 'i': 
@@ -3949,7 +3971,6 @@ function getThreeJsObjectByUuid(modelId)
 
       // async function initiateSceneConfigImport(sceneUrl, sceneId, buttonElement = null) {
       // async function downloadInitFullScene(sceneName, modelList) 
-      let isFullSceneInit = false;
       async function downloadInitFullScene(sceneName, button) 
       {
 
