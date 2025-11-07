@@ -1204,8 +1204,9 @@ showLightHelpers.oninput = () => {
     function deleteAllObjects() {
         
         // Use forEach for a clean, direct iteration
-        allThreeJsObj.forEach(threeJsObject => {
-            deleteObject(threeJsObject);
+        [...allThreeJsObj].forEach(objectToDelete => {
+            // This loops over a copy of the array.
+            deleteObject(objectToDelete);
         });
 
         // Optionally, clear the array after all objects have been deleted
