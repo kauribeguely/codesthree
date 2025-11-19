@@ -63,6 +63,7 @@ let lastLightFollow = false;
 
       let isFullSceneInit = false;
 
+      let defaultLightTimer;
 
 
 // document.addEventListener('DOMContentLoaded', () => {
@@ -1050,6 +1051,9 @@ function toggleCamera()
     controls.camera = camera;
     orbitControls.camera = camera;
     orbitControls.object = camera;
+
+    onWindowResize(); 
+
     orbitControls.update();
 
     // camera.position.set(cameraPos[0], cameraPos[1], cameraPos[2]);
@@ -1751,6 +1755,22 @@ showLightHelpers.oninput = () => {
         {
           callback();
         }
+
+       if (allThreeJsObj.length == 0 && !isFullSceneInit) {
+          // Check if the timer already exists. If it doesn't, set it.
+          if (!defaultLightTimer) {
+              // Set the timer and save the timer ID to the variable.
+              defaultLightTimer = setTimeout(function() {
+                  addDefaultLights();
+                  
+                  // Clear the timer after it runs to ensure it's a one-time operation
+                  // and resets the variable so the check (!defaultLightTimer) works again later.
+                  clearTimeout(defaultLightTimer);
+                  defaultLightTimer = null; 
+              }, 1000); // Use a short delay (e.g., 10ms) or adjust as needed
+          }
+      }
+
       // scene.add(controls);
       // // Listen for changes in the TransformControls
       // controls.addEventListener('change', updateTransforms);
@@ -3207,12 +3227,31 @@ function transformDragEnd(){
     // Handle window resizing
       window.addEventListener('resize', onWindowResize, false);
 
-      function onWindowResize() {
-        // Update camera aspect ratio and renderer size on window resize
-        camera.aspect = container.clientWidth / container.clientHeight;
+    function onWindowResize() {
+        // 1. Get new dimensions from the container element
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+        const aspect = width / height;
+
+        // 2. Check the camera type and apply the appropriate update logic
+        if (camera instanceof THREE.PerspectiveCamera) {
+            // PERSPECTIVE CAMERA: Only needs the aspect ratio updated.
+            camera.aspect = aspect;
+        } else if (camera instanceof THREE.OrthographicCamera) {
+            // ORTHOGRAPHIC CAMERA (Isocamera): Updates the frustum planes (left, right, top, bottom)
+            // using the container's pixel dimensions divided by the isoZoom factor.
+            camera.left = width / -isoZoom;
+            camera.right = width / isoZoom;
+            camera.top = height / isoZoom;
+            camera.bottom = height / -isoZoom;
+        }
+
+        // 3. The projection matrix MUST be updated after changing any camera parameters
         camera.updateProjectionMatrix();
-        renderer.setSize(container.clientWidth, container.clientHeight);
-      }
+
+        // 4. Update renderer size
+        renderer.setSize(width, height);
+    }
 
       container.onmousedown = function(e)
       {
