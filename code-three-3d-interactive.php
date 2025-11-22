@@ -2,12 +2,12 @@
 /*
 Plugin Name: Code Three 3D Interactive
 Description: Easy 3D/3JS scenes. Take WordPress to the next dimension. 
-Version: 1.0
+Version: 1.0.0
 Author: Kauri Beguely
 Text Domain: code-three-3d-interactive
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
-Requires at least: 6.2
+Requires at least: 6.0
 Requires PHP: 7.4
 Stable tag: 1.0.0
 */
