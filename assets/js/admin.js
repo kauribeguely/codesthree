@@ -1327,23 +1327,29 @@ showLightHelpers.oninput = () => {
       // {
       //   addDefaultLights();
       // }
-      
-      loader.load(url, (gltf) =>
-      {
-          gltf.scene.userData.type = 'model';
-          addObject(gltf.scene, objData, callback, index, {modelUrl:url});
-          // const newThreeJsObject = gltf.scene;
-          // let modelConfigInstance, modelConfigInstanceMob; // This will be our ModelConfig class instance
+      return new Promise((resolve, reject) => {
+        loader.load(url, (gltf) =>
+        {
+            gltf.scene.userData.type = 'model';
+            addObject(gltf.scene, objData, callback, index, {modelUrl:url});
+            // const newThreeJsObject = gltf.scene;
+            // let modelConfigInstance, modelConfigInstanceMob; // This will be our ModelConfig class instance
 
-          // let modelList = allModels;
-          // if(isMobile)
-          // {
-          //   modelList = allMobileModels;
-          // }
+            // let modelList = allModels;
+            // if(isMobile)
+            // {
+            //   modelList = allMobileModels;
+            // }
 
-          // --- Determine if this is a new model or an existing one being loaded/reloaded ---
-          
+            // --- Determine if this is a new model or an existing one being loaded/reloaded ---
+            resolve(gltf.scene);
+        },
+        undefined, 
+        (error) => {
+            // console.error(`Failed to load model from ${url}:`, error);
+            reject(error);
         });
+      });
     }
 
     function addImageAsPlane(imageUrl, objData, callback, index)
@@ -2274,22 +2280,37 @@ function transformDragEnd(){
       if(importedDemoAssets[assetName])
       {
           // console.log(assetName + ' already downloaded, loading');
-          loadModel(importedDemoAssets[assetName].attachment_url);
-          if(popupOpen)
-          {
-            hideIntroPopup();
+
+          try {
+            const loadedObject = await loadModel(importedDemoAssets[assetName].attachment_url);
+            if(popupOpen)
+            {
+              hideIntroPopup();
+            }
+            if(demoModelPopupOpen)
+            {
+              toggleMediaModal();
+            }
+            downloadInProgress = false;
+            button.querySelector('.c3-loading-icon').style.display = 'none';
+          } catch (error) {
+            if(error.response.status == 404)
+            {
+              downloadModel(assetName, downloadType, button);
+              console.log('downloaded asset url changed or deleted, redownloading...');
+            }
+              
           }
-          if(demoModelPopupOpen)
-          {
-            toggleMediaModal();
-          }
-          downloadInProgress = false;
-          button.querySelector('.c3-loading-icon').style.display = 'none';
       }
       else
       {
-        // console.log(assetName + ' not downloaded, initiating download');
-        try {
+        downloadModel(assetName, downloadType, button);
+      }
+    }
+
+    async function downloadModel(assetName, downloadType, button)
+    {
+      try {
             // const downloadResult = await initiateAjaxDownload(fileUrl, demoObject, fileType, event.target);
             const downloadResult = await downloadAsset(assetName, downloadType);
                 // alert(`"${assetName}" (${downloadType}) imported to Media Library successfully!`);
@@ -2327,7 +2348,6 @@ function transformDragEnd(){
             console.error('Demo download failed in setupDemoModal:', error);
             // alert(`Failed to import "${demoObject}". Please try again.`);
         }
-      }
     }
 
     // async function initiateAjaxDownload(fileUrl, demoId, fileType = '', buttonElement = null) {
