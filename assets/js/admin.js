@@ -1652,6 +1652,9 @@ showLightHelpers.oninput = () => {
             else if(type.startsWith('light'))
             {
               modelConfigInstance.modelName = newThreeJsObject.type + allThreeJsObj.length;
+              // if(type == 'lightD') newLight.position.set(1.66, 1.66, 1);
+              if(type == 'lightD') modelConfigInstance.position.set(1.66, 1.66, 1);
+
             }
             else
             {
@@ -1660,6 +1663,7 @@ showLightHelpers.oninput = () => {
             }
             // Apply default (or initial UI) transforms to the new Three.js object.
             // The ModelConfig constructor already sets defaults for position, rotation, scale.
+            
             newThreeJsObject.position.copy(modelConfigInstance.position);
             newThreeJsObject.rotation.copy(modelConfigInstance.rotation);
             newThreeJsObject.scale.copy(modelConfigInstance.scale);     
