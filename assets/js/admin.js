@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 import { TransformControls } from 'three/addons/TransformControls.js';
-// import { RGBELoader } from 'three/addons/RGBELoader.js';
+import { RGBELoader } from 'three/addons/RGBELoader.js';
 
 
 const localisedData = window.c33dadminlocaliseddata;
@@ -457,7 +457,7 @@ window.onload = () =>
   
 // scene.add( camera );
 
-    // const rgbeLoader = new RGBELoader();
+    const rgbeLoader = new RGBELoader();
 
     // updateEnvTexture();
 
@@ -1087,6 +1087,7 @@ showLightHelpers.oninput = () => {
       // scene.add(objGroup);
       scene.add(fullLoopGroup);
 
+      // loadEnvTexture('https://ileana.kaurib.com/wp-content/uploads/2025/11/sunset.hdr');
       // loadEnvTexture('sunset.hdr');
       // loadEnvTexture('studio.hdr');
 
@@ -1160,6 +1161,8 @@ showLightHelpers.oninput = () => {
     function loadEnvTexture(url)
     {
       // rgbeLoader.load('../wp-content/plugins/codesthree/sunset.hdr', function (texture)
+      // rgbeLoader.load('https://ileana.kaurib.com/wp-content/uploads/2025/11/sunset.hdr', function (texture)
+      // rgbeLoader.load(url, function (texture)
       rgbeLoader.load('../wp-content/plugins/codesthree/'+ url, function (texture)
       {
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -4584,14 +4587,14 @@ function getThreeJsObjectByUuid(modelId)
       }
 
         //are you sure before closing
-        window.addEventListener('beforeunload', function (event) {
-        // Set the returnValue property to show a generic confirmation dialog
-        if(allThreeJsObj.length > 3 && !isSaving)
-        {
-          event.preventDefault();
-          event.returnValue = ''; // Required for older browsers
-        }
-    });
+      //   window.addEventListener('beforeunload', function (event) {
+      //   // Set the returnValue property to show a generic confirmation dialog
+      //     if(allThreeJsObj.length > 3 && !isSaving)
+      //     {
+      //       event.preventDefault();
+      //       event.returnValue = ''; // Required for older browsers
+      //     }
+      // });
 
 
 

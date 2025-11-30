@@ -315,6 +315,7 @@ add_action('wp_head', 'c33d_inject_threejs_assets', 0);
 function c33d_allow_3d_file_uploads($mime_types) {
     $mime_types['glb'] = 'model/gltf-binary'; 
     $mime_types['gltf'] = 'model/gltf+json';  
+    $mime_types['hdr'] = 'image/vnd.radiance';
     return $mime_types;
 }
 add_filter('upload_mimes', 'c33d_allow_3d_file_uploads');
