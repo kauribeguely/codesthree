@@ -131,7 +131,6 @@
         flex-direction: column;
         gap: 16px;
         padding: 12px;
-        overflow: hidden auto;
     }
 
     .activeTab
@@ -212,6 +211,8 @@
         color: #bababa;
         height: var(--c33d-canvas-height);
         box-sizing: border-box;
+        
+        overflow: hidden auto;
         /* border-radius: var(--c33d-main-radius); */
     /* width: 217px; */
     }
