@@ -3374,7 +3374,8 @@ function transformDragEnd(){
                   if (allLightHelpers.includes(currentObject)) {
                       
                       // If light helpers are CHECKED, select the light and break the loop.
-                      if (showLightHelpers.checked) {
+                      // if (showLightHelpers.checked) {
+                      if (lightHelpersVisbile) {
                           selectableObject = currentObject.light;
                           selectedIntersection = intersects[i];
                       }
