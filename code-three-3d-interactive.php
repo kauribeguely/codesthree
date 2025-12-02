@@ -1160,6 +1160,10 @@ function c33d_editor_page($post) {
                     <p>Background</p>
                     <input type="color" id="backgroundColor" class="color-picker">
                 </div>
+                <label>
+                    <input type="checkbox" id="transparentBackgroundToggle">
+                    Transparent Background
+                </label>
 
             </div>
 

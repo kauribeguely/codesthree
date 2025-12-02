@@ -27,6 +27,7 @@ const hiddenInputField = document.getElementById('threejs_scene_config_json');
 const saveButton = document.querySelector('#c3SaveButton');
 // const materialListDiv = document.getElementById('material-list');
 const bgColorPicker = document.getElementById('backgroundColor');
+const noBackgroundToggle = document.getElementById('transparentBackgroundToggle');
 
 const materialSelector = document.getElementById('materialSelector');
 const propertiesPanel = document.getElementById('materialPropertiesPanel');
@@ -437,11 +438,17 @@ window.onload = () =>
     scene.background = new THREE.Color(allSceneData.globalSettings.bgColor);
   } else {
       // Fallback to a default color if bgColor is not defined
-      scene.background = new THREE.Color(0x000000); // Black
+      // scene.background = new THREE.Color(0x000000); // Black
+      scene.background = null;
   }
   // scene.background = new THREE.Color(allSceneData.globalSettings.bgColor) || new THREE.Color(0x000000); 
   if(allSceneData.globalSettings.bgColor) bgColorPicker.value = '#' + allSceneData.globalSettings.bgColor.toString(16).padStart(6, '0');
-
+  if(allSceneData.globalSettings.noBackground == true)
+  {
+    noBackgroundToggle.checked = true;
+    scene.background = null;
+  } 
+      
 
   let rotateGroup = new THREE.Group();
   scene.add(rotateGroup);
@@ -4142,6 +4149,22 @@ function getThreeJsObjectByUuid(modelId)
             scene.background = new THREE.Color(newColor);
             allSceneData.globalSettings.bgColor = newColor;
             updateSaveField();
+        });
+
+        noBackgroundToggle.addEventListener('change', (event) => {
+          if(event.target.checked)
+          {
+            scene.background = null;
+            allSceneData.globalSettings.noBackground = true;
+          }
+          else
+          {
+            const newColor = hexToThreeColor(bgColorPicker.value);
+            scene.background = new THREE.Color(newColor);
+            allSceneData.globalSettings.bgColor = newColor;
+          }
+          updateSaveField();
+
         });
 
         function getMaterialsFromObject(object) {

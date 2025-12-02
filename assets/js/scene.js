@@ -174,8 +174,15 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
       scene.background = new THREE.Color(allSceneData.globalSettings.bgColor);
     } else {
         // Fallback to a default color if bgColor is not defined
-        scene.background = new THREE.Color(0x000000); // Black
+        // scene.background = new THREE.Color(0x000000); // Black
+        scene.background = null;
     }
+
+    if(allSceneData.globalSettings.noBackground == true)
+    {
+      scene.background = null;
+    } 
+
     let rotateGroup = new THREE.Group();
     scene.add(rotateGroup);
     let camera;
