@@ -665,8 +665,8 @@ window.onload = () =>
 
       // controls.visible = isControlsVisible;
       groupControls.visible = isControlsVisible;
-      axesHelper.visible = isControlsVisible;
-      gridHelper.visible = isControlsVisible;
+      // axesHelper.visible = isControlsVisible;
+      // gridHelper.visible = isControlsVisible;
       // lightHelper.visible = isControlsVisible;
 
       switchLightHelpers(isControlsVisible);
