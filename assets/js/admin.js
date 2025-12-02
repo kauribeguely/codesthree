@@ -2895,6 +2895,16 @@ function transformDragEnd(){
                 event.preventDefault();
                 cloneSelected();
               }
+
+              if(mediaModelOpen)
+              {
+                createObject('lightD')
+                  .then(dlight => {
+                    dlight.position.set(1.66, 1.66, 0);
+                    toggleMediaModal();
+                    // You can now use dlight here, as it's guaranteed to be created
+                  });
+              }  
           case 'o':
               orbitActive = !orbitActive;
               break;
