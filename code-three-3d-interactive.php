@@ -918,6 +918,9 @@ function c33d_editor_page($post) {
             transform: translate(-50%);">
         <button id="toggleControls" type="button">Toggle Controls</button>
         <button id="mobileMode" type="button"><span class="dashicons dashicons-smartphone"></span>Mobile View</button>
+        <button id="toggleGizmo" type="button" class="transButtonActive">Gizmo</button>
+        <button id="toggleLights" type="button" class="transButtonActive">💡</button>
+
 
         </div>
         <div id = "canvasAndControls">
@@ -928,7 +931,6 @@ function c33d_editor_page($post) {
                     <button class='transModeButton' id="btnTranslateMode" type="button" onmousedown="setTransformMode('translate', event, this)">Translate (T)</button>
                     <button class='transModeButton' id="btnRotateMode" type="button" onmousedown="setTransformMode('rotate', event,  this)">Rotate (R)</button>
                     <button class='transModeButton' id='codesScaleButton' title="not available in loop mode, use scale text input on left" type="button" onmousedown="setTransformMode('scale', event, this)">Scale (Y)</button>
-                    <button id="toggleGizmo" type="button" class="transButtonActive">Gizmo</button>
                 </div>
 
             
@@ -1230,10 +1232,10 @@ function c33d_editor_page($post) {
                     Use Orthographic Camera
                 </label>
 
-                <label>
-                    <input type="checkbox" name="showLightHelpers" id="showLightHelpers" checked <?php checked($is_ortho_camera, 'on'); ?>>
+                <!-- <label>
+                    <input type="checkbox" name="showLightHelpers" id="showLightHelpers" checked >
                     Show Light Helpers
-                </label>
+                </label> -->
 
                 <hr>
 

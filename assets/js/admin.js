@@ -425,7 +425,7 @@ window.onload = () =>
   const isOrthoCameraInput = document.getElementById('isOrthoCamera');
 
 
-  const showLightHelpers = document.getElementById('showLightHelpers');
+  // const showLightHelpers = document.getElementById('showLightHelpers');
 
 
   const container = document.getElementById('threejs-canvas');
@@ -516,6 +516,7 @@ window.onload = () =>
 
     let controls, groupControls;
     let gizmoVisible = true;
+    let lightHelpersVisbile = true;
 
  
       
@@ -757,6 +758,16 @@ window.onload = () =>
       gizmoVisible = !gizmoVisible;
       setGizmoVisible(gizmoVisible);
       toggleGizmoButton.classList.toggle('transButtonActive');
+    }
+  });
+
+  const toggleLightHelpers = document.getElementById('toggleLights');
+  toggleLightHelpers.addEventListener('click', () => {
+    if(!orbitControls.enabled)
+    {
+      lightHelpersVisbile = !lightHelpersVisbile;
+      switchLightHelpers(lightHelpersVisbile);
+      toggleLightHelpers.classList.toggle('transButtonActive');
     }
   });
 
@@ -1070,9 +1081,9 @@ function toggleCamera()
     renderer.render(scene, camera);
 }
 
-showLightHelpers.oninput = () => {
-    switchLightHelpers(showLightHelpers.checked);
-};
+// showLightHelpers.oninput = () => {
+//     switchLightHelpers(showLightHelpers.checked);
+// };
 
   function syncCameras(sourceCamera, targetCamera) {
       // Copy the position
