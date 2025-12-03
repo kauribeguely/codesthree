@@ -2911,7 +2911,7 @@ function transformDragEnd(){
               {
                 createObject('lightD')
                   .then(dlight => {
-                    dlight.position.set(1.66, 1.66, 0);
+                    dlight.position.set(1.66, 1.66, 1);
                     toggleMediaModal();
                     // You can now use dlight here, as it's guaranteed to be created
                   });
