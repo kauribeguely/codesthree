@@ -154,6 +154,15 @@ function c33d_admin_enqueue_assets() {
         return; 
     }
 
+    $plugin_version = '1.0.0'; // Use the version from your plugin header
+    wp_register_script_module(
+        'codes-admin-script',
+        plugins_url('/assets/js/admin.js', __FILE__),
+        array(), // Dependencies for registration are usually empty for a module
+        $plugin_version,
+        array( 'in_footer' => true ) // Explicitly set loading arguments
+    );
+
 
     // Enqueue CSS
     wp_enqueue_style(
@@ -1382,7 +1391,6 @@ function c33d_editor_page($post) {
                         </fieldset>
                         <!-- Number Input for Spacing -->
                         <label>Item Spacing: <input type="number" name="itemSpacing" id="itemSpacing" step="0.1" value="0.5"></label>
-                        <!-- <label>Item Spacing: <input type="number" name="itemSpacing" id="itemSpacing" step="0.1" value="<?php echo esc_attr($item_spacing); ?>"></label> -->
                         <label>Loop Group Scale: <input type="number" name="loopGroupScale" id="loopGroupScale" step="0.01" value="<?php echo esc_attr($loop_group_scale); ?>"></label>
 
 

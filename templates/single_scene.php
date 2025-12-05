@@ -15,8 +15,8 @@ get_header();
             $post_id = get_the_ID();
             // echo "<p>Post ID: $post_id</p>"; // Debugging: See if it prints correctly
 
-            $c3_shortcode = '[c33d_scene id="' . $post_id . ' height="800px"]';
-            echo do_shortcode($c3_shortcode); // Execute shortcode
+            $c33d_shortcode = '[c33d_scene id="' . $post_id . ' height="800px"]';
+            echo do_shortcode($c33d_shortcode); // Execute shortcode
 
         endwhile;
     else:
