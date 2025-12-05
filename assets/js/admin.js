@@ -2180,6 +2180,13 @@ function transformDragEnd(){
                         emissiveColorPicker.value = '#FFFFFF';
                         selectedObjData.setMaterialProperties(selectedMaterial.name, { emissive: 0xffffff });
                       }
+
+                      if(materialColorPicker.value == '#ffffff')
+                      {
+                        selectedMaterial.color.setHex(0x000000);
+                        materialColorPicker.value = '#000000';
+                        selectedObjData.setMaterialProperties(selectedMaterial.name, { color: 0x000000 });
+                      }
                       selectedObjData.setMaterialProperties(selectedMaterial.name, { emissiveMap: imageUrl });
                       
                   }
@@ -3473,7 +3480,8 @@ function transformDragEnd(){
           if(selectedObj.userData.modelConfigRef.type == "model" || 
             selectedObj.userData.modelConfigRef.type == "imageplane"|| 
             selectedObj.userData.modelConfigRef.type == "plane" ||
-            selectedObj.userData.modelConfigRef.type == "cube")
+            selectedObj.userData.modelConfigRef.type == "cube" ||
+          selectedObj.userData.modelConfigRef.type == "sphere" )
             
           {
             // renderMaterialList(getMaterialsFromObject(selectedObj));
