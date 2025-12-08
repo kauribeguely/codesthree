@@ -659,6 +659,8 @@ window.onload = () =>
   toggleControlsButton.addEventListener('click', () => {
       isControlsVisible = !isControlsVisible;      
 
+      
+
       toggleVisibility('.rightControls');
       toggleVisibility('.leftControls');
       toggleVisibility('.topTransforms');
@@ -4443,11 +4445,13 @@ function getThreeJsObjectByUuid(modelId)
         }
 
         document.querySelector('#orbitToggle').addEventListener('click', toggleOrbitControls);
+        document.querySelector('#toggleCameraMove').addEventListener('click', toggleOrbitControls);
 
         function toggleOrbitControls() {
           
             orbitControls.enabled = !orbitControls.enabled;
             document.querySelector('#orbitToggle').classList.toggle('transButtonActive');
+            document.querySelector('#toggleCameraMove').classList.toggle('transButtonActive');
             setGizmoVisible(!orbitControls.enabled);
             axesHelper.visible = orbitControls.enabled;
             gridHelper.visible = orbitControls.enabled;

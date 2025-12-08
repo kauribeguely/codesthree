@@ -925,10 +925,11 @@ function c33d_editor_page($post) {
             z-index: 1;
             left: 50%;
             transform: translate(-50%);">
-        <button id="toggleControls" type="button">Toggle Controls</button>
-        <button id="mobileMode" type="button"><span class="dashicons dashicons-smartphone"></span>Mobile View</button>
-        <button id="toggleGizmo" type="button" class="transButtonActive">Gizmo</button>
-        <button id="toggleLights" type="button" class="transButtonActive">💡</button>
+            <button id="toggleControls" type="button">Toggle Controls</button>
+            <button id="mobileMode" type="button"><span class="dashicons dashicons-smartphone"></span>Mobile View</button>
+            <button id="toggleGizmo" type="button" class="transButtonActive">Gizmo</button>
+            <button id="toggleLights" type="button" title="Toggle light helpers" class="transButtonActive">💡</button>
+            <button id="toggleCameraMove" type="button" title="Toggle camera movement (alt + c)" class="">🎥</button>
 
 
         </div>
