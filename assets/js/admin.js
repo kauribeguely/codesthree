@@ -660,18 +660,19 @@ window.onload = () =>
       isControlsVisible = !isControlsVisible;      
 
       
-
       toggleVisibility('.rightControls');
       toggleVisibility('.leftControls');
       toggleVisibility('.topTransforms');
-
+      
       // controls.visible = isControlsVisible;
       groupControls.visible = isControlsVisible;
       // axesHelper.visible = isControlsVisible;
       // gridHelper.visible = isControlsVisible;
       // lightHelper.visible = isControlsVisible;
-
+      
+      lightHelpersVisbile = !lightHelpersVisbile;
       switchLightHelpers(isControlsVisible);
+      toggleLightHelpers.classList.toggle('transButtonActive');
       // showLightHelpers.checked = isControlsVisible;
 
       if(isControlsVisible)
