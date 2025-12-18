@@ -493,7 +493,7 @@ window.onload = () =>
     // Get the sliders by their IDs
     const lightIntensitySlider = document.getElementById('light_intensity');
     const lightIntValue = document.getElementById('light_intensity_span');
-
+    
     // Event listener to change the intensity of the ambient light
     lightIntensitySlider.addEventListener('input', function() {
       if (selectedObj && selectedObj.isLight) {
@@ -505,14 +505,19 @@ window.onload = () =>
         updateSaveField();
       }
     });
-
-
-  
-
+    
+    
+    
+    
     function setLightIntensity(light, intensity)
     {
       light.intensity = parseFloat(intensity);
     }
+
+
+    
+
+
 
     let controls, groupControls;
     let gizmoVisible = true;
@@ -1412,7 +1417,8 @@ function toggleCamera()
                   // const material = new THREE.MeshStandardMaterial({
                     const material = new THREE.MeshBasicMaterial({
                       map: texture,
-                      side: THREE.DoubleSide
+                      side: THREE.DoubleSide,
+                      transparent: true,
                   });
                   //   const material = new THREE.MeshBasicMaterial({
                   //     map: texture,
