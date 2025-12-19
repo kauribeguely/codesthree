@@ -254,6 +254,10 @@ window.onload = () =>
               else
               {
                 // console.log(propName, propValue);
+                if(propName == 'opacity')
+                {
+                  material.transparent = true;
+                }
                 material[propName] = propValue;
               }
               material.needsUpdate = true;
@@ -513,6 +517,23 @@ window.onload = () =>
     {
       light.intensity = parseFloat(intensity);
     }
+
+
+    
+
+    const materialOpacitySlider = document.getElementById('material_opacity');
+    const materialOpacityValue = document.getElementById('material_opacity_span');
+    
+    // Event listener to change the intensity of the ambient light
+    materialOpacitySlider.addEventListener('input', function() {
+        const opacityFloat = parseFloat(materialOpacitySlider.value);
+        selectedObjData.setMaterialProperties(selectedMaterial.name, { opacity: opacityFloat });
+        materialOpacityValue.textContent = opacityFloat;
+        selectedMaterial.transparent = true;
+        selectedMaterial.opacity = opacityFloat;
+        updateModelData(selectedObjData); 
+        updateSaveField(); 
+    });
 
 
 
@@ -4370,6 +4391,8 @@ function getThreeJsObjectByUuid(modelId)
                     break; // Exit the loop once a match is found
                   }
                 }
+                materialOpacitySlider.value = selectedMaterial.opacity;
+                materialOpacityValue.textContent = selectedMaterial.opacity;
 
                 if(selectedObj.renderOrder == 1) //stencil/sender
                 {

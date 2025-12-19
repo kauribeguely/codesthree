@@ -1119,6 +1119,12 @@ function c33d_editor_page($post) {
                             </button>
                         </div>
 
+                        <label for="material_opacity">Opacity</label>
+                        <div class="rangeWithValue">
+                            <input type="range" name="material_opacity" id="material_opacity" max="1" step="0.01" value="" />
+                            <span id="material_opacity_span">1</span>
+                        </div>
+
                         <div class="transform-group">
                             <label for="blendMode" class="property-label">Blending</label>
                             <select id="blendMode">
