@@ -1272,7 +1272,7 @@ function c33d_editor_page($post) {
 
                     <label for="shadow_radius">Shadow Radius</label>
                     <div class="rangeWithValue">
-                        <input type="range" name="shadow_radius" id="shadow_radius" max="5" step="0.01" value="" />
+                        <input type="range" name="shadow_radius" id="shadow_radius" max="15" step="0.01" value="" />
                         <span id="shadow_radius_span">1</span>
                     </div>
 

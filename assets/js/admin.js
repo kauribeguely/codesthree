@@ -515,7 +515,45 @@ window.onload = () =>
     }
 
 
-    
+
+    const shadowIntensitySlider = document.getElementById('shadow_intensity');
+    const shadowIntensityValue = document.getElementById('shadow_intensity_span');
+    shadowIntensitySlider.addEventListener('input', function() {
+      if (selectedObj && selectedObj.isLight) {      
+        selectedObj.shadow.intensity = parseFloat(shadowIntensitySlider.value);
+        shadowIntensityValue.textContent = shadowIntensitySlider.value;
+        selectedObjData.lightSettings.shadowIntensity = shadowIntensitySlider.value;
+        updateModelData(selectedObjData); 
+        updateSaveField();
+      }      
+    });
+
+    const shadowRadiusSlider = document.getElementById('shadow_radius');
+    const shadowRadiusValue = document.getElementById('shadow_radius_span');
+    shadowRadiusSlider.addEventListener('input', function() {
+      if (selectedObj && selectedObj.isLight) {     
+        selectedObj.shadow.radius = parseFloat(shadowRadiusSlider.value);
+        shadowRadiusValue.textContent = shadowRadiusSlider.value;
+        selectedObjData.lightSettings.shadowRadius = shadowRadiusSlider.value;
+        updateModelData(selectedObjData); 
+        updateSaveField();
+      }      
+    });
+
+    //potential helper function for inputs
+    // e.g. valueSliderInput(shadowRadiusSlider, shadowRadiusValue, selectedObjData.lightSettings.shadowRadius, (selectedObj && selectedObj.isLight))
+    function valueSliderInput(slider, valueDisplay, objectProperty, condition)
+    {
+      if(condition)
+      {
+        selectedObj.shadow.radius = parseFloat(slider.value);
+        valueDisplay.textContent = slider.value;
+        //this part harder
+        objectProperty = slider.value;
+        updateModelData(selectedObjData); 
+        updateSaveField();
+      }
+    }
 
 
 
@@ -1524,11 +1562,15 @@ function toggleCamera()
     {
       let newLight, newHelper;
       let intensity = 1;
+      let shadowIntensity = 1;
+      let shadowRadius = 1;
       let color = 0xffffff;
       if(objData)
       {
         intensity = objData.lightSettings.intensity;
         color = objData.lightSettings.color;
+        shadowIntensity = objData.lightSettings.shadowIntensity;
+        shadowRadius = objData.lightSettings.shadowRadius;
       }
       if(lightType == 'A')
       // if(lightType == 'ambient')
@@ -1557,6 +1599,12 @@ function toggleCamera()
         newLight.angle = 0.2; 
         newLight.penumbra = 0.5;
         newHelper = new THREE.PointLightHelper(newLight, 0.5);
+      }
+
+      if(lightType != 'A')
+      {
+        newLight.shadow.intensity = shadowIntensity;
+        newLight.shadow.radius = shadowRadius;
       }
 
       newLight.helper = newHelper;
@@ -3522,6 +3570,10 @@ function transformDragEnd(){
           lightIntensitySlider.value = 0;
           lightIntValue.value = 0;
           selectedLightInputs.style.display = 'none';
+          shadowIntensitySlider.value =  1;
+          shadowIntensityValue.value =  1;
+          shadowRadiusSlider.value =  1;
+          shadowRadiusValue.value =  1;
         }
         else
         {
@@ -3529,8 +3581,11 @@ function transformDragEnd(){
           lightIntensitySlider.value = selectedObj.intensity;
           lightIntValue.value = selectedObj.intensity;
           selectedLightInputs.style.display = 'block';
-        }
-        
+          shadowIntensitySlider.value =  selectedObj.lightSettings?.shadowIntensity ?? 1;
+          shadowIntensityValue.value =  selectedObj.lightSettings?.shadowIntensity ?? 1;
+          shadowRadiusSlider.value =  selectedObj.lightSettings?.shadowRadius ?? 1;
+          shadowRadiusValue.value =  selectedObj.lightSettings?.shadowRadius ?? 1;
+        }        
       }
 
       // Get references to your HTML elements
@@ -4584,7 +4639,7 @@ function getThreeJsObjectByUuid(modelId)
                 applyShadowProperties(selectedObj, 'castShadow', isCasting);
             }
 
-            console.log(`Three.js Object Shadow Update: castShadow set to ${isCasting}`);
+            // console.log(`Three.js Object Shadow Update: castShadow set to ${isCasting}`);
             updateModelData(selectedObjData); 
             updateSaveField();
             if(isCasting)
@@ -4606,7 +4661,7 @@ function getThreeJsObjectByUuid(modelId)
               applyShadowProperties(selectedObj, 'receiveShadow', isReceiving);
           }
 
-          console.log(`Three.js Object Shadow Update: receive shadow set to ${isReceiving}`);
+          // console.log(`Three.js Object Shadow Update: receive shadow set to ${isReceiving}`);
           updateModelData(selectedObjData); 
           updateSaveField();
           if(isReceiving)
