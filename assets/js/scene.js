@@ -681,17 +681,29 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
       }
     }
 
+
+  const easing = 0.15; // Increase easing slightly on each move to simulate ease-out.  Adjust 0.05 for strength.
+
     const animate = function ()
     {
-       requestAnimationFrame(animate);
-       renderer.render(scene, camera);       
-   };
-     animate();
+      // Smoothly follow the target
+      // 0.05 is the "damping" - lower is smoother/slower
+      rotateGroup.rotation.x = THREE.MathUtils.lerp(rotateGroup.rotation.x, targetRotation.x, easing);
+      rotateGroup.rotation.y = THREE.MathUtils.lerp(rotateGroup.rotation.y, targetRotation.y, easing);
+      rotateGroup.rotation.z = THREE.MathUtils.lerp(rotateGroup.rotation.z, targetRotation.z, easing);      
+      
+      renderer.render(scene, camera);     
+
+      requestAnimationFrame(animate);
+    };
+    animate();
 
   let initialRotationX = 0;
   let initialRotationY = 0;
   let initialRotationZ = 0;
   const rotationRange = 10; // Maximum rotation range in degrees
+  // const easing = 0.1 + (1 - 0.1) * 0.05; // Increase easing slightly on each move to simulate ease-out.  Adjust 0.05 for strength.
+
     // Mousemove listener
   const onMouseMove = (event) => {
     const mouseX = (event.clientX / window.innerWidth) * 2 - 1; // Normalized between -1 and 1
@@ -700,16 +712,15 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
     // Map mouse position to rotation range
     // model.rotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * rotationRange);
     // model.rotation.y = THREE.MathUtils.degToRad(initialRotationY + -mouseX * rotationRange);
-    const easing = 0.1 + (1 - 0.1) * 0.05; // Increase easing slightly on each move to simulate ease-out.  Adjust 0.05 for strength.
-
+    
     targetRotation.x = degToRad(initialRotationX + -mouseY * mouseRotationX);
     targetRotation.y = degToRad(initialRotationY + -mouseX * mouseRotationY);
     targetRotation.z = degToRad(initialRotationZ + -mouseX * mouseRotationZ);
 
 
-    currentRotation.x = THREE.MathUtils.lerp(currentRotation.x, targetRotation.x, easing);
-    currentRotation.y = THREE.MathUtils.lerp(currentRotation.y, targetRotation.y, easing);
-    currentRotation.z = THREE.MathUtils.lerp(currentRotation.z, targetRotation.z, easing);
+    // currentRotation.x = THREE.MathUtils.lerp(currentRotation.x, targetRotation.x, easing);
+    // currentRotation.y = THREE.MathUtils.lerp(currentRotation.y, targetRotation.y, easing);
+    // currentRotation.z = THREE.MathUtils.lerp(currentRotation.z, targetRotation.z, easing);
 
     // if(loopActive)
     // {
@@ -721,9 +732,9 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
     // {
       // const rotCalc = THREE.MathUtils.degToRad(initialRotationX + -mouseY * mouseRotationX);
       // rotateGroup.rotation.x = THREE.MathUtils.degToRad(initialRotationX + -mouseY * mouseRotationX);
-      rotateGroup.rotation.x = currentRotation.x;
-      rotateGroup.rotation.y = currentRotation.y;
-      rotateGroup.rotation.z = currentRotation.z;
+      // rotateGroup.rotation.x = currentRotation.x;
+      // rotateGroup.rotation.y = currentRotation.y;
+      // rotateGroup.rotation.z = currentRotation.z;
     // }
     // console.log(rotCalc, mouseY, rotateGroup.rotation.x, mouseRotationX, initialRotationX, mouseAnimationLink);
 
@@ -741,9 +752,24 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
     function onWindowResize() 
     {
       // Update camera aspect ratio and renderer size on window resize
-      camera.aspect = container.clientWidth / container.clientHeight;
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      const aspect = width / height;
+
+      // 2. Check the camera type and apply the appropriate update logic
+      if (camera instanceof THREE.PerspectiveCamera) {
+          // PERSPECTIVE CAMERA: Only needs the aspect ratio updated.
+          camera.aspect = aspect;
+      } else if (camera instanceof THREE.OrthographicCamera) {
+          // ORTHOGRAPHIC CAMERA (Isocamera): Updates the frustum planes (left, right, top, bottom)
+          // using the container's pixel dimensions divided by the isoZoom factor.
+          camera.left = width / -isoZoom;
+          camera.right = width / isoZoom;
+          camera.top = height / isoZoom;
+          camera.bottom = height / -isoZoom;
+      }
       camera.updateProjectionMatrix();
-      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setSize(width, height);
 
       const belowBreakPoint = window.innerWidth <= MOBILE_BREAKPOINT_MAX_WIDTH;
       let changed = false;
