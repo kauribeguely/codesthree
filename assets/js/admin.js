@@ -2554,23 +2554,23 @@ function transformDragEnd(){
           if (mouseAnimationLink && !(isTransforming || keyXRot || keyYRot || keyZRot || isDragging || keyZTrans)) {
               // Smoothly interpolate to the target rotation
               // const easing = 0.1; // Adjust this value for speed (lower = slower)
-              const easing = 0.1 + (1 - 0.1) * 0.05; // Increase easing slightly on each move to simulate ease-out.  Adjust 0.05 for strength.
+              // const easing = 0.1 + (1 - 0.1) * 0.05; // Increase easing slightly on each move to simulate ease-out.  Adjust 0.05 for strength.
 
-              currentRotation.x = THREE.MathUtils.lerp(currentRotation.x, targetRotation.x, easing);
-              currentRotation.y = THREE.MathUtils.lerp(currentRotation.y, targetRotation.y, easing);
-              currentRotation.z = THREE.MathUtils.lerp(currentRotation.z, targetRotation.z, easing);
+              // currentRotation.x = THREE.MathUtils.lerp(currentRotation.x, targetRotation.x, easing);
+              // currentRotation.y = THREE.MathUtils.lerp(currentRotation.y, targetRotation.y, easing);
+              // currentRotation.z = THREE.MathUtils.lerp(currentRotation.z, targetRotation.z, easing);
 
-              rotateGroup.rotation.x = currentRotation.x;
-              rotateGroup.rotation.y = currentRotation.y;
-              rotateGroup.rotation.z = currentRotation.z;
+              // rotateGroup.rotation.x = currentRotation.x;
+              // rotateGroup.rotation.y = currentRotation.y;
+              // rotateGroup.rotation.z = currentRotation.z;
 
-              // scene.rotation.x = currentRotation.x;
-              // scene.rotation.y = currentRotation.y;
-              // scene.rotation.z = currentRotation.z;
+              // // scene.rotation.x = currentRotation.x;
+              // // scene.rotation.y = currentRotation.y;
+              // // scene.rotation.z = currentRotation.z;
 
-              fullLoopGroup.rotation.x = currentRotation.x;
-              fullLoopGroup.rotation.y = currentRotation.y;
-              fullLoopGroup.rotation.z = currentRotation.z;
+              // fullLoopGroup.rotation.x = currentRotation.x;
+              // fullLoopGroup.rotation.y = currentRotation.y;
+              // fullLoopGroup.rotation.z = currentRotation.z;
           }
 
           //ez drag function
@@ -2901,12 +2901,17 @@ function transformDragEnd(){
 
 
 
-
+      const easing = 0.15; 
     // Render loop
     function animate() {
-        requestAnimationFrame(animate);
-        
-        renderer.render(scene, camera);
+      
+
+      rotateGroup.rotation.x = THREE.MathUtils.lerp(rotateGroup.rotation.x, targetRotation.x, easing);
+      rotateGroup.rotation.y = THREE.MathUtils.lerp(rotateGroup.rotation.y, targetRotation.y, easing);
+      rotateGroup.rotation.z = THREE.MathUtils.lerp(rotateGroup.rotation.z, targetRotation.z, easing);   
+
+      renderer.render(scene, camera);
+      requestAnimationFrame(animate);
         // if(orbitActive) orbit.update(); // Call controls.update() in the animation loop
     }
     // updateLabel();//show initial values
