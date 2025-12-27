@@ -1,3 +1,5 @@
+console.time('fullLoad');
+
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
@@ -51,6 +53,13 @@ let mediaModelOpen = false;
 
 const deleteTextureBtn = document.getElementById('deleteTexture'); 
 const deleteEmissiveBtn = document.getElementById('deleteEmissive'); 
+
+
+const exportSceneBtn = document.getElementById('exportScene'); 
+const importSceneBtn = document.getElementById('importScene'); 
+const importSceneText = document.getElementById('importSceneText'); 
+
+
 
 let allLightHelpers = [];
 
@@ -519,7 +528,13 @@ window.onload = () =>
     }
 
 
-    
+    exportSceneBtn.addEventListener('mousedown', copySceneDataToClipboard);
+
+    importSceneBtn.addEventListener('mousedown', function()
+    {
+      initFromJson(JSON.parse(importSceneText.value));
+    });
+
 
     const materialOpacitySlider = document.getElementById('material_opacity');
     const materialOpacityValue = document.getElementById('material_opacity_span');
@@ -1266,7 +1281,7 @@ function toggleCamera()
       });    
       updateParentList();  
     }
-    
+
     function initFromJson(importJson)
     {
       isFullSceneInit = true;
@@ -1278,6 +1293,7 @@ function toggleCamera()
       allSceneData = importJson; // Reassign the entire root object
       sceneData = allSceneData.globalSettings;
       allModels = allSceneData.models[0];
+      checkModelEmptyUrls();
       allMobileModels = allSceneData.models[1];
 
       // Call other setup functions to apply global settings, lights, etc., from allSceneData
@@ -1291,6 +1307,11 @@ function toggleCamera()
       itemsLoaded = 0;
       loadAllModels();
       isFullSceneInit = false;
+    }
+
+    function checkModelEmptyUrls(allModels)
+    {
+
     }
 
     function deleteAllObjects() {
@@ -1510,7 +1531,17 @@ function toggleCamera()
     });
   }
 
-    //adds new object to scene and sceneData
+    //All default geo and material for basic shapes
+    const planeGeo = new THREE.PlaneGeometry(1, 1); 
+    const planeMaterial = new THREE.MeshStandardMaterial({
+            color: 0xffffff, // White color
+            side: THREE.DoubleSide // Render both sides of the plane
+        });
+
+      const cubeGeo = new THREE.BoxGeometry(1, 1, 1);
+      const cubeMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
+      const sphereGeo = new THREE.SphereGeometry(1, 32, 16);
+      const sphereMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
 
     async function createObject(type, objData, callback, index)
     {
@@ -1531,26 +1562,14 @@ function toggleCamera()
       }
       else if(type == 'plane')
       {
-        //add to scene, add to sceneData
-        const planeGeo = new THREE.PlaneGeometry(1, 1); 
-        const planeMaterial = new THREE.MeshStandardMaterial({
-                color: 0xffffff, // Green color
-                side: THREE.DoubleSide // Render both sides of the plane
-            });
         newThreeJsObject = new THREE.Mesh(planeGeo, planeMaterial);
       }
       else if(type == 'cube')
       {
-        const cubeGeo = new THREE.BoxGeometry(1, 1, 1);
-        const cubeMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
-        // const cube = new Mesh(cubeGeo, cubeMaterial);
         newThreeJsObject = new THREE.Mesh(cubeGeo, cubeMaterial);
       }
       else if(type == 'sphere')
-      {
-        const sphereGeo = new THREE.SphereGeometry(1, 32, 16);
-        const sphereMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
-        // const cube = new Mesh(cubeGeo, cubeMaterial);
+      { 
         newThreeJsObject = new THREE.Mesh(sphereGeo, sphereMaterial);
       }
       else if(type == 'model' )
@@ -4744,7 +4763,7 @@ function getThreeJsObjectByUuid(modelId)
 
 }
 
-
+console.timeEnd('fullLoad');
 
 
 

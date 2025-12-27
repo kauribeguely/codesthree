@@ -1168,13 +1168,14 @@ function c33d_editor_page($post) {
             </div> 
 
             
-            
+
             <div class='tabContent csettings'>
                 <label>Breakpoint (px) </label>
                 <input id="breakPoint" class="" type="number" value="<?php echo esc_attr($breakpoint); ?>">
 
+                
                 <div class="transform-group" style="">
-
+                    
                     <p>Background</p>
                     <input type="color" id="backgroundColor" class="color-picker">
                 </div>
@@ -1182,6 +1183,15 @@ function c33d_editor_page($post) {
                     <input type="checkbox" id="transparentBackgroundToggle">
                     Transparent Background
                 </label>
+                
+                <button type="button" id="exportScene" class="">
+                    Export Full Scene
+                </button>
+
+                <textarea id='importSceneText'></textarea>
+                <button type="button" id="importScene" class="">
+                    Import Full Scene
+                </button>
 
             </div>
 
