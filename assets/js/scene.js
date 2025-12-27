@@ -501,6 +501,10 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
                     }
                     else
                     {
+                      if(propName == 'opacity')
+                      {
+                        material.transparent = true;
+                      }
                       material[propName] = propValue;
                     }
                     material.needsUpdate = true;
