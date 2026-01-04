@@ -35,31 +35,58 @@ function c33d_on_plugin_uninstall() {
 function c33d_create_scene_shortcode($atts)
 {
     $atts = shortcode_atts(array(
-        'id' => get_the_ID(),
-        'width' => '100%',  // Default width is 100%
-        'height' => '500px', // Default height is 500px
+        'id'       => get_the_ID(),
+        'width'    => '100%',
+        'height'   => '500px',
+        'mdheight' => '', 
+        'smheight' => '', 
     ), $atts);
+
+    // Fallback logic: if mobile/tablet heights aren't set, use desktop height
+    $md_h = !empty($atts['mdheight']) ? $atts['mdheight'] : $atts['height'];
+    $sm_h = !empty($atts['smheight']) ? $atts['smheight'] : $atts['height'];
+
     $post_id = intval($atts['id']);
     $scene_data = c33d_get_scene_data($post_id);
     $isadmin = is_admin();
+    
+    // Generate a unique ID for this specific instance on the page
+    $instance_id = 'scene-' . esc_attr($post_id) . '-' . uniqid();
+    
+    $style_vars = sprintf(
+        '--h: %s; --md-h: %s; --sm-h: %s; width: %s;',
+        esc_attr($atts['height']),
+        esc_attr($md_h),
+        esc_attr($sm_h),
+        esc_attr($atts['width'])
+    );
+
     ob_start(); 
     ?>
+    
+    <style>
+        /* Scoped specifically to THIS instance ID */
+        #<?php echo $instance_id; ?> {
+            height: var(--h);
+        }
+        @media (max-width: 1024px) {
+            #<?php echo $instance_id; ?> { height: var(--md-h); }
+        }
+        @media (max-width: 767px) {
+            #<?php echo $instance_id; ?> { height: var(--sm-h); }
+        }
+    </style>
 
-    <div id="scene-<?php echo esc_attr($post_id); ?>-<?php echo esc_attr(uniqid()); ?>" 
+    <div id="<?php echo $instance_id; ?>" 
         class="c33d_scene" 
         data-scene-id="<?php echo esc_attr($post_id); ?>" 
         data-scene-data='<?php echo wp_json_encode($scene_data); ?>'
         data-plugin-url='<?php echo esc_url(plugins_url('', __FILE__))?>'
         data-is-admin="<?php echo esc_attr($isadmin ? 'true' : 'false'); ?>"
-        style="width: <?php echo esc_attr($atts['width']); ?>; height: <?php echo esc_attr($atts['height']); ?>;">
+        style="<?php echo $style_vars; ?>">
 
-        <div class = "loadScreen">
-            <div class = "cubeLoader">
-            </div>
-            <!-- <div class = "loadCircle">
-                <div class = "loadInnerCircle">
-                </div>
-            </div> -->
+        <div class="loadScreen">
+            <div class="cubeLoader"></div>
         </div>
     </div>
 
@@ -363,7 +390,7 @@ function c33d_register_scenes_post_type() {
     $labels = array(
         'name'               => __('Scenes', 'code-three-3d-interactive'),
         'singular_name'      => __('Scene', 'code-three-3d-interactive'),
-        'menu_name'          => 'Code Three', 
+        'menu_name'          => '3D Scenes', 
         'name_admin_bar'     => __('Scene', 'code-three-3d-interactive'),
         'all_items'          => __('All 3D Scenes', 'code-three-3d-interactive'),
         'add_new'            => __('New 3D Scene', 'code-three-3d-interactive'),
