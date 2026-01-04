@@ -217,6 +217,58 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
     // renderer.toneMappingExposure = 0.7; // Adjust for brightness
 
 
+
+const resizeObserver = new ResizeObserver(entries => {
+    for (let entry of entries) {
+        const width = entry.contentRect.width;
+        const height = entry.contentRect.height;
+
+        if (width === 0 || height === 0) return;
+
+        // 1. Update Renderer
+        renderer.setSize(width, height);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        // 2. Update Camera (merged logic)
+        const aspect = width / height;
+        
+        if (camera instanceof THREE.PerspectiveCamera) {
+            camera.aspect = aspect;
+            // Adjust FOV for "Zoom" on mobile
+            camera.fov = (width < 767) ? 75 : 50; 
+        } else if (camera instanceof THREE.OrthographicCamera) {
+            // Use a dynamic isoZoom to prevent the "cropped" look
+            let activeIso = (width < 767) ? 150 : isoZoom; 
+            
+            camera.left = width / -activeIso;
+            camera.right = width / activeIso;
+            camera.top = height / activeIso;
+            camera.bottom = height / -activeIso;
+        }
+        camera.updateProjectionMatrix();
+
+        // 3. Handle Mobile Breakpoint Logic (Moved from your old function)
+        const belowBreakPoint = window.innerWidth <= MOBILE_BREAKPOINT_MAX_WIDTH;
+        let changed = false;
+
+        if (belowBreakPoint && !isMobile) {
+            isMobile = true;
+            changed = true;
+        } else if (!belowBreakPoint && isMobile) {
+            isMobile = false;
+            changed = true;
+        }
+
+        // If we crossed the mobile/desktop threshold, re-apply transforms
+        if (changed) {
+            applyAllTransformsFromConfigs();
+        }
+    }
+});
+
+// Observe the container instead of the window
+resizeObserver.observe(container);
+
     container.appendChild(renderer.domElement);
 
     // const alight = new THREE.AmbientLight(0xffffff, sceneData.lightIntensity);
@@ -746,54 +798,7 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
 
 
 
-    // Handle window resizing
-    window.addEventListener('resize', onWindowResize, false);
-
-    function onWindowResize() 
-    {
-      // Update camera aspect ratio and renderer size on window resize
-      const width = container.clientWidth;
-      const height = container.clientHeight;
-      const aspect = width / height;
-
-      // 2. Check the camera type and apply the appropriate update logic
-      if (camera instanceof THREE.PerspectiveCamera) {
-          // PERSPECTIVE CAMERA: Only needs the aspect ratio updated.
-          camera.aspect = aspect;
-      } else if (camera instanceof THREE.OrthographicCamera) {
-          // ORTHOGRAPHIC CAMERA (Isocamera): Updates the frustum planes (left, right, top, bottom)
-          // using the container's pixel dimensions divided by the isoZoom factor.
-          camera.left = width / -isoZoom;
-          camera.right = width / isoZoom;
-          camera.top = height / isoZoom;
-          camera.bottom = height / -isoZoom;
-      }
-      camera.updateProjectionMatrix();
-      renderer.setSize(width, height);
-
-      const belowBreakPoint = window.innerWidth <= MOBILE_BREAKPOINT_MAX_WIDTH;
-      let changed = false;
-      if(belowBreakPoint)
-      {
-        if(!isMobile)
-        {
-          isMobile = true;
-          changed = true;
-        }
-      }
-      else
-      {
-        if(isMobile)
-        {
-          isMobile = false;
-          changed = true;
-        }
-      }
-      if(changed)
-      {
-        applyAllTransformsFromConfigs();
-      }
-    }
+  
 
       // Handle the scroll event
       // window.addEventListener('scroll', (event) => {
