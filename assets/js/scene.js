@@ -120,6 +120,12 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
         console.error("Container not found:", containerId);
         return;
     }
+
+    if(container.clientWidth == 0)
+    {
+      container.style.width = "100%";
+    }
+
     // Get the canvas container's distance to the top of the screen
     const getCanvasOffset = () => {
       const rect = container.getBoundingClientRect();
@@ -191,7 +197,7 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
     let isoZoom = 250;
     const orthoCamera = new THREE.OrthographicCamera( container.clientWidth / - isoZoom, container.clientWidth / isoZoom, container.clientHeight / isoZoom, container.clientHeight / - isoZoom, 0.1, 1000 );
 
-
+    console.log(container.clientWidth);
 
     if(isOrthoCamera)
     {

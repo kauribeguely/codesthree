@@ -378,7 +378,11 @@ add_filter('wp_check_filetype_and_ext', function($data, $file, $filename, $mime_
 }, 10, 5);
 
 
-
+function register_c33d_widget( $widgets_manager ) {
+	require_once( __DIR__ . '/widgets/scene-widget.php' ); // Adjust path as needed
+	$widgets_manager->register( new \Elementor_C33D_Scene_Widget() );
+}
+add_action( 'elementor/widgets/register', 'register_c33d_widget' );
 
 
 
