@@ -35,16 +35,25 @@ function c33d_on_plugin_uninstall() {
 function c33d_create_scene_shortcode($atts)
 {
     $atts = shortcode_atts(array(
-        'id'       => get_the_ID(),
-        'width'    => '100%',
-        'height'   => '500px',
-        'mdheight' => '', 
-        'smheight' => '', 
+        'id'          => get_the_ID(),
+        'width'       => '100%',
+        'height'      => '500px',
+        'mdheight'    => '', 
+        'smheight'    => '', 
+        'zoom'        => '1', 
+        'zoom_tablet' => '', 
+        'zoom_mobile' => '', 
     ), $atts);
 
     // Fallback logic: if mobile/tablet heights aren't set, use desktop height
     $md_h = !empty($atts['mdheight']) ? $atts['mdheight'] : $atts['height'];
     $sm_h = !empty($atts['smheight']) ? $atts['smheight'] : $atts['height'];
+
+    // Grab the zoom level from attributes and ensure it's a clean float
+    $zoom_level = floatval($atts['zoom']);
+    // Fallbacks for data attributes if shortcode is used manually without responsive params
+    $zoom_tablet = !empty($atts['zoom_tablet']) ? floatval($atts['zoom_tablet']) : $zoom_level;
+    $zoom_mobile = !empty($atts['zoom_mobile']) ? floatval($atts['zoom_mobile']) : $zoom_tablet;
 
     $post_id = intval($atts['id']);
     $scene_data = c33d_get_scene_data($post_id);
@@ -81,8 +90,11 @@ function c33d_create_scene_shortcode($atts)
         class="c33d_scene" 
         data-scene-id="<?php echo esc_attr($post_id); ?>" 
         data-scene-data='<?php echo wp_json_encode($scene_data); ?>'
-        data-plugin-url='<?php echo esc_url(plugins_url('', __FILE__))?>'
+        data-plugin-url='<?php echo esc_url(plugins_url('', __FILE__)); ?>'
         data-is-admin="<?php echo esc_attr($isadmin ? 'true' : 'false'); ?>"
+        data-zoom="<?php echo esc_attr($zoom_level); ?>"
+        data-zoom-tablet="<?php echo esc_attr($zoom_tablet); ?>"
+        data-zoom-mobile="<?php echo esc_attr($zoom_mobile); ?>"
         style="<?php echo $style_vars; ?>">
 
         <div class="loadScreen">

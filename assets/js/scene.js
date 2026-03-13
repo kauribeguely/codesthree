@@ -126,6 +126,10 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
       container.style.width = "100%";
     }
 
+   const zoomDesktop = container.dataset.zoom ? parseFloat(container.dataset.zoom) : null;
+  const zoomTablet = container.dataset.zoomTablet ? parseFloat(container.dataset.zoomTablet) : zoomDesktop;
+  const zoomMobile = container.dataset.zoomMobile ? parseFloat(container.dataset.zoomMobile) : zoomTablet;
+
     // Get the canvas container's distance to the top of the screen
     const getCanvasOffset = () => {
       const rect = container.getBoundingClientRect();
@@ -238,14 +242,25 @@ const resizeObserver = new ResizeObserver(entries => {
         // 2. Update Camera (merged logic)
         const aspect = width / height;
         
+        // --- NEW RESPONSIVE ZOOM LOGIC ---
+        let activeZoom = zoomDesktop;
+        if (window.innerWidth <= 767 && zoomMobile) {
+            activeZoom = zoomMobile;
+        } else if (window.innerWidth <= 1024 && zoomTablet) {
+            activeZoom = zoomTablet;
+        }
+        
+        // Apply the determined zoom
+        if (activeZoom !== null) {
+            camera.zoom = activeZoom;
+        }
+        // ---------------------------------
+        
         if (camera instanceof THREE.PerspectiveCamera) {
             camera.aspect = aspect;
-            // Adjust FOV for "Zoom" on mobile
-            camera.fov = (width < 767) ? 75 : 50; 
+            camera.fov = 50; 
         } else if (camera instanceof THREE.OrthographicCamera) {
-            // Use a dynamic isoZoom to prevent the "cropped" look
-            let activeIso = (width < 767) ? 150 : isoZoom; 
-            
+            let activeIso = isoZoom; 
             camera.left = width / -activeIso;
             camera.right = width / activeIso;
             camera.top = height / activeIso;
@@ -1004,30 +1019,27 @@ resizeObserver.observe(container);
       });
     }
 
-    function loadCameraFromSceneData() {
+function loadCameraFromSceneData() {
       const savedCameraData = allSceneData.globalSettings.camera;
-      if(savedCameraData)
-      {
-        // Use .set() to apply the saved position and rotation
+      
+      // Determine initial zoom based on current screen width
+      let initialZoom = zoomDesktop;
+      if (window.innerWidth <= 767 && zoomMobile) initialZoom = zoomMobile;
+      else if (window.innerWidth <= 1024 && zoomTablet) initialZoom = zoomTablet;
+
+      if(savedCameraData) {
         camera.position.set(savedCameraData.position.x, savedCameraData.position.y, savedCameraData.position.z);
         camera.quaternion.set(savedCameraData.rotation.x, savedCameraData.rotation.y, savedCameraData.rotation.z, savedCameraData.rotation.w);
-        camera.zoom = savedCameraData.zoom;
+        
+        camera.zoom = initialZoom !== null ? initialZoom : savedCameraData.zoom;
         camera.updateProjectionMatrix();
-
-        // Crucially, update the controls to reflect the new camera state
-        // orbitControls.update();
-
-        console.log("Camera position and rotation loaded from allSceneData object.");
+      } else {
+        camera.position.set(0, 0, 5);
+        camera.quaternion.set(0, 0, 0, 1); 
+        
+        camera.zoom = initialZoom !== null ? initialZoom : 1; 
+        camera.updateProjectionMatrix();
       }
-      else
-      {
-        // Fallback: Set to default position and rotation
-          camera.position.set(0, 0, 5);
-          camera.quaternion.set(0, 0, 0, 1); // Identity quaternion (no rotation)
-          camera.zoom = 1;
-      }
-
-      
   }
 
   function checkShadowsEnabled()

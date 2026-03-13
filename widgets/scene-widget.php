@@ -59,7 +59,19 @@ class Elementor_C33D_Scene_Widget extends \Elementor\Widget_Base {
 					'px' => [ 'min' => 0, 'max' => 1200 ],
 					'vh' => [ 'min' => 0, 'max' => 100 ],
 				],
-				'default'    => [ 'unit' => 'px', 'size' => 800 ],
+				'default'    => [ 'unit' => 'px', 'size' => 500 ],
+			]
+		);
+
+		$this->add_responsive_control(
+			'scene_zoom',
+			[
+				'label' => esc_html__( 'Zoom Level', 'textdomain' ),
+				'type' => \Elementor\Controls_Manager::NUMBER,
+				'min' => 0.1,
+				'max' => 5,
+				'step' => 0.1,
+				'default' => 1,
 			]
 		);
 
@@ -81,6 +93,8 @@ class Elementor_C33D_Scene_Widget extends \Elementor\Widget_Base {
 		$settings = $this->get_settings_for_display();
 		$node_id  = $this->get_id();
 
+		
+
 		if ( empty( $settings['scene_id'] ) ) {
 			echo '<div class="elementor-panel-alert elementor-panel-alert-info">Please select a scene.</div>';
 			return;
@@ -100,7 +114,7 @@ class Elementor_C33D_Scene_Widget extends \Elementor\Widget_Base {
 		$w_mob  = $get_size('scene_width_mobile') ?: $w_tab;
 
 		// Cascading Heights (Defaults to Desktop -> then Tablet -> then Mobile)
-		$h_desk = $get_size('scene_height') ?: '800px';
+		$h_desk = $get_size('scene_height') ?: '500px';
 		$h_tab  = $get_size('scene_height_tablet') ?: $h_desk;
 		$h_mob  = $get_size('scene_height_mobile') ?: $h_tab;
 
@@ -142,19 +156,26 @@ class Elementor_C33D_Scene_Widget extends \Elementor\Widget_Base {
 				}
 			}
 		</style>
-		<?php
 
-		echo '<div class="c33d-widget-wrapper-' . esc_attr($node_id) . '">';
-			/**
-			 * PRO TIP: We pass "100%" to the shortcode's height attribute here!
-			 * Why? Because our CSS wrapper now perfectly handles the responsive height.
-			 * If we passed "800px" to the shortcode, it might spill out of the wrapper on Mobile.
-			 */
-			echo do_shortcode( sprintf( 
-				'[c33d_scene id="%s" height="100%%"]', 
-				esc_attr( $settings['scene_id'] )
-			) );
-		echo '</div>';
+		<?php
+        // Get the zoom setting, default to 1
+        $zoom_level = !empty($settings['scene_zoom']) ? $settings['scene_zoom'] : 1;
+		// $settings = $this->get_settings_for_display();
+        
+        // Grab all responsive zoom settings, fallback to desktop if others aren't set
+        $zoom_level = !empty($settings['scene_zoom']) ? $settings['scene_zoom'] : 1;
+        $zoom_tablet = !empty($settings['scene_zoom_tablet']) ? $settings['scene_zoom_tablet'] : $zoom_level;
+        $zoom_mobile = !empty($settings['scene_zoom_mobile']) ? $settings['scene_zoom_mobile'] : $zoom_tablet;
+
+        echo '<div class="c33d-widget-wrapper-' . esc_attr($node_id) . '">';
+            echo do_shortcode( sprintf( 
+                '[c33d_scene id="%s" height="100%%" zoom="%s" zoom_tablet="%s" zoom_mobile="%s"]', 
+                esc_attr( $settings['scene_id'] ),
+                esc_attr( $zoom_level ),
+                esc_attr( $zoom_tablet ),
+                esc_attr( $zoom_mobile )
+            ) );
+        echo '</div>';
 
 		// Re-trigger 3D resize in editor
 		if ( \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
