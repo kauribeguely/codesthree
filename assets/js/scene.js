@@ -218,7 +218,7 @@ export function initializeThreeJsScene(allSceneData, containerId, pluginUrl)
     loadCameraFromSceneData();
     scene.add( camera );
 
-    const renderer = new THREE.WebGLRenderer({antialias: true, alpha: true, stencil:true});
+    const renderer = new THREE.WebGLRenderer({antialias: true, alpha: true, stencil:true, logarithmicDepthBuffer: true });
     renderer.setSize(container.clientWidth, container.clientHeight);
 
     // renderer.outputEncoding = THREE.sRGBEncoding;
