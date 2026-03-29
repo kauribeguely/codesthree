@@ -315,6 +315,19 @@ function c33d_get_scene_data($post_id) {
         'models'         => $saved_config['models'] ?? [],       // Provide empty array if missing
     ];
 
+    // Evaluate shortcodes for css3d objects
+    if (!empty($final_config['models'])) {
+        foreach ($final_config['models'] as &$modelVersionArray) {
+            foreach ($modelVersionArray as &$modelRecord) {
+                if (isset($modelRecord['type']) && $modelRecord['type'] === 'css3d') {
+                    if (!empty($modelRecord['shortcodeStr'])) {
+                        $modelRecord['shortcodeHtml'] = do_shortcode($modelRecord['shortcodeStr']);
+                    }
+                }
+            }
+        }
+    }
+
     // Merge with defaults for any missing nested keys in globalSettings or model properties if necessary
     // For example, if a new global setting was added after some posts were saved
     $final_config['globalSettings'] = array_merge([
@@ -467,7 +480,8 @@ function c33d_save_scene_metadata($post_id) {
     $db_meta_key = '_threejs_scene_config_data'; // Using a leading underscore makes it a hidden meta key
 
     if (isset($_POST['threejs_scene_config_json'])) { 
-        $json_string = sanitize_text_field(wp_unslash($_POST['threejs_scene_config_json']));
+        // Use wp_unslash without sanitize_text_field to prevent breaking JSON structure
+        $json_string = wp_unslash($_POST['threejs_scene_config_json']);
 
         $decoded_data = json_decode($json_string, true);
 
@@ -475,6 +489,18 @@ function c33d_save_scene_metadata($post_id) {
 
         // Check if JSON decoding was successful and if the result is an array
         if (json_last_error() === JSON_ERROR_NONE && is_array($decoded_data)) {
+            // Recursively remove shortcodeHtml before saving to database
+            if (isset($decoded_data['models']) && is_array($decoded_data['models'])) {
+                foreach ($decoded_data['models'] as &$modelVersionArray) {
+                    if (is_array($modelVersionArray)) {
+                        foreach ($modelVersionArray as &$modelRecord) {
+                            if (is_array($modelRecord) && isset($modelRecord['shortcodeHtml'])) {
+                                unset($modelRecord['shortcodeHtml']);
+                            }
+                        }
+                    }
+                }
+            }
             update_post_meta($post_id, $db_meta_key, $decoded_data);
         } else {
             // Optionally, delete any existing valid meta to clear the config if invalid data is submitted.
@@ -655,6 +681,26 @@ function c33d_download_asset() {
     }
 
     wp_die(); // Always terminate script execution
+}
+
+add_action( 'wp_ajax_c33d_render_shortcode', 'c33d_render_shortcode_ajax' );
+
+function c33d_render_shortcode_ajax() {
+    if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'c33d_local_ajax_nonce' ) ) {
+        wp_send_json_error( array( 'message' => 'Security check failed. Invalid nonce.' ) );
+        wp_die();
+    }
+    
+    if ( ! current_user_can( 'edit_posts' ) ) {
+        wp_send_json_error( array( 'message' => 'Unauthorized.' ) );
+        wp_die();
+    }
+    
+    $shortcode = isset( $_POST['shortcode'] ) ? wp_unslash( $_POST['shortcode'] ) : '';
+    $rendered_html = do_shortcode($shortcode);
+    
+    wp_send_json_success( array( 'html' => $rendered_html ) );
+    wp_die();
 }
 
 function c33d_handle_media_sideload( $file_url, $asset_id, $download_type ) {
@@ -1008,6 +1054,7 @@ function c33d_editor_page($post) {
                     <button style="" type="button" class="button" id="add_plane_button" >Plane</button>
                     <button style="" type="button" class="button" id="add_cube_button" >Cube</button>
                     <button style="" type="button" class="button" id="add_sphere_button" >Sphere</button>
+                    <button style="" type="button" class="button" id="add_css3d_button" >CSS3D Div</button>
                 </div>
                 <!-- <div style="position: absolute; top: 10px; right: 10px; z-index: 100;"> -->
                     <select id="light-selector" style="padding: 5px; border-radius: 5px; font-family: sans-serif;">
@@ -1094,6 +1141,24 @@ function c33d_editor_page($post) {
                         <label for="threejs_rotation_z">Z</label>
                         <input type="number" name="threejs_rot_z" id="threejs_rotation_z" value="<?php echo esc_attr($rot_z); ?>" step="0.01">
                     </div>
+                    </div>
+                </fieldset>
+
+                <fieldset id="css3d_dimensions_fieldset" style="display:none;">
+                    <label>CSS3D Properties</label>
+                    <div class="transform-group">
+                        <div class="transform-field">
+                            <label for="css3d_width">Width (px)</label>
+                            <input type="number" id="css3d_width" value="300" step="1" />
+                        </div>
+                        <div class="transform-field">
+                            <label for="css3d_height">Height (px)</label>
+                            <input type="number" id="css3d_height" value="200" step="1" />
+                        </div>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <label for="css3d_shortcode">Shortcode / HTML</label>
+                        <input type="text" id="css3d_shortcode" style="width: 100%;" placeholder="[my_shortcode]" />
                     </div>
                 </fieldset>
 

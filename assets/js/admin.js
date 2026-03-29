@@ -5,6 +5,7 @@ import { OrbitControls } from 'three/addons/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 import { TransformControls } from 'three/addons/TransformControls.js';
 import { RGBELoader } from 'three/addons/RGBELoader.js';
+import { CSS3DRenderer, CSS3DObject } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/renderers/CSS3DRenderer.js';
 
 
 const localisedData = window.c33dadminlocaliseddata;
@@ -97,6 +98,10 @@ window.onload = () =>
         scaleX: 1,
         scaleY: 1,
         scaleZ: 1,
+        width: 300,
+        height: 200,
+        shortcodeStr: '',
+        shortcodeHtml: '',
         loopActive: false,
         loopCountX: 1,
         isMobileConfig: false,
@@ -320,7 +325,9 @@ window.onload = () =>
                 const axis = key.charAt(8).toLowerCase();
                 obj[key] = THREE.MathUtils.radToDeg(this.rotation[axis]);
             } else {
-                obj[key] = this[key];
+                if (key !== 'shortcodeHtml') {
+                    obj[key] = this[key];
+                }
             }
         }
         return obj;
@@ -338,6 +345,10 @@ window.onload = () =>
             scaleX: obj.scaleX,
             scaleY: obj.scaleY,
             scaleZ: obj.scaleZ,
+            width: obj.width !== undefined ? obj.width : 300,
+            height: obj.height !== undefined ? obj.height : 200,
+            shortcodeStr: obj.shortcodeStr !== undefined ? obj.shortcodeStr : '',
+            shortcodeHtml: obj.shortcodeHtml !== undefined ? obj.shortcodeHtml : '',
             lightSettings: obj.lightSettings
         });
     }
@@ -491,6 +502,13 @@ window.onload = () =>
     renderer.setSize(container.clientWidth, container.clientHeight);
     container.appendChild(renderer.domElement);
     renderer.outputColorSpace  = THREE.SRGBColorSpace;
+  
+    const cssRenderer = new CSS3DRenderer();
+    cssRenderer.setSize(container.clientWidth, container.clientHeight);
+    cssRenderer.domElement.style.position = 'absolute';
+    cssRenderer.domElement.style.top = '0px';
+    cssRenderer.domElement.style.pointerEvents = 'none';
+    container.appendChild(cssRenderer.domElement);
   
     // renderer.outputEncoding = THREE.sRGBEncoding;
     // renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -1010,6 +1028,101 @@ window.onload = () =>
   };
 
 
+
+  const css3dWidthInput = document.getElementById('css3d_width');
+  const css3dHeightInput = document.getElementById('css3d_height');
+  const css3dShortcodeInput = document.getElementById('css3d_shortcode');
+  const css3dDimensionsFieldset = document.getElementById('css3d_dimensions_fieldset');
+
+  function debounce(func, timeout = 500){
+    let timer;
+    return (...args) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => { func.apply(this, args); }, timeout);
+    };
+  }
+
+  const renderShortcodeAjax = debounce((shortcodeStr, obj) => {
+    jQuery.ajax({
+        url: localisedData.ajax_url,
+        type: 'POST',
+        data: {
+            action: 'c33d_render_shortcode',
+            nonce: localisedData.ajax_nonce,
+            shortcode: shortcodeStr
+        },
+        success: function(response) {
+            if (response.success) {
+                obj.userData.modelConfigRef.shortcodeHtml = response.data.html;
+                updateCss3dDimensions(obj);
+                transformObjectToSceneData(obj);
+            }
+        }
+    });
+  }, 500);
+
+  if (css3dWidthInput && css3dHeightInput) {
+    css3dWidthInput.oninput = () => {
+      if (selectedObj && selectedObj.userData.modelConfigRef && selectedObj.userData.modelConfigRef.type === 'css3d') {
+        selectedObjData.width = parseFloat(css3dWidthInput.value) || 1;
+        updateCss3dDimensions(selectedObj);
+        transformObjectToSceneData(selectedObj);
+      }
+    };
+    css3dHeightInput.oninput = () => {
+      if (selectedObj && selectedObj.userData.modelConfigRef && selectedObj.userData.modelConfigRef.type === 'css3d') {
+        selectedObjData.height = parseFloat(css3dHeightInput.value) || 1;
+        updateCss3dDimensions(selectedObj);
+        transformObjectToSceneData(selectedObj);
+      }
+    };
+    if (css3dShortcodeInput) {
+      css3dShortcodeInput.oninput = () => {
+        if (selectedObj && selectedObj.userData.modelConfigRef && selectedObj.userData.modelConfigRef.type === 'css3d') {
+          selectedObjData.shortcodeStr = css3dShortcodeInput.value;
+          updateCss3dDimensions(selectedObj);
+          transformObjectToSceneData(selectedObj);
+          
+          if (css3dShortcodeInput.value.trim().length > 0) {
+              renderShortcodeAjax(css3dShortcodeInput.value, selectedObj);
+          } else {
+              selectedObjData.shortcodeHtml = '';
+              updateCss3dDimensions(selectedObj); 
+              transformObjectToSceneData(selectedObj);
+          }
+        }
+      };
+    }
+  }
+
+  function updateCss3dDimensions(obj) {
+    const objData = obj.userData.modelConfigRef;
+    if(!objData) return;
+    const width = objData.width || 300;
+    const height = objData.height || 200;
+    
+    let cssObject = null;
+    obj.children.forEach(child => {
+      if (child.isCSS3DObject) cssObject = child;
+    });
+
+    if (cssObject && cssObject.element) {
+      cssObject.element.style.width = width + 'px';
+      cssObject.element.style.height = height + 'px';
+      if (objData.shortcodeHtml || objData.shortcodeStr) {
+          cssObject.element.innerHTML = objData.shortcodeHtml || objData.shortcodeStr;
+          cssObject.element.style.backgroundColor = 'transparent';
+      } else {
+          cssObject.element.innerHTML = '<h2 style="color:white;text-align:center;padding-top:20px;margin:0;">Basic Div</h2>';
+          cssObject.element.style.backgroundColor = 'rgba(0,127,255,0.8)';
+      }
+    }
+
+    if (obj.geometry) {
+      obj.geometry.dispose();
+      obj.geometry = new THREE.PlaneGeometry(width * 0.01, height * 0.01);
+    }
+  }
 
   const scaleInputX = document.getElementById('codes_scale_x');
   const scaleInputY = document.getElementById('codes_scale_y');
@@ -1571,6 +1684,41 @@ function toggleCamera()
       else if(type == 'sphere')
       { 
         newThreeJsObject = new THREE.Mesh(sphereGeo, sphereMaterial);
+      }
+      else if(type == 'css3d')
+      {
+        const width = objData ? (objData.width || 300) : 300;
+        const height = objData ? (objData.height || 200) : 200;
+        
+        // CSS3D Div setup
+        const div = document.createElement('div');
+        div.style.width = width + 'px';
+        div.style.height = height + 'px';
+        div.style.pointerEvents = 'none'; // Fix Gizmo interaction issues
+        
+        if (objData && (objData.shortcodeHtml || objData.shortcodeStr)) {
+            div.innerHTML = objData.shortcodeHtml || objData.shortcodeStr;
+            div.style.backgroundColor = 'transparent';
+        } else {
+            div.innerHTML = '<h2 style="color:white;text-align:center;padding-top:20px;margin:0;">Basic Div</h2>';
+            div.style.backgroundColor = 'rgba(0,127,255,0.8)';
+        }
+        
+        const cssObject = new CSS3DObject(div);
+        cssObject.position.set(0, 0, 0);
+        cssObject.scale.set(0.01, 0.01, 0.01);
+        
+        // Transparent WebGL Mesh for hitting/TransformControls
+        const geometry = new THREE.PlaneGeometry(width * 0.01, height * 0.01);
+        const material = new THREE.MeshBasicMaterial({
+          color: 0x000000,
+          opacity: 0,
+          transparent: true,
+          side: THREE.DoubleSide
+        });
+        
+        newThreeJsObject = new THREE.Mesh(geometry, material);
+        newThreeJsObject.add(cssObject);
       }
       else if(type == 'model' )
       {
@@ -2182,6 +2330,13 @@ function transformDragEnd(){
     addSphereButton.addEventListener('click', function (e) {
         createObject('sphere');
     });
+
+    const addCss3dButton = document.getElementById('add_css3d_button');
+    if (addCss3dButton) {
+        addCss3dButton.addEventListener('click', function (e) {
+            createObject('css3d');
+        });
+    }
 
     closeModalBtn.addEventListener('click', toggleMediaModal);
     // mediaLibraryBtn.addEventListener('click', openMediaUploader);
@@ -2911,6 +3066,7 @@ function transformDragEnd(){
       rotateGroup.rotation.z = THREE.MathUtils.lerp(rotateGroup.rotation.z, targetRotation.z, easing);   
 
       renderer.render(scene, camera);
+      cssRenderer.render(scene, camera);
       requestAnimationFrame(animate);
         // if(orbitActive) orbit.update(); // Call controls.update() in the animation loop
     }
@@ -3601,6 +3757,16 @@ function transformDragEnd(){
 
           updateLightUI(selectedObj.isLight);
 
+          if(selectedObj.userData.modelConfigRef.type == "css3d") {
+            if (css3dDimensionsFieldset) {
+                css3dDimensionsFieldset.style.display = 'block';
+                if (css3dWidthInput) css3dWidthInput.value = selectedObj.userData.modelConfigRef.width || 300;
+                if (css3dHeightInput) css3dHeightInput.value = selectedObj.userData.modelConfigRef.height || 200;
+                if (css3dShortcodeInput) css3dShortcodeInput.value = selectedObj.userData.modelConfigRef.shortcodeStr || '';
+            }
+          } else {
+            if (css3dDimensionsFieldset) css3dDimensionsFieldset.style.display = 'none';
+          }
   
           highlightSelectedListItem(obj.uuid);        
           updateParentList();

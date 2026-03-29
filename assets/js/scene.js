@@ -1,6 +1,6 @@
 console.log('scene js loaded');
 // let THREE, GLTFLoader, RGBELoader;
-let THREE, GLTFLoader;
+let THREE, GLTFLoader, CSS3DRenderer, CSS3DObject;
 
 
 let allShortCodeContainers = document.querySelectorAll('.c33d_scene');
@@ -68,8 +68,11 @@ async function loadThreeJs()
   {
     THREE = await import('three');
     const gltf = await import('three/addons/GLTFLoader.js');
+    const css3d = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/renderers/CSS3DRenderer.js');
     // const rgbe = await import('three/addons/RGBELoader.js');
     GLTFLoader = gltf.GLTFLoader;
+    CSS3DRenderer = css3d.CSS3DRenderer;
+    CSS3DObject = css3d.CSS3DObject;
     // RGBELoader = rgbe.RGBELoader;
     threeJsLoaded = true;
     blendModes = {
@@ -238,6 +241,7 @@ const resizeObserver = new ResizeObserver(entries => {
         // 1. Update Renderer
         renderer.setSize(width, height);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        if (typeof cssRenderer !== 'undefined' && cssRenderer) cssRenderer.setSize(width, height);
 
         // 2. Update Camera (merged logic)
         const aspect = width / height;
@@ -291,6 +295,13 @@ const resizeObserver = new ResizeObserver(entries => {
 resizeObserver.observe(container);
 
     container.appendChild(renderer.domElement);
+
+    const cssRenderer = new CSS3DRenderer();
+    cssRenderer.setSize(container.clientWidth, container.clientHeight);
+    cssRenderer.domElement.style.position = 'absolute';
+    cssRenderer.domElement.style.top = '0px';
+    cssRenderer.domElement.style.pointerEvents = 'none'; // Ensure interacts pass through to canvas
+    container.appendChild(cssRenderer.domElement);
 
     // const alight = new THREE.AmbientLight(0xffffff, sceneData.lightIntensity);
     // scene.add(alight);
@@ -389,6 +400,38 @@ resizeObserver.observe(container);
         const cubeMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
         // const cube = new Mesh(cubeGeo, cubeMaterial);
         newThreeJsObject = new THREE.Mesh(cubeGeo, cubeMaterial);
+      }
+      else if(type == 'css3d')
+      {
+        const width = objData ? (objData.width || 300) : 300;
+        const height = objData ? (objData.height || 200) : 200;
+        
+        // CSS3D Div setup
+        const div = document.createElement('div');
+        div.style.width = width + 'px';
+        div.style.height = height + 'px';
+        if (objData && (objData.shortcodeHtml || objData.shortcodeStr)) {
+            div.innerHTML = objData.shortcodeHtml || objData.shortcodeStr;
+            div.style.backgroundColor = 'transparent';
+        } else {
+            div.innerHTML = '<h2 style="color:white;text-align:center;padding-top:20px;margin:0;">Basic Div</h2>';
+            div.style.backgroundColor = 'rgba(0,127,255,0.8)';
+        }
+        
+        const cssObject = new CSS3DObject(div);
+        cssObject.position.set(0, 0, 0);
+        cssObject.scale.set(0.01, 0.01, 0.01);
+        
+        const geometry = new THREE.PlaneGeometry(width * 0.01, height * 0.01);
+        const material = new THREE.MeshBasicMaterial({
+          color: 0x000000,
+          opacity: 0,
+          transparent: true,
+          side: THREE.DoubleSide
+        });
+        
+        newThreeJsObject = new THREE.Mesh(geometry, material);
+        newThreeJsObject.add(cssObject);
       }
       else if(type == 'model' )
       {
@@ -766,6 +809,7 @@ resizeObserver.observe(container);
       rotateGroup.rotation.z = THREE.MathUtils.lerp(rotateGroup.rotation.z, targetRotation.z, easing);      
       
       renderer.render(scene, camera);     
+      if (typeof cssRenderer !== 'undefined' && cssRenderer) cssRenderer.render(scene, camera);
 
       requestAnimationFrame(animate);
     };
