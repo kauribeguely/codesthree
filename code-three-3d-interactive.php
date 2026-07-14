@@ -13,18 +13,19 @@ Stable tag: 1.0.0
 */
 
 // Exit if accessed directly
-if ( ! defined( 'ABSPATH' ) ) {
+if (!defined('ABSPATH')) {
     exit;
 }
 
-register_uninstall_hook( __FILE__, 'c33d_on_plugin_uninstall' );
- 
-function c33d_on_plugin_uninstall() {
+register_uninstall_hook(__FILE__, 'c33d_on_plugin_uninstall');
+
+function c33d_on_plugin_uninstall()
+{
     // Define the option name to be deleted
     $option_name_to_clear = 'c33d_imported_assets'; // Or 'c33d_imported_demo_assets' if that's the final name
 
     // Delete the option completely from the wp_options table
-    $deleted = delete_option( $option_name_to_clear );
+    $deleted = delete_option($option_name_to_clear);
 
     // TODO - give user option to..
     // - Delete custom post types (if you registered them and want them gone on uninstall)
@@ -35,14 +36,14 @@ function c33d_on_plugin_uninstall() {
 function c33d_create_scene_shortcode($atts)
 {
     $atts = shortcode_atts(array(
-        'id'          => get_the_ID(),
-        'width'       => '100%',
-        'height'      => '500px',
-        'mdheight'    => '', 
-        'smheight'    => '', 
-        'zoom'        => '1', 
-        'zoom_tablet' => '', 
-        'zoom_mobile' => '', 
+        'id' => get_the_ID(),
+        'width' => '100%',
+        'height' => '500px',
+        'mdheight' => '',
+        'smheight' => '',
+        'zoom' => '1',
+        'zoom_tablet' => '',
+        'zoom_mobile' => '',
     ), $atts);
 
     // Fallback logic: if mobile/tablet heights aren't set, use desktop height
@@ -58,10 +59,10 @@ function c33d_create_scene_shortcode($atts)
     $post_id = intval($atts['id']);
     $scene_data = c33d_get_scene_data($post_id);
     $isadmin = is_admin();
-    
+
     // Generate a unique ID for this specific instance on the page
     $instance_id = 'scene-' . esc_attr($post_id) . '-' . uniqid();
-    
+
     $style_vars = sprintf(
         '--h: %s; --md-h: %s; --sm-h: %s; width: %s;',
         esc_attr($atts['height']),
@@ -70,32 +71,34 @@ function c33d_create_scene_shortcode($atts)
         esc_attr($atts['width'])
     );
 
-    ob_start(); 
+    ob_start();
     ?>
-    
+
     <style>
         /* Scoped specifically to THIS instance ID */
         #<?php echo $instance_id; ?> {
             height: var(--h);
         }
+
         @media (max-width: 1024px) {
-            #<?php echo $instance_id; ?> { height: var(--md-h); }
+            #<?php echo $instance_id; ?> {
+                height: var(--md-h);
+            }
         }
+
         @media (max-width: 767px) {
-            #<?php echo $instance_id; ?> { height: var(--sm-h); }
+            #<?php echo $instance_id; ?> {
+                height: var(--sm-h);
+            }
         }
     </style>
 
-    <div id="<?php echo $instance_id; ?>" 
-        class="c33d_scene" 
-        data-scene-id="<?php echo esc_attr($post_id); ?>" 
+    <div id="<?php echo $instance_id; ?>" class="c33d_scene" data-scene-id="<?php echo esc_attr($post_id); ?>"
         data-scene-data='<?php echo wp_json_encode($scene_data); ?>'
         data-plugin-url='<?php echo esc_url(plugins_url('', __FILE__)); ?>'
         data-is-admin="<?php echo esc_attr($isadmin ? 'true' : 'false'); ?>"
-        data-zoom="<?php echo esc_attr($zoom_level); ?>"
-        data-zoom-tablet="<?php echo esc_attr($zoom_tablet); ?>"
-        data-zoom-mobile="<?php echo esc_attr($zoom_mobile); ?>"
-        style="<?php echo $style_vars; ?>">
+        data-zoom="<?php echo esc_attr($zoom_level); ?>" data-zoom-tablet="<?php echo esc_attr($zoom_tablet); ?>"
+        data-zoom-mobile="<?php echo esc_attr($zoom_mobile); ?>" style="<?php echo $style_vars; ?>">
 
         <div class="loadScreen">
             <div class="cubeLoader"></div>
@@ -117,7 +120,7 @@ function c33d_register_frontend_assets()
     );
 
     wp_register_script_module(
-        'codes-scene-script', 
+        'codes-scene-script',
         plugins_url('/assets/js/scene.js', __FILE__)
     );
 
@@ -126,55 +129,57 @@ function c33d_register_frontend_assets()
 add_action('wp_enqueue_scripts', 'c33d_register_frontend_assets', 5);
 
 
-function c33d_frontend_enqueue_assets() {
+function c33d_frontend_enqueue_assets()
+{
 
-        wp_enqueue_style('codes-styles');
-        
-        wp_enqueue_script(
-            'c33d-local-script', 
-            plugins_url('/assets/js/local.js', __FILE__), 
-            true 
-        );
-        
-        $is_admin_string = 'false'; 
+    wp_enqueue_style('codes-styles');
 
-        if ( is_admin() ) {
-            $is_admin_string = 'true';
-        }
+    wp_enqueue_script(
+        'c33d-local-script',
+        plugins_url('/assets/js/local.js', __FILE__),
+        true
+    );
 
-        if ( isset( $_GET['action'] ) && sanitize_text_field( wp_unslash( $_GET['action'] ) ) === 'elementor' ) {
-            $is_admin_string = 'true';
-        }
+    $is_admin_string = 'false';
 
-        // $is_admin_string = is_admin() ? 'true' : 'false';
-        // $is_admin_string = (is_admin() || ( defined( 'ELEMENTOR_PATH' ) && \Elementor\Plugin::$instance->editor->is_edit_mode() ) ) ? 'true' : 'false';
-        // $is_admin_string = (is_admin() || $_GET['action'] === 'elementor' ) ? 'true' : 'false';
-        // $is_admin_string = (is_admin() || $_GET['action'] === 'elementor') ? 'true' : 'false';
-        wp_localize_script(
-            'c33d-local-script',
-            'c33dlocaliseddata',     
-            array(
-                'isAdmin' => 'true',
-                'pluginUrl' => esc_url(plugins_url('', __FILE__)),
-                )
-            );
-            
-        wp_enqueue_script_module('codes-scene-script');
+    if (is_admin()) {
+        $is_admin_string = 'true';
+    }
+
+    if (isset($_GET['action']) && sanitize_text_field(wp_unslash($_GET['action'])) === 'elementor') {
+        $is_admin_string = 'true';
+    }
+
+    // $is_admin_string = is_admin() ? 'true' : 'false';
+    // $is_admin_string = (is_admin() || ( defined( 'ELEMENTOR_PATH' ) && \Elementor\Plugin::$instance->editor->is_edit_mode() ) ) ? 'true' : 'false';
+    // $is_admin_string = (is_admin() || $_GET['action'] === 'elementor' ) ? 'true' : 'false';
+    // $is_admin_string = (is_admin() || $_GET['action'] === 'elementor') ? 'true' : 'false';
+    wp_localize_script(
+        'c33d-local-script',
+        'c33dlocaliseddata',
+        array(
+            'isAdmin' => 'true',
+            'pluginUrl' => esc_url(plugins_url('', __FILE__)),
+        )
+    );
+
+    wp_enqueue_script_module('codes-scene-script');
 }
 add_action('wp_enqueue_scripts', 'c33d_frontend_enqueue_assets', 6);
 
 
-function c33d_admin_enqueue_assets() {
+function c33d_admin_enqueue_assets()
+{
 
 
-    global $post; 
-    $screen = get_current_screen(); 
+    global $post;
+    $screen = get_current_screen();
     $is_code_scene = false;
 
     if (
-        ( 'post' === $screen->base || 'post-new' === $screen->base ) && 
-        isset( $post->post_type ) &&                                  
-        'c33d_scene' === $post->post_type                            
+        ('post' === $screen->base || 'post-new' === $screen->base) &&
+        isset($post->post_type) &&
+        'c33d_scene' === $post->post_type
     ) {
         $is_code_scene = true;
     }
@@ -189,8 +194,8 @@ function c33d_admin_enqueue_assets() {
     // }
 
 
-    if ( ! $is_code_scene ) {
-        return; 
+    if (!$is_code_scene) {
+        return;
     }
 
     $plugin_version = '1.0.0'; // Use the version from your plugin header
@@ -199,7 +204,7 @@ function c33d_admin_enqueue_assets() {
         plugins_url('/assets/js/admin.js', __FILE__),
         array(), // Dependencies for registration are usually empty for a module
         $plugin_version,
-        array( 'in_footer' => true ) // Explicitly set loading arguments
+        array('in_footer' => true) // Explicitly set loading arguments
     );
 
 
@@ -211,20 +216,20 @@ function c33d_admin_enqueue_assets() {
 
 
     wp_enqueue_script(
-        'c33d-local-script', 
-        plugins_url('/assets/js/local.js', __FILE__), 
-        true 
+        'c33d-local-script',
+        plugins_url('/assets/js/local.js', __FILE__),
+        true
     );
 
     wp_localize_script(
         'c33d-local-script',
-        'c33dadminlocaliseddata',     
+        'c33dadminlocaliseddata',
         array(
-            'ajax_url' => admin_url('admin-ajax.php'), 
-            'ajax_nonce'    => wp_create_nonce('c33d_local_ajax_nonce'), 
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'ajax_nonce' => wp_create_nonce('c33d_local_ajax_nonce'),
             'allSceneData' => wp_json_encode(c33d_get_scene_data($post->ID)),
             'pluginUrl' => esc_url(plugins_url('', __FILE__)),
-            'importedDemoAssets'  => wp_json_encode( get_option( 'c33d_imported_assets', array() ) ),
+            'importedDemoAssets' => wp_json_encode(get_option('c33d_imported_assets', array())),
         )
     );
 
@@ -232,33 +237,36 @@ function c33d_admin_enqueue_assets() {
     wp_enqueue_script_module(
         'codes-admin-script',
         plugins_url('/assets/js/admin.js', __FILE__),
-        array( 'c33d-local-script' ) // Your main module depends on the data script
-        
+        array('c33d-local-script') // Your main module depends on the data script
+
     );
 }
 add_action('admin_enqueue_scripts', 'c33d_admin_enqueue_assets');
 
-function c33d_plugin_row_meta( $links, $file ) {
+function c33d_plugin_row_meta($links, $file)
+{
 
-    if ( plugin_basename( __FILE__ ) === $file ) {
-        $new_scene_link = '<a href="' . esc_url( admin_url( 'post-new.php?post_type=c33d_scene' ) ) . '">' . esc_html__( 'New Scene', 'code-three-3d-interactive' ) . '</a>';
+    if (plugin_basename(__FILE__) === $file) {
+        $new_scene_link = '<a href="' . esc_url(admin_url('post-new.php?post_type=c33d_scene')) . '">' . esc_html__('New Scene', 'code-three-3d-interactive') . '</a>';
 
-        $view_demo_link = '<a href="' . esc_url( 'https://c33d.kaurib.com/' ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'View Demo', 'code-three-3d-interactive' ) . '</a>';
+        $view_demo_link = '<a href="' . esc_url('https://c33d.kaurib.com/') . '" target="_blank" rel="noopener noreferrer">' . esc_html__('View Demo', 'code-three-3d-interactive') . '</a>';
 
         $links[] = $new_scene_link;
         $links[] = $view_demo_link;
     }
-    
+
 
     return $links;
 }
-add_filter( 'plugin_row_meta', 'c33d_plugin_row_meta', 10, 2 );
+add_filter('plugin_row_meta', 'c33d_plugin_row_meta', 10, 2);
 
 
-function c33d_shortcode_in_publish_box() {
+function c33d_shortcode_in_publish_box()
+{
     global $post;
 
-    if ($post->post_type !== 'c33d_scene') return;
+    if ($post->post_type !== 'c33d_scene')
+        return;
 
     $shortcode = '[c33d_scene id="' . $post->ID . '"]';
 
@@ -266,7 +274,8 @@ function c33d_shortcode_in_publish_box() {
 }
 add_action('post_submitbox_misc_actions', 'c33d_shortcode_in_publish_box');
 
-function c33d_get_scene_data($post_id) {
+function c33d_get_scene_data($post_id)
+{
     // Define the meta key where the full JSON configuration is stored
     $db_meta_key = '_threejs_scene_config_data';
 
@@ -279,22 +288,22 @@ function c33d_get_scene_data($post_id) {
         // Define a comprehensive default structure matching your JS sceneData expectation
         $default_config = [
             'globalSettings' => [
-                'ambientLightIntensity'     => 0.5,
+                'ambientLightIntensity' => 0.5,
                 'directionalLightIntensity' => 1.0,
-                'lightPosX'                 => 5,
-                'lightPosY'                 => 10,
-                'lightPosZ'                 => 7.5,
-                'useEnvLight'               => false, // Assuming this is a toggle ('on'/'off')
-                'isOrthoCamera'             => false, // Assuming this is a toggle ('on'/'off')
-                'mouseAnimationLink'        => false,
-                'mouseRotationX'            => 6.0,
-                'mouseRotationY'            => 6.0,
-                'mouseRotationZ'            => 0.0,
-                'scrollAnimationLink'       => false,
-                'scrollMoveX'               => 0.0,
-                'scrollMoveY'               => 5.0,
-                'scrollMoveZ'               => 0.0,
-                'breakpoint'               => 768,
+                'lightPosX' => 5,
+                'lightPosY' => 10,
+                'lightPosZ' => 7.5,
+                'useEnvLight' => false, // Assuming this is a toggle ('on'/'off')
+                'isOrthoCamera' => false, // Assuming this is a toggle ('on'/'off')
+                'mouseAnimationLink' => false,
+                'mouseRotationX' => 6.0,
+                'mouseRotationY' => 6.0,
+                'mouseRotationZ' => 0.0,
+                'scrollAnimationLink' => false,
+                'scrollMoveX' => 0.0,
+                'scrollMoveY' => 5.0,
+                'scrollMoveZ' => 0.0,
+                'breakpoint' => 768,
                 // Add any other global default settings here
             ],
             'models' => [
@@ -302,7 +311,7 @@ function c33d_get_scene_data($post_id) {
                 // Or you could add a default cube/model config here if your scene always starts with one
                 [],
                 []
-                
+
             ]
         ];
         return $default_config;
@@ -312,7 +321,7 @@ function c33d_get_scene_data($post_id) {
     // This helps handle cases where old data structures might exist or are incomplete.
     $final_config = [
         'globalSettings' => $saved_config['globalSettings'] ?? [], // Provide empty array if missing
-        'models'         => $saved_config['models'] ?? [],       // Provide empty array if missing
+        'models' => $saved_config['models'] ?? [],       // Provide empty array if missing
     ];
 
     // Evaluate shortcodes for css3d objects
@@ -331,41 +340,41 @@ function c33d_get_scene_data($post_id) {
     // Merge with defaults for any missing nested keys in globalSettings or model properties if necessary
     // For example, if a new global setting was added after some posts were saved
     $final_config['globalSettings'] = array_merge([
-        'ambientLightIntensity'     => 0.5,
+        'ambientLightIntensity' => 0.5,
         'directionalLightIntensity' => 1.0,
-        'lightPosX'                 => 5,
-        'lightPosY'                 => 10,
-        'lightPosZ'                 => 7.5,
-        'useEnvLight'               => false,
-        'isOrthoCamera'             => false,
-        'mouseAnimationLink'        => false,
-        'mouseRotationX'            => 0.0,
-        'mouseRotationY'            => 0.0,
-        'mouseRotationZ'            => 0.0,
-        'scrollAnimationLink'       => false,
-        'scrollMoveX'               => 0.0,
-        'scrollMoveY'               => 0.0,
-        'scrollMoveZ'               => 0.0,
-        'scrollMoveZ'               => 0.0,
-        'breakpoint'               => 768,
+        'lightPosX' => 5,
+        'lightPosY' => 10,
+        'lightPosZ' => 7.5,
+        'useEnvLight' => false,
+        'isOrthoCamera' => false,
+        'mouseAnimationLink' => false,
+        'mouseRotationX' => 0.0,
+        'mouseRotationY' => 0.0,
+        'mouseRotationZ' => 0.0,
+        'scrollAnimationLink' => false,
+        'scrollMoveX' => 0.0,
+        'scrollMoveY' => 0.0,
+        'scrollMoveZ' => 0.0,
+        'scrollMoveZ' => 0.0,
+        'breakpoint' => 768,
     ], $final_config['globalSettings']);
-   return $final_config;
+    return $final_config;
 }
 
-function c33d_inject_threejs_assets() 
+function c33d_inject_threejs_assets()
 {
-?>
+    ?>
 
-<script type="importmap">
-    {
-        "imports": {
-            "three": "<?php echo esc_url(plugins_url('/assets/js/three.module.min.js', __FILE__)); ?>",
-            "three/addons/": "<?php echo esc_url(plugins_url('/assets/js/threeaddons/', __FILE__)); ?>"
-        }
-    }
-</script>
+    <script type="importmap">
+                                    {
+                                        "imports": {
+                                            "three": "<?php echo esc_url(plugins_url('/assets/js/three.module.min.js', __FILE__)); ?>",
+                                            "three/addons/": "<?php echo esc_url(plugins_url('/assets/js/threeaddons/', __FILE__)); ?>"
+                                        }
+                                    }
+                                </script>
 
-<?php
+    <?php
 }
 // Hook into the wp_head to ensure the assets are loaded globally
 add_action('wp_head', 'c33d_inject_threejs_assets', 0);
@@ -373,28 +382,30 @@ add_action('wp_head', 'c33d_inject_threejs_assets', 0);
 
 
 // Add support for .glb and .gltf files in the Media Library
-function c33d_allow_3d_file_uploads($mime_types) {
-    $mime_types['glb'] = 'model/gltf-binary'; 
-    $mime_types['gltf'] = 'model/gltf+json';  
+function c33d_allow_3d_file_uploads($mime_types)
+{
+    $mime_types['glb'] = 'model/gltf-binary';
+    $mime_types['gltf'] = 'model/gltf+json';
     $mime_types['hdr'] = 'image/vnd.radiance';
     return $mime_types;
 }
 add_filter('upload_mimes', 'c33d_allow_3d_file_uploads');
 
 
-add_filter('wp_check_filetype_and_ext', function($data, $file, $filename, $mime_types, $real_mime_type) {
-    if (empty($data['ext'])
+add_filter('wp_check_filetype_and_ext', function ($data, $file, $filename, $mime_types, $real_mime_type) {
+    if (
+        empty($data['ext'])
         || empty($data['type'])
     ) {
         $file_type = wp_check_filetype($filename, $mime_types);
 
         if ('gltf' === $file_type['ext']) {
-            $data['ext']  = 'gltf';
+            $data['ext'] = 'gltf';
             $data['type'] = 'model/gltf+json';
         }
 
         if ('glb' === $file_type['ext']) {
-            $data['ext']  = 'glb';
+            $data['ext'] = 'glb';
             $data['type'] = 'model/gltf-binary';
         }
     }
@@ -403,46 +414,48 @@ add_filter('wp_check_filetype_and_ext', function($data, $file, $filename, $mime_
 }, 10, 5);
 
 
-function register_c33d_widget( $widgets_manager ) {
-	require_once( __DIR__ . '/widgets/scene-widget.php' ); // Adjust path as needed
-	$widgets_manager->register( new \Elementor_C33D_Scene_Widget() );
+function register_c33d_widget($widgets_manager)
+{
+    require_once(__DIR__ . '/widgets/scene-widget.php'); // Adjust path as needed
+    $widgets_manager->register(new \Elementor_C33D_Scene_Widget());
 }
-add_action( 'elementor/widgets/register', 'register_c33d_widget' );
+add_action('elementor/widgets/register', 'register_c33d_widget');
 
 
 
 // Hook to initialize the custom post type
 add_action('init', 'c33d_register_scenes_post_type');
 
-function c33d_register_scenes_post_type() {
+function c33d_register_scenes_post_type()
+{
     // Labels for the post type
     $labels = array(
-        'name'               => __('Scenes', 'code-three-3d-interactive'),
-        'singular_name'      => __('Scene', 'code-three-3d-interactive'),
-        'menu_name'          => '3D Scenes', 
-        'name_admin_bar'     => __('Scene', 'code-three-3d-interactive'),
-        'all_items'          => __('All 3D Scenes', 'code-three-3d-interactive'),
-        'add_new'            => __('New 3D Scene', 'code-three-3d-interactive'),
-        'add_new_item'       => __('New 3D Scene', 'code-three-3d-interactive'),
-        'edit_item'          => __('Edit Scene', 'code-three-3d-interactive'),
-        'new_item'           => __('New Scene', 'code-three-3d-interactive'), // Keep 'Code 3' fixed
-        'view_item'          => __('View Scene', 'code-three-3d-interactive'),
-        'search_items'       => __('Search Scenes', 'code-three-3d-interactive'),
-        'not_found'          => __('No scenes found', 'code-three-3d-interactive'),
+        'name' => __('Scenes', 'code-three-3d-interactive'),
+        'singular_name' => __('Scene', 'code-three-3d-interactive'),
+        'menu_name' => '3D Scenes',
+        'name_admin_bar' => __('Scene', 'code-three-3d-interactive'),
+        'all_items' => __('All 3D Scenes', 'code-three-3d-interactive'),
+        'add_new' => __('New 3D Scene', 'code-three-3d-interactive'),
+        'add_new_item' => __('New 3D Scene', 'code-three-3d-interactive'),
+        'edit_item' => __('Edit Scene', 'code-three-3d-interactive'),
+        'new_item' => __('New Scene', 'code-three-3d-interactive'), // Keep 'Code 3' fixed
+        'view_item' => __('View Scene', 'code-three-3d-interactive'),
+        'search_items' => __('Search Scenes', 'code-three-3d-interactive'),
+        'not_found' => __('No scenes found', 'code-three-3d-interactive'),
         'not_found_in_trash' => __('No scenes found in Trash', 'code-three-3d-interactive'),
     );
 
     // Arguments for the post type
     $args = array(
-        'labels'             => $labels,
-        'public'             => true,
-        'show_in_menu'       => true,
-        'menu_icon'          => 'dashicons-visibility',
-        'supports'           => array('title', 'editor', 'thumbnail'),
-        'rewrite'           => ['slug' => 'c33d_scene', 'with_front' => false],
-        'has_archive'       => true,
-        'query_var'         => true,
-        'show_in_rest'       => true, // Enable Gutenberg editor
+        'labels' => $labels,
+        'public' => true,
+        'show_in_menu' => true,
+        'menu_icon' => 'dashicons-visibility',
+        'supports' => array('title', 'editor', 'thumbnail'),
+        'rewrite' => ['slug' => 'c33d_scene', 'with_front' => false],
+        'has_archive' => true,
+        'query_var' => true,
+        'show_in_rest' => true, // Enable Gutenberg editor
     );
 
     // Register the post type
@@ -452,7 +465,8 @@ function c33d_register_scenes_post_type() {
 }
 
 
-function c33d_save_scene_metadata($post_id) {
+function c33d_save_scene_metadata($post_id)
+{
 
     // Verify this is a "c33d_scene" post type
     if (get_post_type($post_id) !== 'c33d_scene') {
@@ -460,15 +474,13 @@ function c33d_save_scene_metadata($post_id) {
     }
 
     // Verify nonce for security (comes from your meta box form)
-    if ( isset( $_POST['scene_meta_nonce'] ) ) {
-        $nonce = sanitize_text_field(wp_unslash( $_POST['scene_meta_nonce'] )); // Unslash first
+    if (isset($_POST['scene_meta_nonce'])) {
+        $nonce = sanitize_text_field(wp_unslash($_POST['scene_meta_nonce'])); // Unslash first
         // $nonce = sanitize_text_field( $nonce );
-        if ( ! wp_verify_nonce( $nonce, 'c33d_save_scene_data_nonce' ) ) {
+        if (!wp_verify_nonce($nonce, 'c33d_save_scene_data_nonce')) {
             return;
         }
-    } 
-    else 
-    {
+    } else {
         return;
     }
 
@@ -479,7 +491,7 @@ function c33d_save_scene_metadata($post_id) {
 
     $db_meta_key = '_threejs_scene_config_data'; // Using a leading underscore makes it a hidden meta key
 
-    if (isset($_POST['threejs_scene_config_json'])) { 
+    if (isset($_POST['threejs_scene_config_json'])) {
         // Use wp_unslash without sanitize_text_field to prevent breaking JSON structure
         $json_string = wp_unslash($_POST['threejs_scene_config_json']);
 
@@ -509,12 +521,13 @@ function c33d_save_scene_metadata($post_id) {
     } else {
         // 5. --- Handle Case: No JSON Data Submitted ---
         delete_post_meta($post_id, $db_meta_key);
-        }
+    }
 }
 add_action('save_post', 'c33d_save_scene_metadata');
 
 // Add meta box for 3D Element Editor in Scene post type
-function c33d_add_editor_meta_box() {
+function c33d_add_editor_meta_box()
+{
     add_meta_box(
         'code-three-metabox', // Meta box ID
         'Code Three Scene Editor',    // Meta box title
@@ -527,37 +540,42 @@ function c33d_add_editor_meta_box() {
 add_action('add_meta_boxes', 'c33d_add_editor_meta_box');
 
 
-function c33d_remove_post_editing_box() {
+function c33d_remove_post_editing_box()
+{
     remove_post_type_support('c33d_scene', 'editor');
 }
 add_action('init', 'c33d_remove_post_editing_box');
 
 
-function c33d_custom_template_redirect($template) {
+function c33d_custom_template_redirect($template)
+{
 
-	if (is_singular('c33d_scene')) {
-		return plugin_dir_path(__FILE__) . 'templates/single_scene.php';
+    if (is_singular('c33d_scene')) {
+        return plugin_dir_path(__FILE__) . 'templates/single_scene.php';
     }
     return $template;
 }
 add_filter('template_include', 'c33d_custom_template_redirect');
 
 
-function c33d_add_shortcode_column($columns) {
+function c33d_add_shortcode_column($columns)
+{
     $columns['c33d_scene_shortcode'] = 'Shortcode';
     return $columns;
 }
-add_filter('manage_c33d_scene_posts_columns', 'c33d_add_shortcode_column'); 
+add_filter('manage_c33d_scene_posts_columns', 'c33d_add_shortcode_column');
 
-function c33d_populate_shortcode_column($column, $post_id) {
+function c33d_populate_shortcode_column($column, $post_id)
+{
     if ($column === 'c33d_scene_shortcode') {
         echo '[c33d_scene id="' . absint($post_id) . '"]';
     }
 }
-add_action('manage_c33d_scene_posts_custom_column', 'c33d_populate_shortcode_column', 10, 2); 
+add_action('manage_c33d_scene_posts_custom_column', 'c33d_populate_shortcode_column', 10, 2);
 
 
-function c33d_set_default_one_column_layout($default, $option, $value) {
+function c33d_set_default_one_column_layout($default, $option, $value)
+{
     $screen = get_current_screen();
 
     if ($screen && $screen->id === 'c33d_scene') {
@@ -566,16 +584,17 @@ function c33d_set_default_one_column_layout($default, $option, $value) {
 
     return $default;
 }
-add_filter('default_option_screen_layout_c33d_scene', 'c33d_set_default_one_column_layout', 10, 3); 
+add_filter('default_option_screen_layout_c33d_scene', 'c33d_set_default_one_column_layout', 10, 3);
 
 
-add_action( 'wp_ajax_c33d_download_asset', 'c33d_download_asset' );
+add_action('wp_ajax_c33d_download_asset', 'c33d_download_asset');
 
 
 // function c33d_handle_demo_import_ajax() {
-function c33d_download_asset() {
-    if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'c33d_local_ajax_nonce' ) ) {
-        wp_send_json_error( array( 'message' => 'Security check failed. Invalid nonce.' ) );
+function c33d_download_asset()
+{
+    if (!isset($_POST['nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'])), 'c33d_local_ajax_nonce')) {
+        wp_send_json_error(array('message' => 'Security check failed. Invalid nonce.'));
         wp_die(); // Always exit after sending JSON response in AJAX handlers
     }
 
@@ -585,12 +604,12 @@ function c33d_download_asset() {
     //     wp_die();
     // }
 
-    $asset_name    = isset( $_POST['asset_name'] ) ? sanitize_text_field( wp_unslash( $_POST['asset_name'] ) ) : ''; 
-    $download_type = isset( $_POST['download_type'] ) ? sanitize_text_field( wp_unslash( $_POST['download_type'] ) ) : '';
+    $asset_name = isset($_POST['asset_name']) ? sanitize_text_field(wp_unslash($_POST['asset_name'])) : '';
+    $download_type = isset($_POST['download_type']) ? sanitize_text_field(wp_unslash($_POST['download_type'])) : '';
 
     // Basic validation of inputs
-    if (empty( $asset_name ) ) {
-        wp_send_json_error( array( 'message' => 'Missing Asset Name' ) );
+    if (empty($asset_name)) {
+        wp_send_json_error(array('message' => 'Missing Asset Name'));
         wp_die();
     }
 
@@ -598,7 +617,7 @@ function c33d_download_asset() {
     $file_extension = '';
 
     // Determine the base URL and file extension based on download type and asset name
-    switch ( $download_type ) {
+    switch ($download_type) {
         case 'model':
             $base_url = 'https://c33d.kaurib.com/dl/models/';
             $file_extension = '.glb'; // Assuming all models are GLB for now
@@ -615,12 +634,12 @@ function c33d_download_asset() {
             $file_extension = '.json'; // Scene configurations are JSON
             break;
         default:
-            wp_send_json_error( array( 'message' => 'Invalid download type specified.' ) );
+            wp_send_json_error(array('message' => 'Invalid download type specified.'));
             wp_die();
     }
 
     // Construct the full external URL
-    $file_url = esc_url_raw( $base_url . $asset_name . $file_extension ); 
+    $file_url = esc_url_raw($base_url . $asset_name . $file_extension);
     // This prevents your server from being used to download files from arbitrary URLs.
     // $allowed_domains = array( 'c33d.kaurib.com' ); // Add all domains your demos are hosted on.
     // $parsed_url = wp_parse_url( $file_url );
@@ -630,102 +649,104 @@ function c33d_download_asset() {
     // }
 
     // Dispatch based on download type
-    switch ( $download_type ) {
+    switch ($download_type) {
         case 'model':
         case 'envtexture':
             // Handle importing to Media Library
-            $result = c33d_handle_media_sideload( $file_url, $asset_name, $download_type );
-            if ( is_wp_error( $result ) ) {
-                wp_send_json_error( array( 'message' => $result->get_error_message(), 'errors' => $result->get_error_data() ) );
+            $result = c33d_handle_media_sideload($file_url, $asset_name, $download_type);
+            if (is_wp_error($result)) {
+                wp_send_json_error(array('message' => $result->get_error_message(), 'errors' => $result->get_error_data()));
             } else {
 
-                $imported_assets = get_option( 'c33d_imported_assets', array() );
-                $imported_assets[ $asset_name ] = array(
-                    'attachment_id'  => $result['attachment_id'],
+                $imported_assets = get_option('c33d_imported_assets', array());
+                $imported_assets[$asset_name] = array(
+                    'attachment_id' => $result['attachment_id'],
                     'attachment_url' => $result['attachment_url'],
-                    'type'           => $download_type,
+                    'type' => $download_type,
                 );
-                update_option( 'c33d_imported_assets', $imported_assets );
+                update_option('c33d_imported_assets', $imported_assets);
 
 
-                wp_send_json_success( array(
-                    'modelName' => $asset_name, 
-                    'asset'     => array( 
-                        'message'          => sprintf( '%s "%s" imported successfully!', ucwords($download_type), $asset_name ),
-                        'attachment_id'  => $result['attachment_id'],
+                wp_send_json_success(array(
+                    'modelName' => $asset_name,
+                    'asset' => array(
+                        'message' => sprintf('%s "%s" imported successfully!', ucwords($download_type), $asset_name),
+                        'attachment_id' => $result['attachment_id'],
                         'attachment_url' => $result['attachment_url'],
-                        'type'           => $download_type,
+                        'type' => $download_type,
                     )
-                ) );
+                ));
             }
             break;
 
         case 'scene':
             // Handle fetching and returning JSON content
-            $result = c33d_handle_scene_json_fetch( $file_url, $asset_name );
-            if ( is_wp_error( $result ) ) {
-                wp_send_json_error( array( 'message' => $result->get_error_message(), 'errors' => $result->get_error_data() ) );
+            $result = c33d_handle_scene_json_fetch($file_url, $asset_name);
+            if (is_wp_error($result)) {
+                wp_send_json_error(array('message' => $result->get_error_message(), 'errors' => $result->get_error_data()));
             } else {
-                wp_send_json_success( array(
-                    'message'          => sprintf( 'Scene "%s" configuration fetched successfully!', $asset_name ),
-                    'scene_data'       => $result['scene_data'],
+                wp_send_json_success(array(
+                    'message' => sprintf('Scene "%s" configuration fetched successfully!', $asset_name),
+                    'scene_data' => $result['scene_data'],
                     'asset_name_requested' => $asset_name,
-                ) );
+                ));
             }
             break;
 
         default:
             // This case should ideally not be reached due to earlier switch, but as a fallback
-            wp_send_json_error( array( 'message' => 'Unhandled download type.' ) );
+            wp_send_json_error(array('message' => 'Unhandled download type.'));
             break;
     }
 
     wp_die(); // Always terminate script execution
 }
 
-add_action( 'wp_ajax_c33d_render_shortcode', 'c33d_render_shortcode_ajax' );
+add_action('wp_ajax_c33d_render_shortcode', 'c33d_render_shortcode_ajax');
 
-function c33d_render_shortcode_ajax() {
-    if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'c33d_local_ajax_nonce' ) ) {
-        wp_send_json_error( array( 'message' => 'Security check failed. Invalid nonce.' ) );
+function c33d_render_shortcode_ajax()
+{
+    if (!isset($_POST['nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'])), 'c33d_local_ajax_nonce')) {
+        wp_send_json_error(array('message' => 'Security check failed. Invalid nonce.'));
         wp_die();
     }
-    
-    if ( ! current_user_can( 'edit_posts' ) ) {
-        wp_send_json_error( array( 'message' => 'Unauthorized.' ) );
+
+    if (!current_user_can('edit_posts')) {
+        wp_send_json_error(array('message' => 'Unauthorized.'));
         wp_die();
     }
-    
-    $shortcode = isset( $_POST['shortcode'] ) ? wp_unslash( $_POST['shortcode'] ) : '';
+
+    $shortcode = isset($_POST['shortcode']) ? wp_unslash($_POST['shortcode']) : '';
     $rendered_html = do_shortcode($shortcode);
-    
-    wp_send_json_success( array( 'html' => $rendered_html ) );
+
+    wp_send_json_success(array('html' => $rendered_html));
     wp_die();
 }
 
-function c33d_handle_media_sideload( $file_url, $asset_id, $download_type ) {
+function c33d_handle_media_sideload($file_url, $asset_id, $download_type)
+{
     // Include WordPress core media handling functions
-    require_once( ABSPATH . 'wp-admin/includes/file.php' );
-    require_once( ABSPATH . 'wp-admin/includes/image.php' );
-    require_once( ABSPATH . 'wp-admin/includes/media.php' );
+    require_once(ABSPATH . 'wp-admin/includes/file.php');
+    require_once(ABSPATH . 'wp-admin/includes/image.php');
+    require_once(ABSPATH . 'wp-admin/includes/media.php');
 
     // Download the file to a temporary location
-    $tmp_file = download_url( $file_url );
+    $tmp_file = download_url($file_url);
 
-    if ( is_wp_error( $tmp_file ) ) {
-        return new WP_Error( 'download_failed', 'Failed to download file from external source.', $tmp_file->get_error_message() );
+    if (is_wp_error($tmp_file)) {
+        return new WP_Error('download_failed', 'Failed to download file from external source.', $tmp_file->get_error_message());
     }
 
     // Prepare the file array for media_handle_sideload()
     $file_array = array(
-        'name'     => basename( $file_url ),
+        'name' => basename($file_url),
         'tmp_name' => $tmp_file,
     );
 
     // Attempt to determine MIME type more accurately based on asset_type or extension
     $mime_type = '';
-    $extension = pathinfo( $file_array['name'], PATHINFO_EXTENSION );
-    switch ( strtolower( $extension ) ) {
+    $extension = pathinfo($file_array['name'], PATHINFO_EXTENSION);
+    switch (strtolower($extension)) {
         case 'glb':
         case 'gltf':
             $mime_type = 'model/gltf-binary'; // GLB is binary, GLTF might be JSON, but this is common for both
@@ -742,40 +763,41 @@ function c33d_handle_media_sideload( $file_url, $asset_id, $download_type ) {
             $mime_type = '';
             break;
     }
-    if ( ! empty( $mime_type ) ) {
+    if (!empty($mime_type)) {
         $file_array['type'] = $mime_type;
     }
 
     // Sideload the file into the Media Library
-    $attachment_id = media_handle_sideload( $file_array, 0, sprintf( 'Imported %s: %s', ucwords($download_type), $asset_id ) );
+    $attachment_id = media_handle_sideload($file_array, 0, sprintf('Imported %s: %s', ucwords($download_type), $asset_id));
 
     // Clean up the temporary file
-    wp_delete_file( $file_array['tmp_name'] );
+    wp_delete_file($file_array['tmp_name']);
     // @unlink( $file_array['tmp_name'] );
 
-    if ( is_wp_error( $attachment_id ) ) {
-        return new WP_Error( 'sideload_failed', 'Failed to import file to Media Library.', $attachment_id->get_error_message() );
+    if (is_wp_error($attachment_id)) {
+        return new WP_Error('sideload_failed', 'Failed to import file to Media Library.', $attachment_id->get_error_message());
     }
 
     return array(
-        'attachment_id'  => $attachment_id,
-        'attachment_url' => wp_get_attachment_url( $attachment_id ),
+        'attachment_id' => $attachment_id,
+        'attachment_url' => wp_get_attachment_url($attachment_id),
     );
 }
 
 
-function c33d_handle_scene_json_fetch( $scene_url, $asset_id ) {
-    $response = wp_remote_get( $scene_url );
+function c33d_handle_scene_json_fetch($scene_url, $asset_id)
+{
+    $response = wp_remote_get($scene_url);
 
-    if ( is_wp_error( $response ) ) {
-        return new WP_Error( 'fetch_failed', 'Failed to fetch scene configuration from external URL.', $response->get_error_message() );
+    if (is_wp_error($response)) {
+        return new WP_Error('fetch_failed', 'Failed to fetch scene configuration from external URL.', $response->get_error_message());
     }
 
-    $json_string = wp_remote_retrieve_body( $response );
-    $decoded_scene_data = json_decode( $json_string, true );
+    $json_string = wp_remote_retrieve_body($response);
+    $decoded_scene_data = json_decode($json_string, true);
 
-    if ( json_last_error() !== JSON_ERROR_NONE ) {
-        return new WP_Error( 'json_decode_failed', 'Failed to decode scene configuration JSON.', json_last_error_msg() );
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        return new WP_Error('json_decode_failed', 'Failed to decode scene configuration JSON.', json_last_error_msg());
     }
 
     return array(
@@ -784,9 +806,10 @@ function c33d_handle_scene_json_fetch( $scene_url, $asset_id ) {
 }
 
 // Admin page content
-function c33d_editor_page($post) {
+function c33d_editor_page($post)
+{
 
-  // Assuming $post->ID is available here
+    // Assuming $post->ID is available here
     $full_meta = c33d_get_scene_data($post->ID);
     $globalSettings = $full_meta['globalSettings']; // This function now returns the structure with 'allModels' array inside it.
     $all_models = $full_meta['models']; // Get the array of all models
@@ -820,7 +843,7 @@ function c33d_editor_page($post) {
     $mouse_enabled = $globalSettings['mouseAnimationLink'] ?: '';
     $scroll_enabled = $globalSettings['scrollAnimationLink'] ?: '';
 
-    $current_model_data = array(); 
+    $current_model_data = array();
     $current_model_data = end($all_models);
 
 
@@ -844,30 +867,27 @@ function c33d_editor_page($post) {
     $item_spacing_z = isset($current_model_data['loopItemSpacingZ']) ? $current_model_data['loopItemSpacingZ'] : 0.0;
     $loop_group_scale = isset($current_model_data['loopGroupScale']) ? $current_model_data['loopGroupScale'] : 1.0;
     $model_name = isset($current_model_data['modelName']) ? $current_model_data['modelName'] : '';
-    
+
     // --- Shortcode (if you're using it to display the scene) ---
     $shortcode = '[c33d_scene id="' . $post->ID . '"]'; // Still uses the current post ID
 
     $pluginUrl = plugins_url('', __FILE__);
 
-  // Output the form
+    // Output the form
     ?>
     <!-- start HTMLs -->
     <div id="c33d-editor">
         <script type="importmap">
-            {
-                "imports": {
-                    "three": "<?php echo esc_url(plugins_url('/assets/js/three.module.min.js', __FILE__)); ?>",
-                    "three/addons/": "<?php echo esc_url(plugins_url('/assets//js/threeaddons/', __FILE__)); ?>"
-                }
-            }
-        </script>
-       
+                                            {
+                                                "imports": {
+                                                    "three": "<?php echo esc_url(plugins_url('/assets/js/three.module.min.js', __FILE__)); ?>",
+                                                    "three/addons/": "<?php echo esc_url(plugins_url('/assets//js/threeaddons/', __FILE__)); ?>"
+                                                }
+                                            }
+                                        </script>
 
-        <input type="hidden"
-            name="threejs_scene_config_json"
-            id="threejs_scene_config_json"
-            value=""> 
+
+        <input type="hidden" name="threejs_scene_config_json" id="threejs_scene_config_json" value="">
         <?php wp_nonce_field('c33d_save_scene_data_nonce', 'scene_meta_nonce'); ?>
 
         <!-- <h1>3D Model Editor</h1> -->
@@ -882,63 +902,57 @@ function c33d_editor_page($post) {
 
 
 
-                        <!-- Demo Objects Section -->
-                        <section class='demo-models'>
-                            <h2>Add a model</h2>
-                            <h3>Demos</h3>
-                            <div class="demo-grid demo-three-column">
-                                <!-- Demo Object 1: Phone -->
-                                <div class="demo-grid-item c33-download"
-                                    data-asset-name="phone" 
-                                    data-download-type="model">
-                                    <img src="<?php echo esc_url($pluginUrl . '/assets/img/phone.jpg'); ?>" alt="Demo Phone">
-                                    
-                                    <div class='c3_button_with_text'>
-                                        <h4>Phone</h4>
-                                        <span class="dashicons dashicons-image-rotate c3-loading-icon"></span>
-                                    </div>
-                                    <div class="c33-download-overlay">
-                                        <p>Add to scene</p>
-                                    </div>
-                                </div>
+                <!-- Demo Objects Section -->
+                <section class='demo-models'>
+                    <h2>Add a model</h2>
+                    <h3>Demos</h3>
+                    <div class="demo-grid demo-three-column">
+                        <!-- Demo Object 1: Phone -->
+                        <div class="demo-grid-item c33-download" data-asset-name="phone" data-download-type="model">
+                            <img src="<?php echo esc_url($pluginUrl . '/assets/img/phone.jpg'); ?>" alt="Demo Phone">
 
-                                <!-- Demo Object 2: Laptop -->
-                                <div class="demo-grid-item c33-download"
-                                    data-asset-name="laptop" 
-                                    data-download-type="model">
-                                    <img src="<?php echo esc_url($pluginUrl . '/assets/img/laptop.jpg'); ?>" alt="Demo Laptop">
-                                    
-                                    <div class='c3_button_with_text'>
-                                        <h4>Laptop</h4>
-                                        <span class="dashicons dashicons-image-rotate c3-loading-icon"></span>
-                                    </div>
-                                    <div class="c33-download-overlay">
-                                        <p>Add to scene</p>
-                                    </div>
-                                </div>
-
-                                <!-- Demo Object 3: Star -->
-                                <div class="demo-grid-item c33-download"
-                                    data-asset-name="star" 
-                                    data-download-type="model">
-                                    <img src="<?php echo esc_url($pluginUrl . '/assets/img/star.jpg'); ?>" alt="Demo Star">
-                                    <div class='c3_button_with_text'>
-                                        <h4>Star</h4>
-                                        <span class="dashicons dashicons-image-rotate c3-loading-icon"></span>
-                                    </div>
-                                    <div class="c33-download-overlay">
-                                        <p>Add to scene</p>
-                                    </div>
-                                </div>
+                            <div class='c3_button_with_text'>
+                                <h4>Phone</h4>
+                                <span class="dashicons dashicons-image-rotate c3-loading-icon"></span>
                             </div>
-                        </section>
-                                                <!-- Open/Upload Model Section -->
-                        <section id="upload-existing">
-                            <h3>Upload/Existing</h3>
-                                <button type="button" class="c33d_media_library">
-                                    Media Library
-                                </button>
-                        </section>
+                            <div class="c33-download-overlay">
+                                <p>Add to scene</p>
+                            </div>
+                        </div>
+
+                        <!-- Demo Object 2: Laptop -->
+                        <div class="demo-grid-item c33-download" data-asset-name="laptop" data-download-type="model">
+                            <img src="<?php echo esc_url($pluginUrl . '/assets/img/laptop.jpg'); ?>" alt="Demo Laptop">
+
+                            <div class='c3_button_with_text'>
+                                <h4>Laptop</h4>
+                                <span class="dashicons dashicons-image-rotate c3-loading-icon"></span>
+                            </div>
+                            <div class="c33-download-overlay">
+                                <p>Add to scene</p>
+                            </div>
+                        </div>
+
+                        <!-- Demo Object 3: Star -->
+                        <div class="demo-grid-item c33-download" data-asset-name="star" data-download-type="model">
+                            <img src="<?php echo esc_url($pluginUrl . '/assets/img/star.jpg'); ?>" alt="Demo Star">
+                            <div class='c3_button_with_text'>
+                                <h4>Star</h4>
+                                <span class="dashicons dashicons-image-rotate c3-loading-icon"></span>
+                            </div>
+                            <div class="c33-download-overlay">
+                                <p>Add to scene</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <!-- Open/Upload Model Section -->
+                <section id="upload-existing">
+                    <h3>Upload/Existing</h3>
+                    <button type="button" class="c33d_media_library">
+                        Media Library
+                    </button>
+                </section>
                 <!-- </div> -->
             </div>
 
@@ -947,11 +961,9 @@ function c33d_editor_page($post) {
                 <h2>Import Demo Scene</h2>
                 <div class="demo-grid">
                     <!-- Demo Object 1: Phone -->
-                    <div class="demo-grid-item c33-download"
-                        data-asset-name="devices-stars" 
-                        data-download-type="scene">
+                    <div class="demo-grid-item c33-download" data-asset-name="devices-stars" data-download-type="scene">
                         <img src="<?php echo esc_url($pluginUrl . '/assets/img/devices-stars.jpg'); ?>" alt="Demo Phone">
-                        
+
                         <div class='c3_button_with_text'>
                             <h4>Devices & Stars</h4>
                             <span class="dashicons dashicons-image-rotate c3-loading-icon"></span>
@@ -962,11 +974,9 @@ function c33d_editor_page($post) {
                     </div>
 
                     <!-- Demo Object 2: Laptop -->
-                    <div class="demo-grid-item c33-download"
-                        data-asset-name="phone-star-scroll" 
-                        data-download-type="scene">
+                    <div class="demo-grid-item c33-download" data-asset-name="phone-star-scroll" data-download-type="scene">
                         <img src="<?php echo esc_url($pluginUrl . '/assets/img/scroll-phone.jpg'); ?>" alt="Demo Laptop">
-                        
+
                         <div class='c3_button_with_text'>
                             <h4>Scrolling Phones</h4>
                             <span class="dashicons dashicons-image-rotate c3-loading-icon"></span>
@@ -977,9 +987,7 @@ function c33d_editor_page($post) {
                     </div>
 
                     <!-- Demo Object 3: Star -->
-                    <div class="demo-grid-item c33-download"
-                        data-asset-name="phone-carousel" 
-                        data-download-type="scene">
+                    <div class="demo-grid-item c33-download" data-asset-name="phone-carousel" data-download-type="scene">
                         <img src="<?php echo esc_url($pluginUrl . '/assets/img/phone-carousel.jpg'); ?>" alt="Demo Star">
                         <div class='c3_button_with_text'>
                             <h4>Phone Carousel</h4>
@@ -990,9 +998,7 @@ function c33d_editor_page($post) {
                         </div>
                     </div>
 
-                    <div class="demo-grid-item c33-download"
-                        data-asset-name="isometric-devices" 
-                        data-download-type="scene">
+                    <div class="demo-grid-item c33-download" data-asset-name="isometric-devices" data-download-type="scene">
                         <img src="<?php echo esc_url($pluginUrl . '/assets/img/iso-devices.jpg'); ?>" alt="Demo Star">
                         <div class='c3_button_with_text'>
                             <h4>Isometric Devices</h4>
@@ -1022,41 +1028,49 @@ function c33d_editor_page($post) {
 
 
         </div>
-        <div id = "canvasAndControls">
+        <div id="canvasAndControls">
             <div id="threejs-canvas" style="width: 100%; height: var(--c33d-canvas-height);"></div>
             <!-- <div id="codes_controls"> -->
-                <div class='topTransforms'>
+            <div class='topTransforms'>
 
-                    <button class='transModeButton' id="btnTranslateMode" type="button" onmousedown="setTransformMode('translate', event, this)">Translate (T)</button>
-                    <button class='transModeButton' id="btnRotateMode" type="button" onmousedown="setTransformMode('rotate', event,  this)">Rotate (R)</button>
-                    <button class='transModeButton' id='codesScaleButton' title="not available in loop mode, use scale text input on left" type="button" onmousedown="setTransformMode('scale', event, this)">Scale (Y)</button>
-                </div>
+                <button class='transModeButton' id="btnTranslateMode" type="button"
+                    onmousedown="setTransformMode('translate', event, this)">Translate (T)</button>
+                <button class='transModeButton' id="btnRotateMode" type="button"
+                    onmousedown="setTransformMode('rotate', event,  this)">Rotate (R)</button>
+                <button class='transModeButton' id='codesScaleButton'
+                    title="not available in loop mode, use scale text input on left" type="button"
+                    onmousedown="setTransformMode('scale', event, this)">Scale (Y)</button>
+            </div>
 
-            
 
 
 
-          <div class='leftControls'>
-            <div class='leftContInner'>
-                <!-- <label>Add Object</label> -->
-            
-                <label>3D Models 🧊</label>
-                <!-- <div class="transform-group"> -->
-                    <button style="" type="button" class="button c33d_media_library" >Upload/Library <span class="dashicons dashicons-admin-media"></span></button>
-                    <button style="" type="button" class="button" id="add_model_button" >Demos <span class="dashicons dashicons-download"></span></button>
-                <!-- </div> -->
-                <label>Others</label>
-                <div class="transform-group">
-                    <button style="" type="button" class="button" id="add_image_button" >Image <span class="dashicons dashicons-format-image"></span></button>
-                    <button style="" type="button" class="button" id="add_group_button" >Group <span class="dashicons dashicons-open-folder"></span></button>
-                </div>
-                <div class="transform-group">
-                    <button style="" type="button" class="button" id="add_plane_button" >Plane</button>
-                    <button style="" type="button" class="button" id="add_cube_button" >Cube</button>
-                    <button style="" type="button" class="button" id="add_sphere_button" >Sphere</button>
-                    <button style="" type="button" class="button" id="add_css3d_button" >CSS3D Div</button>
-                </div>
-                <!-- <div style="position: absolute; top: 10px; right: 10px; z-index: 100;"> -->
+
+            <div class='leftControls'>
+                <div class='leftContInner'>
+                    <!-- <label>Add Object</label> -->
+
+                    <label>3D Models 🧊</label>
+                    <!-- <div class="transform-group"> -->
+                    <button style="" type="button" class="button c33d_media_library">Upload/Library <span
+                            class="dashicons dashicons-admin-media"></span></button>
+                    <button style="" type="button" class="button" id="add_model_button">Demos <span
+                            class="dashicons dashicons-download"></span></button>
+                    <!-- </div> -->
+                    <label>Others</label>
+                    <div class="transform-group">
+                        <button style="" type="button" class="button" id="add_image_button">Image <span
+                                class="dashicons dashicons-format-image"></span></button>
+                        <button style="" type="button" class="button" id="add_group_button">Group <span
+                                class="dashicons dashicons-open-folder"></span></button>
+                    </div>
+                    <div class="transform-group">
+                        <button style="" type="button" class="button" id="add_plane_button">Plane</button>
+                        <button style="" type="button" class="button" id="add_cube_button">Cube</button>
+                        <button style="" type="button" class="button" id="add_sphere_button">Sphere</button>
+                        <!-- <button style="" type="button" class="button" id="add_css3d_button">CSS3D Div</button> -->
+                    </div>
+                    <!-- <div style="position: absolute; top: 10px; right: 10px; z-index: 100;"> -->
                     <select id="light-selector" style="padding: 5px; border-radius: 5px; font-family: sans-serif;">
                         <option value="">Add Light</option>
                         <option value="lightA">Ambient</option>
@@ -1064,135 +1078,147 @@ function c33d_editor_page($post) {
                         <option value="lightP">Point</option>
                         <option value="lightS">Spot</option>
                     </select>
-                <!-- </div> -->
-                <hr>
-                <!-- <h2> Scene Objects</h2> -->
-                <div id="objectListContainer" style="">   
-                    <ul id="sceneObjectList" style="list-style: none; padding: 0; margin: 0;">
-                    </ul>
+                    <!-- </div> -->
+                    <hr>
+                    <!-- <h2> Scene Objects</h2> -->
+                    <div id="objectListContainer" style="">
+                        <ul id="sceneObjectList" style="list-style: none; padding: 0; margin: 0;">
+                        </ul>
+                    </div>
+
+                    <hr>
+
+                    <div class="transform-group">
+                        <button style="width: 50%;" type="button" class="button" id="delete_model_button">Delete</button>
+                        <button style="width: 50%;" type="button" class="button" id="btn_duplicate">Clone</button>
+                    </div>
                 </div>
 
-                                <hr>
 
-                <div class="transform-group">
-                    <button style="width: 50%;" type="button" class="button" id="delete_model_button">Delete</button>
-                    <button style="width: 50%;" type="button" class="button" id="btn_duplicate">Clone</button>
+
+                <div class='leftBottom'>
+                    <button id='c3SaveButton'
+                        style="width:100%; background-color: var(--c33d-yellow); color: var(--c33d-bg-dark-blue);"
+                        type="button" class="button"> Save </button>
+                    <p>Use this shortcode to display the scene on your site:</p>
+                    <textarea id='shortcodeArea' readonly
+                        style="width: 100%;"><?php echo esc_html($shortcode); ?></textarea>
                 </div>
+
+
+
+
+
             </div>
+            <!-- end left controls -->
 
 
-                
-            <div class='leftBottom'>
-                <button id='c3SaveButton' style="width:100%; background-color: var(--c33d-yellow); color: var(--c33d-bg-dark-blue);" type="button" class="button" > Save </button>
-                <p>Use this shortcode to display the scene on your site:</p>
-                <textarea id='shortcodeArea' readonly style="width: 100%;"><?php echo esc_html($shortcode); ?></textarea>
-            </div>
+            <div class='rightControls'>
 
 
 
-
-
-          </div>
-          <!-- end left controls -->
-
-
-          <div class='rightControls'>
-
-
-
-            <div class="tabContainer">
-                <div id="objectTab" class="tab activeTab" >Obj</div>
-                <div id="animationTab" class="tab">Anim</div>
-                <div id="lightsTab" class="tab">💡🎥</div>
-                <div id="settingsTab" class="tab">⚙️</div>
-                <!-- <div id='' class="tab" onmousedown="tabClicked('export')">&infin</div> -->
-            </div>
-            <div class='tabContent cobject'>
-                <fieldset>
-                    <label>Position</label>
-                    <div class="transform-group">
-                    <div class="transform-field">
-                        <label for="threejs_position_x">X</label>
-                        <input type="number" name="threejs_pos_x" id="threejs_position_x" value="<?php echo esc_attr($pos_x); ?>" step="0.01">
-                    </div>
-                    <div class="transform-field">
-                        <label for="threejs_position_y">Y</label>
-                        <input type="number" name="threejs_pos_y" id="threejs_position_y" value="<?php echo esc_attr($pos_y); ?>" step="0.01">
-                    </div>
-                    <div class="transform-field">
-                        <label for="threejs_position_z">Z</label>
-                        <input type="number" name="threejs_pos_z" id="threejs_position_z" value="<?php echo esc_attr($pos_z); ?>" step="0.01">
-                    </div>
-                    </div>
-                </fieldset>
-
-                <fieldset>
-                    <label>Rotation</label>
-                    <div class="transform-group">
-                    <div class="transform-field">
-                        <label for="threejs_rotation_x">X</label>
-                        <input type="number" name="threejs_rot_x" id="threejs_rotation_x" value="<?php echo esc_attr($rot_x); ?>" step="0.01">
-                    </div>
-                    <div class="transform-field">
-                        <label for="threejs_rotation_y">Y</label>
-                        <input type="number" name="threejs_rot_y" id="threejs_rotation_y" value="<?php echo esc_attr($rot_y); ?>" step="0.01">
-                    </div>
-                    <div class="transform-field">
-                        <label for="threejs_rotation_z">Z</label>
-                        <input type="number" name="threejs_rot_z" id="threejs_rotation_z" value="<?php echo esc_attr($rot_z); ?>" step="0.01">
-                    </div>
-                    </div>
-                </fieldset>
-
-                <fieldset id="css3d_dimensions_fieldset" style="display:none;">
-                    <label>CSS3D Properties</label>
-                    <div class="transform-group">
-                        <div class="transform-field">
-                            <label for="css3d_width">Width (px)</label>
-                            <input type="number" id="css3d_width" value="300" step="1" />
+                <div class="tabContainer">
+                    <div id="objectTab" class="tab activeTab">Obj</div>
+                    <div id="animationTab" class="tab">Anim</div>
+                    <div id="lightsTab" class="tab">💡🎥</div>
+                    <div id="settingsTab" class="tab">⚙️</div>
+                    <!-- <div id='' class="tab" onmousedown="tabClicked('export')">&infin</div> -->
+                </div>
+                <div class='tabContent cobject'>
+                    <fieldset>
+                        <label>Position</label>
+                        <div class="transform-group">
+                            <div class="transform-field">
+                                <label for="threejs_position_x">X</label>
+                                <input type="number" name="threejs_pos_x" id="threejs_position_x"
+                                    value="<?php echo esc_attr($pos_x); ?>" step="0.01">
+                            </div>
+                            <div class="transform-field">
+                                <label for="threejs_position_y">Y</label>
+                                <input type="number" name="threejs_pos_y" id="threejs_position_y"
+                                    value="<?php echo esc_attr($pos_y); ?>" step="0.01">
+                            </div>
+                            <div class="transform-field">
+                                <label for="threejs_position_z">Z</label>
+                                <input type="number" name="threejs_pos_z" id="threejs_position_z"
+                                    value="<?php echo esc_attr($pos_z); ?>" step="0.01">
+                            </div>
                         </div>
-                        <div class="transform-field">
-                            <label for="css3d_height">Height (px)</label>
-                            <input type="number" id="css3d_height" value="200" step="1" />
+                    </fieldset>
+
+                    <fieldset>
+                        <label>Rotation</label>
+                        <div class="transform-group">
+                            <div class="transform-field">
+                                <label for="threejs_rotation_x">X</label>
+                                <input type="number" name="threejs_rot_x" id="threejs_rotation_x"
+                                    value="<?php echo esc_attr($rot_x); ?>" step="0.01">
+                            </div>
+                            <div class="transform-field">
+                                <label for="threejs_rotation_y">Y</label>
+                                <input type="number" name="threejs_rot_y" id="threejs_rotation_y"
+                                    value="<?php echo esc_attr($rot_y); ?>" step="0.01">
+                            </div>
+                            <div class="transform-field">
+                                <label for="threejs_rotation_z">Z</label>
+                                <input type="number" name="threejs_rot_z" id="threejs_rotation_z"
+                                    value="<?php echo esc_attr($rot_z); ?>" step="0.01">
+                            </div>
                         </div>
-                    </div>
-                    <div style="margin-top: 10px;">
-                        <label for="css3d_shortcode">Shortcode / HTML</label>
-                        <input type="text" id="css3d_shortcode" style="width: 100%;" placeholder="[my_shortcode]" />
-                    </div>
-                </fieldset>
+                    </fieldset>
 
-                <fieldset>
-                    <label>
-                        Scale (model)
-                    </label>
-                    <div class="transform-group">
-                    <div class="transform-field">
-                        <label for="threejs_rotation_x">X</label>
-                        <input type="number" name="scale" class="" id="codes_scale_x" value="<?php echo esc_attr($scale_x); ?>" step="0.01" />
-                    </div>
-                    <div class="transform-field">
-                        <label for="threejs_rotation_y">Y</label>
-                        <input type="number" name="scale" class="" id="codes_scale_y" value="<?php echo esc_attr($scale_y); ?>" step="0.01" />
-                    </div>
-                    <div class="transform-field">
-                        <label for="threejs_rotation_z">Z</label>
-                        <input type="number" name="scale" class="" id="codes_scale_z" value="<?php echo esc_attr($scale_z); ?>" step="0.01" />
-                    </div>
-                    </div>
-                </fieldset>
-                
-                <hr>
-                
+                    <fieldset id="css3d_dimensions_fieldset" style="display:none;">
+                        <label>CSS3D Properties</label>
+                        <div class="transform-group">
+                            <div class="transform-field">
+                                <label for="css3d_width">Width (px)</label>
+                                <input type="number" id="css3d_width" value="300" step="1" />
+                            </div>
+                            <div class="transform-field">
+                                <label for="css3d_height">Height (px)</label>
+                                <input type="number" id="css3d_height" value="200" step="1" />
+                            </div>
+                        </div>
+                        <div style="margin-top: 10px;">
+                            <label for="css3d_shortcode">Shortcode / HTML</label>
+                            <input type="text" id="css3d_shortcode" style="width: 100%;" placeholder="[my_shortcode]" />
+                        </div>
+                    </fieldset>
 
-                
-                <div id="materialPropertiesPanel" class="hidden">
-                    <label>Materials</label>
-                    <select id="materialSelector" class="select-input">
-                        <!-- Options will be populated by JavaScript -->
-                    </select>
+                    <fieldset>
+                        <label>
+                            Scale (model)
+                        </label>
+                        <div class="transform-group">
+                            <div class="transform-field">
+                                <label for="threejs_rotation_x">X</label>
+                                <input type="number" name="scale" class="" id="codes_scale_x"
+                                    value="<?php echo esc_attr($scale_x); ?>" step="0.01" />
+                            </div>
+                            <div class="transform-field">
+                                <label for="threejs_rotation_y">Y</label>
+                                <input type="number" name="scale" class="" id="codes_scale_y"
+                                    value="<?php echo esc_attr($scale_y); ?>" step="0.01" />
+                            </div>
+                            <div class="transform-field">
+                                <label for="threejs_rotation_z">Z</label>
+                                <input type="number" name="scale" class="" id="codes_scale_z"
+                                    value="<?php echo esc_attr($scale_z); ?>" step="0.01" />
+                            </div>
+                        </div>
+                    </fieldset>
 
-                    <!-- Material Properties Panel (Initially hidden) -->
+                    <hr>
+
+
+
+                    <div id="materialPropertiesPanel" class="hidden">
+                        <label>Materials</label>
+                        <select id="materialSelector" class="select-input">
+                            <!-- Options will be populated by JavaScript -->
+                        </select>
+
+                        <!-- Material Properties Panel (Initially hidden) -->
                         <!-- Material Color Control -->
 
 
@@ -1200,10 +1226,10 @@ function c33d_editor_page($post) {
                         <label for="materialColor" class="property-label">Base</label>
                         <div class="transform-group">
                             <input type="color" id="materialColor" class="color-picker">
-                        <!-- </div> -->
+                            <!-- </div> -->
 
-                        <!-- Material Texture Button -->
-                        <!-- <div class="texture-button-container"> -->
+                            <!-- Material Texture Button -->
+                            <!-- <div class="texture-button-container"> -->
                             <button type="button" id="materialTextureBtn" class="texture-button">
                                 Texture
                             </button>
@@ -1216,7 +1242,7 @@ function c33d_editor_page($post) {
                         <label for="emissiveColor" class="property-label">Emissive</label>
                         <div class="transform-group">
                             <input type="color" id="emissiveColor" class="color-picker">
-                        <!-- </div> -->
+                            <!-- </div> -->
 
                             <button type="button" id="emissiveTextureBtn" class="texture-button">
                                 Texture
@@ -1229,7 +1255,8 @@ function c33d_editor_page($post) {
 
                         <label for="material_opacity">Opacity</label>
                         <div class="rangeWithValue">
-                            <input type="range" name="material_opacity" id="material_opacity" max="1" step="0.01" value="" />
+                            <input type="range" name="material_opacity" id="material_opacity" max="1" step="0.01"
+                                value="" />
                             <span id="material_opacity_span">1</span>
                         </div>
 
@@ -1256,58 +1283,59 @@ function c33d_editor_page($post) {
                         </div>
                         <div class="transform-group">
                             <label for="stencil-receive">Equal Stencil</label>
-                            <input type="checkbox" id="stencilShowHide" checked class="form-checkbox h-5 w-5 text-indigo-600 rounded focus:ring-indigo-500 transition duration-150 ease-in-out">
+                            <input type="checkbox" id="stencilShowHide" checked
+                                class="form-checkbox h-5 w-5 text-indigo-600 rounded focus:ring-indigo-500 transition duration-150 ease-in-out">
                         </div>
 
 
-                        <hr>              
+                        <hr>
 
-                </div>
-                <div style="">
+                    </div>
+                    <div style="">
                         <label for="parentSelector">Move to group:</label>
                         <select id="parentSelector" style="width: 100%; padding: 5px;"></select>
-                    <label>Current group: <span id='current-group-label'></span></label>
+                        <label>Current group: <span id='current-group-label'></span></label>
                     </div>
 
                     <div style="">
                         <label for="parentSelector">On Click Link</label>
-                        <input type="text" id="link_input" placeholder="Add Link"/>
+                        <input type="text" id="link_input" placeholder="Add Link" />
                     </div>
-            </div> 
-
-            
-
-            <div class='tabContent csettings'>
-                <label>Breakpoint (px) </label>
-                <input id="breakPoint" class="" type="number" value="<?php echo esc_attr($breakpoint); ?>">
-
-                
-                <div class="transform-group" style="">
-                    
-                    <p>Background</p>
-                    <input type="color" id="backgroundColor" class="color-picker">
                 </div>
-                <label>
-                    <input type="checkbox" id="transparentBackgroundToggle">
-                    Transparent Background
-                </label>
-                
-                <button type="button" id="exportScene" class="">
-                    Export Full Scene
-                </button>
 
-                <textarea id='importSceneText'></textarea>
-                <button type="button" id="importScene" class="">
-                    Import Full Scene
-                </button>
 
-            </div>
 
-            <div class='tabContent canimation'>
-                <!-- Mouse Animation Link -->
+                <div class='tabContent csettings'>
+                    <label>Breakpoint (px) </label>
+                    <input id="breakPoint" class="" type="number" value="<?php echo esc_attr($breakpoint); ?>">
+
+
+                    <div class="transform-group" style="">
+
+                        <p>Background</p>
+                        <input type="color" id="backgroundColor" class="color-picker">
+                    </div>
+                    <label>
+                        <input type="checkbox" id="transparentBackgroundToggle">
+                        Transparent Background
+                    </label>
+
+                    <button type="button" id="exportScene" class="">
+                        Export Full Scene
+                    </button>
+
+                    <textarea id='importSceneText'></textarea>
+                    <button type="button" id="importScene" class="">
+                        Import Full Scene
+                    </button>
+
+                </div>
+
+                <div class='tabContent canimation'>
+                    <!-- Mouse Animation Link -->
                     <div class="checkbox-group">
-                    <input type="checkbox" name="mouseAnimationLink" id="mouseAnimationLink" <?php checked($mouse_enabled, 'on'); ?>>
-                    <label for="mouseAnimationLink">Enable Mouse Animation</label>
+                        <input type="checkbox" name="mouseAnimationLink" id="mouseAnimationLink" <?php checked($mouse_enabled, 'on'); ?>>
+                        <label for="mouseAnimationLink">Enable Mouse Animation</label>
                     </div>
                     <!-- Mouse Rotation Strength -->
                     <fieldset>
@@ -1315,19 +1343,22 @@ function c33d_editor_page($post) {
                         <div class="transform-group">
                             <div class="transform-field">
                                 <label for="mouseRotationX">X</label>
-                                <input type="number" name="mouseRotationX" id="mouseRotationX" step="1" value="<?php echo esc_attr($mouse_rot_x); ?>">
+                                <input type="number" name="mouseRotationX" id="mouseRotationX" step="1"
+                                    value="<?php echo esc_attr($mouse_rot_x); ?>">
                             </div>
                             <div class="transform-field">
                                 <label for="mouseRotationY">Y</label>
-                                <input type="number" name="mouseRotationY" id="mouseRotationY" step="1" value="<?php echo esc_attr($mouse_rot_y); ?>">
+                                <input type="number" name="mouseRotationY" id="mouseRotationY" step="1"
+                                    value="<?php echo esc_attr($mouse_rot_y); ?>">
                             </div>
                             <div class="transform-field">
                                 <label for="mouseRotationZ">Z</label>
-                                <input type="number" name="mouseRotationZ" id="mouseRotationZ" step="1" value="<?php echo esc_attr($mouse_rot_z); ?>">
+                                <input type="number" name="mouseRotationZ" id="mouseRotationZ" step="1"
+                                    value="<?php echo esc_attr($mouse_rot_z); ?>">
                             </div>
                         </div>
                     </fieldset>
-                                <hr>
+                    <hr>
                     <!-- Scroll Animation Link -->
                     <div class="checkbox-group">
                         <input type="checkbox" name="scrollAnimationLink" id="scrollAnimationLink" <?php checked($scroll_enabled, 'on'); ?>>
@@ -1340,96 +1371,165 @@ function c33d_editor_page($post) {
                         <div class="transform-group">
                             <div class="transform-field">
                                 <label for="scrollMoveX">X</label>
-                                <input type="number" name="scrollMoveX" id="scrollMoveX" step="0.01" value="<?php echo esc_attr($scroll_mov_x); ?>">
+                                <input type="number" name="scrollMoveX" id="scrollMoveX" step="0.01"
+                                    value="<?php echo esc_attr($scroll_mov_x); ?>">
                             </div>
                             <div class="transform-field">
                                 <label for="scrollMoveY">Y</label>
-                                <input type="number" name="scrollMoveY" id="scrollMoveY" step="0.01" value="<?php echo esc_attr($scroll_mov_y); ?>">
+                                <input type="number" name="scrollMoveY" id="scrollMoveY" step="0.01"
+                                    value="<?php echo esc_attr($scroll_mov_y); ?>">
                             </div>
                             <div class="transform-field">
                                 <label for="scrollMoveZ">Z</label>
-                                <input type="number" name="scrollMoveZ" id="scrollMoveZ" step="0.01" value="<?php echo esc_attr($scroll_mov_z); ?>">
+                                <input type="number" name="scrollMoveZ" id="scrollMoveZ" step="0.01"
+                                    value="<?php echo esc_attr($scroll_mov_z); ?>">
                             </div>
                         </div>
                     </fieldset>
                     <hr>
+
+                    <fieldset class="animation-settings">
+                        <legend>Interactive Animation</legend>
+
+                        <!-- 1. Input Selection & Live Value -->
+                        <div class="anim-input-group">
+                            <label for="animTriggerSource">Link Animation To:</label>
+                            <select name="animTriggerSource" id="animTriggerSource">
+                                <option value="mouseX">Mouse X</option>
+                                <option value="mouseY">Mouse Y</option>
+                            </select>
+                            <div>
+                                <label for="animTriggerDamping" style="display: block;">Damping:</label>
+                                <input type="number" name="animTriggerDamping" id="animTriggerDamping" min="0.01" max="1"
+                                    step="0.01" value="1.0" style="width: 70px;">
+                            </div>
+                            <div>
+                                <label for="animTriggerInvert"
+                                    style="display: flex; align-items: center; gap: 5px; cursor: pointer; padding-bottom: 4px;">
+                                    <input type="checkbox" name="animTriggerInvert" id="animTriggerInvert">
+                                    Invert Direction
+                                </label>
+                            </div>
+
+                            <div class="anim-live-value">
+                                Current Value: <strong id="currentInputValue">0.00</strong> <em>(Normalized 0 - 1)</em>
+                            </div>
+                        </div>
+
+                        <!-- 2. Keyframes Area -->
+                        <div class="keyframes-area">
+                            <strong>Keyframes</strong>
+
+                            <!-- Base State Row -->
+                            <div class="keyframe-row">
+                                <span class="keyframe-name">Base State</span>
+                                <button type="button" class="button keyframe-edit-btn" id="editBaseState"
+                                    data-target="base">Edit</button>
+                            </div>
+
+                            <!-- Keyframe 1 Row -->
+                            <div class="keyframe-row">
+                                <span class="keyframe-name">Keyframe 1</span>
+                                <div class="keyframe-actions">
+                                    <button type="button" class="button keyframe-reset-btn"
+                                        id="resetKeyframe1">Reset</button>
+                                    <button type="button" class="button keyframe-edit-btn" id="editKeyframe1"
+                                        data-target="keyframe1">Edit</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3. Preview Toggle -->
+                        <div class="anim-preview-group">
+                            <label for="previewAnimationToggle">
+                                <input type="checkbox" name="previewAnimationToggle" id="previewAnimationToggle">
+                                <strong>Preview Animation</strong>
+                            </label>
+                            <p class="description">Activates the link between your input and the object to test the
+                                animation.</p>
+                        </div>
+
+                    </fieldset>
+
                 </div>
+                <!-- end animation tab -->
 
-            
-            <div class='tabContent clights'>
+                <div class='tabContent clights'>
 
-                
 
-                <!-- Toggle for isOrthoCamera -->
-                <label>
-                    <input type="checkbox" name="isOrthoCamera" id="isOrthoCamera" <?php checked($is_ortho_camera, 'on'); ?>>
-                    Use Orthographic Camera
-                </label>
 
-                <!-- <label>
+                    <!-- Toggle for isOrthoCamera -->
+                    <label>
+                        <input type="checkbox" name="isOrthoCamera" id="isOrthoCamera" <?php checked($is_ortho_camera, 'on'); ?>>
+                        Use Orthographic Camera
+                    </label>
+
+                    <!-- <label>
                     <input type="checkbox" name="showLightHelpers" id="showLightHelpers" checked >
                     Show Light Helpers
                 </label> -->
 
-                <hr>
+                    <hr>
 
-                <button type="button" id="orbitToggle">Toggle Camera Control</button>
+                    <button type="button" id="orbitToggle">Toggle Camera Control</button>
 
-                
-                <hr>
-                
-                <label for="recieve_shadows">Shadows</label>
-                <div class="transform-group">
-                    <label for="cast_shadows">Cast</label>
-                    <input type="checkbox" name="cast_shadows" id="cast_shadows" />
-                    <label for="recieve_shadows">Recieve</label>
-                    <input type="checkbox" name="recieve_shadows" id="recieve_shadows" />
-                </div>
-
-                <div id="selectedLightInputs" style="display:none">
-
-                    <label for="shadow_intensity">Shadow Intensity</label>
-                    <div class="rangeWithValue">
-                        <input type="range" name="shadow_intensity" id="shadow_intensity" max="1" step="0.01" value="" />
-                        <span id="shadow_intensity_span">1</span>
-                    </div>
-
-                    <label for="shadow_radius">Shadow Radius</label>
-                    <div class="rangeWithValue">
-                        <input type="range" name="shadow_radius" id="shadow_radius" max="15" step="0.01" value="" />
-                        <span id="shadow_radius_span">1</span>
-                    </div>
 
                     <hr>
 
+                    <label for="recieve_shadows">Shadows</label>
                     <div class="transform-group">
+                        <label for="cast_shadows">Cast</label>
+                        <input type="checkbox" name="cast_shadows" id="cast_shadows" />
+                        <label for="recieve_shadows">Recieve</label>
+                        <input type="checkbox" name="recieve_shadows" id="recieve_shadows" />
+                    </div>
+
+                    <div id="selectedLightInputs" style="display:none">
+
+                        <label for="shadow_intensity">Shadow Intensity</label>
+                        <div class="rangeWithValue">
+                            <input type="range" name="shadow_intensity" id="shadow_intensity" max="1" step="0.01"
+                                value="" />
+                            <span id="shadow_intensity_span">1</span>
+                        </div>
+
+                        <label for="shadow_radius">Shadow Radius</label>
+                        <div class="rangeWithValue">
+                            <input type="range" name="shadow_radius" id="shadow_radius" max="15" step="0.01" value="" />
+                            <span id="shadow_radius_span">1</span>
+                        </div>
+
+                        <hr>
+
+                        <div class="transform-group">
                             <label style="width:30%">Colour</label>
                             <input type="color" id="lightColor" class="color-picker">
+                        </div>
+
+                        <label for="light_intensity">Intensity</label>
+                        <div class="rangeWithValue">
+                            <input type="range" name="light_intensity" id="light_intensity" max="3" step="0.05" value="" />
+                            <span id="light_intensity_span">1</span>
+                        </div>
                     </div>
 
-                    <label for="light_intensity">Intensity</label>
-                    <div class="rangeWithValue">
-                        <input type="range" name="light_intensity" id="light_intensity" max="3" step="0.05" value="" />
-                        <span id="light_intensity_span">1</span>
-                    </div>
+
+
+                    <!-- end light tab -->
                 </div>
-
-
-
-            <!-- end light tab -->
             </div>
+
+
         </div>
 
-          
-        </div>
-
-          <input type="hidden" id="threejs_model_url" name="threejs_model_url" value="<?php echo esc_url($model_url); ?>" />
-          <button type="button" class="button" id="threejs_model_url_button" style="display:none">Change Model</button>
-          <p id="threejs_model_url_preview">
-              <?php if ($model_url): ?>
-                  Current Model: <a href="<?php echo esc_url($model_url); ?>" target="_blank"><?php echo esc_url($model_url); ?></a>
-              <?php endif; ?>
-          </p>
+        <input type="hidden" id="threejs_model_url" name="threejs_model_url" value="<?php echo esc_url($model_url); ?>" />
+        <button type="button" class="button" id="threejs_model_url_button" style="display:none">Change Model</button>
+        <p id="threejs_model_url_preview">
+            <?php if ($model_url): ?>
+                Current Model: <a href="<?php echo esc_url($model_url); ?>"
+                    target="_blank"><?php echo esc_url($model_url); ?></a>
+            <?php endif; ?>
+        </p>
 
         <div id="modelImportModal" class="modal-overlay hidden-modal">
             <div class="modal-content">
@@ -1439,88 +1539,86 @@ function c33d_editor_page($post) {
                 </button>
 
                 <!-- Demo Objects Section -->
-                    <!-- <h2>Download Demo Objects</h2> -->
-                    <h2>Demo Objects</h2>
-                    <div class="demo-grid demo-three-column">
-                        <!-- Demo Object 1: Phone -->
-                        <div class="demo-grid-item c33-download"
-                            data-asset-name="phone" 
-                            data-download-type="model">
-                            <img src="<?php echo esc_url($pluginUrl . '/assets/img/phone.jpg'); ?>" alt="Demo Phone">
-                            
-                            <div class='c3_button_with_text'>
-                                <h4>Phone</h4>
-                                <span class="dashicons dashicons-image-rotate c3-loading-icon"></span>
-                            </div>
-                            <div class="c33-download-overlay">
-                                <p>Add to scene</p>
-                            </div>
-                        </div>
+                <!-- <h2>Download Demo Objects</h2> -->
+                <h2>Demo Objects</h2>
+                <div class="demo-grid demo-three-column">
+                    <!-- Demo Object 1: Phone -->
+                    <div class="demo-grid-item c33-download" data-asset-name="phone" data-download-type="model">
+                        <img src="<?php echo esc_url($pluginUrl . '/assets/img/phone.jpg'); ?>" alt="Demo Phone">
 
-                        <!-- Demo Object 2: Laptop -->
-                        <div class="demo-grid-item c33-download"
-                            data-asset-name="laptop" 
-                            data-download-type="model">
-                            <img src="<?php echo esc_url($pluginUrl . '/assets/img/laptop.jpg'); ?>" alt="Demo Laptop">
-                            
-                            <div class='c3_button_with_text'>
-                                <h4>Laptop</h4>
-                                <span class="dashicons dashicons-image-rotate c3-loading-icon"></span>
-                            </div>
-                            <div class="c33-download-overlay">
-                                <p>Add to scene</p>
-                            </div>
+                        <div class='c3_button_with_text'>
+                            <h4>Phone</h4>
+                            <span class="dashicons dashicons-image-rotate c3-loading-icon"></span>
                         </div>
-
-                        <!-- Demo Object 3: Star -->
-                        <div class="demo-grid-item c33-download"
-                            data-asset-name="star" 
-                            data-download-type="model">
-                            <img src="<?php echo esc_url($pluginUrl . '/assets/img/star.jpg'); ?>" alt="Demo Star">
-                            <div class='c3_button_with_text'>
-                                <h4>Star</h4>
-                                <span class="dashicons dashicons-image-rotate c3-loading-icon"></span>
-                            </div>
-                            <div class="c33-download-overlay">
-                                <p>Add to scene</p>
-                            </div>
+                        <div class="c33-download-overlay">
+                            <p>Add to scene</p>
                         </div>
                     </div>
+
+                    <!-- Demo Object 2: Laptop -->
+                    <div class="demo-grid-item c33-download" data-asset-name="laptop" data-download-type="model">
+                        <img src="<?php echo esc_url($pluginUrl . '/assets/img/laptop.jpg'); ?>" alt="Demo Laptop">
+
+                        <div class='c3_button_with_text'>
+                            <h4>Laptop</h4>
+                            <span class="dashicons dashicons-image-rotate c3-loading-icon"></span>
+                        </div>
+                        <div class="c33-download-overlay">
+                            <p>Add to scene</p>
+                        </div>
+                    </div>
+
+                    <!-- Demo Object 3: Star -->
+                    <div class="demo-grid-item c33-download" data-asset-name="star" data-download-type="model">
+                        <img src="<?php echo esc_url($pluginUrl . '/assets/img/star.jpg'); ?>" alt="Demo Star">
+                        <div class='c3_button_with_text'>
+                            <h4>Star</h4>
+                            <span class="dashicons dashicons-image-rotate c3-loading-icon"></span>
+                        </div>
+                        <div class="c33-download-overlay">
+                            <p>Add to scene</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-    <!-- <hr> -->
-                <!-- Toggle for Activating Loop -->
-                <div id="loopComingSoon" style="display:none">
-                        <label>
-                        <input type="checkbox" name="loopActive" id="loopActive" <?php checked($loop_active, true); ?>>
-                        Activate Loop
-                        </label>
+        <!-- <hr> -->
+        <!-- Toggle for Activating Loop -->
+        <div id="loopComingSoon" style="display:none">
+            <label>
+                <input type="checkbox" name="loopActive" id="loopActive" <?php checked($loop_active, true); ?>>
+                Activate Loop
+            </label>
 
-                        <!-- Loop Count -->
-                        <fieldset>
-                            <legend>Loop Count</legend>
-                            <div class="transform-group">
-                                <div class="transform-field">
-                                    <label for="loopCountX">X Count</label>
-                                    <input type="number" name="loopCountX" id="loopCountX" step="1" value="<?php echo esc_attr($loop_count_x); ?>">
-                                </div>
-                                <div class="transform-field">
-                                    <label for="loopCountY">Y Count</label>
-                                    <input type="number" name="loopCountY" id="loopCountY" step="1" value="<?php echo esc_attr($loop_count_y); ?>">
-                                </div>
-                                <div class="transform-field">
-                                    <label for="loopCountZ">Z Count</label>
-                                    <input type="number" name="loopCountZ" id="loopCountZ" step="1" value="<?php echo esc_attr($loop_count_z); ?>">
-                                </div>
-                            </div>
-                        </fieldset>
-                        <!-- Number Input for Spacing -->
-                        <label>Item Spacing: <input type="number" name="itemSpacing" id="itemSpacing" step="0.1" value="0.5"></label>
-                        <label>Loop Group Scale: <input type="number" name="loopGroupScale" id="loopGroupScale" step="0.01" value="<?php echo esc_attr($loop_group_scale); ?>"></label>
-
-
-
+            <!-- Loop Count -->
+            <fieldset>
+                <legend>Loop Count</legend>
+                <div class="transform-group">
+                    <div class="transform-field">
+                        <label for="loopCountX">X Count</label>
+                        <input type="number" name="loopCountX" id="loopCountX" step="1"
+                            value="<?php echo esc_attr($loop_count_x); ?>">
+                    </div>
+                    <div class="transform-field">
+                        <label for="loopCountY">Y Count</label>
+                        <input type="number" name="loopCountY" id="loopCountY" step="1"
+                            value="<?php echo esc_attr($loop_count_y); ?>">
+                    </div>
+                    <div class="transform-field">
+                        <label for="loopCountZ">Z Count</label>
+                        <input type="number" name="loopCountZ" id="loopCountZ" step="1"
+                            value="<?php echo esc_attr($loop_count_z); ?>">
+                    </div>
                 </div>
+            </fieldset>
+            <!-- Number Input for Spacing -->
+            <label>Item Spacing: <input type="number" name="itemSpacing" id="itemSpacing" step="0.1" value="0.5"></label>
+            <label>Loop Group Scale: <input type="number" name="loopGroupScale" id="loopGroupScale" step="0.01"
+                    value="<?php echo esc_attr($loop_group_scale); ?>"></label>
+
+
+
+        </div>
     </div>
     <?php
 }
