@@ -67,6 +67,10 @@ const editKeyframe1 = document.getElementById('editKeyframe1');
 const previewAnimationToggle = document.getElementById('previewAnimationToggle');
 const currentInputValue = document.getElementById('currentInputValue');
 
+const animTriggerInvert = document.getElementById('animTriggerInvert');
+const resetKeyframe1 = document.getElementById('resetKeyframe1');
+let currentEditTarget = 'base';
+
 let previewingAnimation = false;
 
 let allLightHelpers = [];
@@ -157,7 +161,7 @@ window.onload = () => {
       if (data.keyframe1 && data.keyframe1.position && data.keyframe1.rotation) {
         this.keyframe1 = {
           position: new THREE.Vector3(data.keyframe1.position.x, data.keyframe1.position.y, data.keyframe1.position.z),
-          rotation: new THREE.Euler(data.keyframe1.rotation.x, data.keyframe1.rotation.y, data.keyframe1.rotation.z)
+          rotation: { x: data.keyframe1.rotation.x, y: data.keyframe1.rotation.y, z: data.keyframe1.rotation.z }
         };
       } else {
         this.keyframe1 = null;
@@ -1309,6 +1313,10 @@ window.onload = () => {
     updateSaveField();
     animate();
 
+
+
+    console.groupEnd();
+
   }
 
   function addDefaultLights() {
@@ -1799,6 +1807,28 @@ window.onload = () => {
         allModels.push(modelConfigInstance.toPlainObject());
       }
       // }
+
+      console.group(`📥 LOADING OBJECT: ${modelConfigInstance.modelName || modelConfigInstance.modelId || 'Unnamed Object'}`);
+
+      console.log("1. Base State (Degrees):", {
+        posX: modelConfigInstance.positionX,
+        rotX: modelConfigInstance.rotationX
+      });
+
+      if (modelConfigInstance.keyframe1) {
+        console.log("2. Keyframe 1 FOUND (Degrees):", {
+          posX: modelConfigInstance.keyframe1.position?.x,
+          rotX: modelConfigInstance.keyframe1.rotation?.x,
+          animTrigger: modelConfigInstance.animTriggerSource
+        });
+
+        // Quick sanity check: Are the rotation values massive? (Indicating radians saved as degrees)
+        if (Math.abs(modelConfigInstance.keyframe1.rotation?.x) > 360) {
+          console.warn("⚠️ WARNING: Keyframe 1 rotation X is abnormally large. Was it saved as radians by mistake?");
+        }
+      } else {
+        console.warn("⚠️ Keyframe 1 is NULL or MISSING for this object.");
+      }
     }
     else //no obj data provided i.e. new object
     {
@@ -1998,40 +2028,10 @@ window.onload = () => {
     let rot = selectedObj.rotation;
     let scale = selectedObj.scale;
 
-    // if(sceneData.loopActive)
-    // {
-    //   pos = fullLoopGroup.position;
-    //   // rot = objGroup.rotation;
-    //   rot = new THREE.Euler().setFromQuaternion(fullLoopGroup.quaternion); // Handle group rotation correctly
-    //   // scale = objGroup.scale;
-    //   sceneData.loopGroupScale = fullLoopGroup.scale;
-    //   loopGroupScaleInput.value = round(fullLoopGroup.scale.x, 2);
-    //   // if(controls.mode === "scale" || groupControls.mode === "scale")
-    //   // {
-    //   //   refreshLoop();
-    //   // }
-    // }
-    // else
-    // {
-    //   // pos = model.position;
-    //   // rot = model.rotation;
-    //   // scale = model.scale;
-    // }
-
     // Update position fields
     posXInput.value = pos.x.toFixed(2);
     posYInput.value = pos.y.toFixed(2);
     posZInput.value = pos.z.toFixed(2);
-    // posXInput.value = round(pos.x, 0.1).toFixed(2);
-    // posYInput.value = round(pos.y, 0.1).toFixed(2);
-    // posZInput.value = round(pos.z, 0.1).toFixed(2);
-
-
-
-    // sceneData.positionX = pos.x;
-    // sceneData.positionY = pos.y;
-    // sceneData.positionZ = pos.z;
-
 
     //why only in here?
     if (isTransforming) {
@@ -2039,27 +2039,6 @@ window.onload = () => {
       rotXInput.value = THREE.MathUtils.radToDeg(rot.x).toFixed(2);
       rotYInput.value = THREE.MathUtils.radToDeg(rot.y).toFixed(2);
       rotZInput.value = THREE.MathUtils.radToDeg(rot.z).toFixed(2);
-      // rotXInput.value = round(THREE.MathUtils.radToDeg(rot.x)).toFixed(2);
-      // rotYInput.value = round(THREE.MathUtils.radToDeg(rot.y)).toFixed(2);
-      // rotZInput.value = round(THREE.MathUtils.radToDeg(rot.z)).toFixed(2);
-
-
-      // sceneData.rotationX = THREE.MathUtils.radToDeg(rot.x).toFixed(2);
-      // sceneData.rotationY = THREE.MathUtils.radToDeg(rot.y).toFixed(2);
-      // sceneData.rotationZ = THREE.MathUtils.radToDeg(rot.z).toFixed(2);
-
-
-
-      // initialRotationX = parseFloat(THREE.MathUtils.radToDeg(rot.x).toFixed(2));
-      // initialRotationY = parseFloat(THREE.MathUtils.radToDeg(rot.y).toFixed(2));
-      // initialRotationZ = parseFloat(THREE.MathUtils.radToDeg(rot.z).toFixed(2));
-
-      // initialRotationX = parseFloat(sceneData.rotationX);
-      // initialRotationY = parseFloat(sceneData.rotationY);
-      // initialRotationZ = parseFloat(sceneData.rotationZ);
-
-      // refreshLoop();
-
     }
 
     rotXInput.value = THREE.MathUtils.radToDeg(rot.x).toFixed(2);
@@ -2069,8 +2048,6 @@ window.onload = () => {
     scaleInputX.value = round(scale.x, 2);
     scaleInputY.value = round(scale.y, 2);
     scaleInputZ.value = round(scale.z, 2);
-    // sceneData.scale = round(scale.x, 2);
-
 
     if (selectedObj.isLight) {
       selectedObj.helper.update();
@@ -2090,8 +2067,38 @@ window.onload = () => {
       modelConfigInstance = selectedObj.userData.modelConfigRef;
     }
 
-    modelConfigInstance.position.copy(selectedObj.position);
-    modelConfigInstance.rotation.copy(selectedObj.rotation);
+    // === KEY FIX: write to the correct target depending on edit mode ===
+    if (currentEditTarget === 'keyframe1') {
+      // Don't touch the base position/rotation/scalars — only update keyframe1
+      if (!modelConfigInstance.keyframe1) {
+        modelConfigInstance.keyframe1 = { position: {}, rotation: {} };
+      }
+      modelConfigInstance.keyframe1.position = {
+        x: selectedObj.position.x,
+        y: selectedObj.position.y,
+        z: selectedObj.position.z
+      };
+      modelConfigInstance.keyframe1.rotation = {
+        x: THREE.MathUtils.radToDeg(selectedObj.rotation.x),
+        y: THREE.MathUtils.radToDeg(selectedObj.rotation.y),
+        z: THREE.MathUtils.radToDeg(selectedObj.rotation.z)
+      };
+    }
+    else {
+      // Base state: keep Vector3/Euler AND the scalar fields in sync
+      modelConfigInstance.position.copy(selectedObj.position);
+      modelConfigInstance.rotation.copy(selectedObj.rotation);
+
+      modelConfigInstance.positionX = selectedObj.position.x;
+      modelConfigInstance.positionY = selectedObj.position.y;
+      modelConfigInstance.positionZ = selectedObj.position.z;
+
+      modelConfigInstance.rotationX = THREE.MathUtils.radToDeg(selectedObj.rotation.x);
+      modelConfigInstance.rotationY = THREE.MathUtils.radToDeg(selectedObj.rotation.y);
+      modelConfigInstance.rotationZ = THREE.MathUtils.radToDeg(selectedObj.rotation.z);
+    }
+
+    // Scale isn't currently keyframed, so this stays unconditional
     modelConfigInstance.scale.copy(selectedObj.scale);
 
     if (selectedObjData.link) linkInput.value = selectedObjData.link;
@@ -3291,15 +3298,36 @@ window.onload = () => {
   saveButton.addEventListener('click', saveButtonClicked);
 
   function saveButtonClicked() {
+    console.log("🚨 --- INITIATING SAVE SEQUENCE --- 🚨");
 
     if (previewAnimationToggle && previewAnimationToggle.checked) {
-      // Uncheck the box and trigger your toggle function
+      console.log("⚠️ Preview was active. Forcing OFF to snap to base...");
       previewAnimationToggle.checked = false;
-
-      // Since we are calling this manually, simulate the toggle logic
       if (typeof togglePreviewKeyframeAnim === 'function') {
         togglePreviewKeyframeAnim();
       }
+    }
+
+    // 1. Force a final save of the currently selected object just in case
+    console.log("💾 Forcing final save of currently selected object...");
+    saveCurrentState();
+
+    // 2. DIAGNOSTIC LOOP: Let's check exactly what is about to be sent to WordPress
+    console.log("📦 VERIFYING ALL OBJECT DATA BEFORE WP SUBMIT:");
+    if (typeof allThreeJsObj !== 'undefined') {
+      allThreeJsObj.forEach((child, index) => {
+        const config = child.userData ? (isMobileView ? child.userData.modelConfigRefMob : child.userData.modelConfigRef) : null;
+        if (config) {
+          console.log(`Object ${index} (${config.modelId}):`, {
+            hasKeyframe: !!config.keyframe1,
+            animTrigger: config.animTriggerSource,
+            kfData: config.keyframe1 ? {
+              posX: config.keyframe1.position.x.toFixed(2),
+              rotX: config.keyframe1.rotation.x.toFixed(2) // Should be DEGREES
+            } : 'NULL'
+          });
+        }
+      });
     }
 
     isSaving = true;
@@ -3606,10 +3634,10 @@ window.onload = () => {
     if (selectedObj != obj) {
 
       //start keyframe
+
       // --- Save current keyframe state to the outgoing object before switching ---
       if (selectedObj) {
         saveCurrentState();
-        if (previewingAnimation) togglePreviewKeyframeAnim();
       }
 
       selectedObj = obj;
@@ -3617,32 +3645,37 @@ window.onload = () => {
         ? selectedObj.userData.modelConfigRefMob
         : selectedObj.userData.modelConfigRef;
 
-      // Reset editing state to base for the new object
-      currentEditTarget = 'base';
-      editBaseState.textContent = 'Editing';
-      editKeyframe1.textContent = 'Edit';
+      // DO NOT reset currentEditTarget! Keep whatever state we are currently in.
+      // But ensure the UI text matches the current state
+      if (currentEditTarget === 'base') {
+        editBaseState.textContent = 'Editing';
+        editKeyframe1.textContent = 'Edit';
+      } else {
+        editBaseState.textContent = 'Edit';
+        editKeyframe1.textContent = 'Editing';
+      }
 
       // Uncheck preview if switching objects so it doesn't immediately warp
-      if (previewAnimationToggle.checked) {
+      if (previewAnimationToggle && previewAnimationToggle.checked) {
         previewAnimationToggle.checked = false;
         editBaseState.disabled = false;
         editKeyframe1.disabled = false;
+        if (typeof resetKeyframe1 !== 'undefined') resetKeyframe1.disabled = false;
+
+        // Snap everything back to the current edit mode
+        snapAllObjectsToState(currentEditTarget);
       }
 
       // Sync UI
       if (selectedObjData) {
-        if (selectedObjData.animTriggerSource) {
-          animTriggerSource.value = selectedObjData.animTriggerSource;
-        }
-        // Add this line:
-        animTriggerInvert.checked = !!selectedObjData.animTriggerInvert;
-
-        animTriggerDamping.value = selectedObjData.animDamping !== undefined ? selectedObjData.animDamping : 1.0;
-
+        if (selectedObjData.animTriggerSource) animTriggerSource.value = selectedObjData.animTriggerSource;
+        if (typeof animTriggerInvert !== 'undefined') animTriggerInvert.checked = !!selectedObjData.animTriggerInvert;
+        if (typeof animTriggerDamping !== 'undefined') animTriggerDamping.value = selectedObjData.animDamping !== undefined ? selectedObjData.animDamping : 1.0;
       }
 
-      // Ensure object visually snaps to base
-      loadSavedState('base');
+      // Ensure object visually snaps to the active mode (and initializes Keyframe 1 if you are in that mode but it's a new object)
+      loadSavedState(currentEditTarget);
+
       //end keyframe
 
 
@@ -4785,7 +4818,6 @@ window.onload = () => {
 
   // Track which keyframe is currently active
   // Track which keyframe is currently active
-  let currentEditTarget = 'base';
 
 
 
@@ -4805,7 +4837,7 @@ window.onload = () => {
       selectedObjData.rotationY = THREE.MathUtils.radToDeg(selectedObj.rotation.y);
       selectedObjData.rotationZ = THREE.MathUtils.radToDeg(selectedObj.rotation.z);
 
-      console.log("2. Saved to Base (Converted to Degrees):", {
+      console.log(selectedObjData.modelName + "2. Saved to Base (Converted to Degrees):", {
         x: selectedObjData.rotationX,
         y: selectedObjData.rotationY,
         z: selectedObjData.rotationZ
@@ -4878,7 +4910,10 @@ window.onload = () => {
       editKeyframe1.textContent = 'Editing';
     }
 
-    // 4. Restore the newly selected transform
+    // 4. Snap ALL objects to the new visual state
+    snapAllObjectsToState(currentEditTarget);
+
+    // 5. Ensure the currently selected object initializes its keyframe1 data if it's missing
     loadSavedState(currentEditTarget);
   }
 
@@ -4910,9 +4945,19 @@ window.onload = () => {
   });
 
   function togglePreviewKeyframeAnim() {
+    console.log("🔄 Toggle Preview Clicked. Current Mode:", currentEditTarget);
+
+    // 1. IF TURNING ON: Save whatever we are editing BEFORE we flip any booleans
+    if (!previewingAnimation) {
+      console.log("💾 Forcing save of current edits before animation starts...");
+      saveCurrentState();
+    }
+
+    // 2. Flip the states
     previewingAnimation = !previewingAnimation;
     previewAnimationToggle.checked = previewingAnimation;
 
+    // Toggle gizmo visibility
     if (previewingAnimation && gizmoVisible) {
       setGizmoVisible(false);
       gizmoVisible = false;
@@ -4922,48 +4967,30 @@ window.onload = () => {
       gizmoVisible = true;
     }
 
-
     // Disable/Enable the edit buttons
     editBaseState.disabled = previewingAnimation;
     editKeyframe1.disabled = previewingAnimation;
     if (typeof resetKeyframe1 !== 'undefined') resetKeyframe1.disabled = previewingAnimation;
 
-    if (previewingAnimation) {
-      // Force a save of whatever we were just editing BEFORE animating starts
-      saveCurrentState();
-    } else {
-      // --- PREVIEW OFF: Reset everything ---
+    if (!previewingAnimation) {
+      // --- PREVIEW OFF: Snap everything back to the CURRENT edit mode ---
+      console.log("🛑 Preview ending. Snapping objects back to:", currentEditTarget);
 
-      // 1. Reset the UI for the currently selected object
-      currentEditTarget = 'base';
-      editBaseState.textContent = 'Editing';
-      editKeyframe1.textContent = 'Edit';
-
-      // 2. Loop through ALL objects and snap them back to their Base State
-      if (typeof allThreeJsObj !== 'undefined') {
-        allThreeJsObj.forEach((child) => {
-          const config = child.userData ? (isMobileView ? child.userData.modelConfigRefMob : child.userData.modelConfigRef) : null;
-
-          if (config) {
-            // Snap Position
-            child.position.set(config.positionX, config.positionY, config.positionZ);
-
-            // Snap Rotation (Convert config degrees back to Three.js radians)
-            child.rotation.set(
-              THREE.MathUtils.degToRad(config.rotationX),
-              THREE.MathUtils.degToRad(config.rotationY),
-              THREE.MathUtils.degToRad(config.rotationZ)
-            );
-          }
-        });
+      if (typeof snapAllObjectsToState === 'function') {
+        snapAllObjectsToState(currentEditTarget);
       }
 
-      // (Optional fallback just in case selectedObj isn't in allThreeJsObj for some reason)
-      loadSavedState('base');
+      loadSavedState(currentEditTarget);
+
+      if (typeof allThreeJsObj !== 'undefined') {
+        allThreeJsObj.forEach((child) => {
+          if (child.userData) child.userData.currentAnimAlpha = undefined;
+        });
+      }
     }
   }
 
-  const resetKeyframe1 = document.getElementById('resetKeyframe1');
+
 
   resetKeyframe1.addEventListener('click', () => {
     if (!selectedObj || !selectedObjData) return;
@@ -4984,7 +5011,6 @@ window.onload = () => {
     }
   });
 
-  const animTriggerInvert = document.getElementById('animTriggerInvert');
 
   // Persist the invert toggle whenever it changes
   animTriggerInvert.addEventListener('change', () => {
@@ -5005,6 +5031,30 @@ window.onload = () => {
       updateSaveField();
     }
   });
+
+
+  function snapAllObjectsToState(target) {
+    if (typeof allThreeJsObj === 'undefined') return;
+    allThreeJsObj.forEach((child) => {
+      const config = child.userData ? (isMobileView ? child.userData.modelConfigRefMob : child.userData.modelConfigRef) : null;
+      if (!config) return;
+      if (target === 'base') {
+        child.position.set(config.positionX, config.positionY, config.positionZ);
+        child.rotation.set(
+          THREE.MathUtils.degToRad(config.rotationX),
+          THREE.MathUtils.degToRad(config.rotationY),
+          THREE.MathUtils.degToRad(config.rotationZ)
+        );
+      } else if (target === 'keyframe1' && config.keyframe1) {
+        child.position.set(config.keyframe1.position.x, config.keyframe1.position.y, config.keyframe1.position.z);
+        child.rotation.set(
+          THREE.MathUtils.degToRad(config.keyframe1.rotation.x),
+          THREE.MathUtils.degToRad(config.keyframe1.rotation.y),
+          THREE.MathUtils.degToRad(config.keyframe1.rotation.z)
+        );
+      }
+    });
+  }
 
 
 
