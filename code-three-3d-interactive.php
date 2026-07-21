@@ -160,6 +160,7 @@ function c33d_frontend_enqueue_assets()
         array(
             'isAdmin' => 'true',
             'pluginUrl' => esc_url(plugins_url('', __FILE__)),
+            'gestureEngineUrl' => esc_url(plugins_url('assets/js/GestureEngine.js', __FILE__)),
         )
     );
 
@@ -230,6 +231,7 @@ function c33d_admin_enqueue_assets()
             'allSceneData' => wp_json_encode(c33d_get_scene_data($post->ID)),
             'pluginUrl' => esc_url(plugins_url('', __FILE__)),
             'importedDemoAssets' => wp_json_encode(get_option('c33d_imported_assets', array())),
+            'gestureEngineUrl' => esc_url(plugins_url('assets/js/GestureEngine.js', __FILE__)),
         )
     );
 
@@ -366,13 +368,13 @@ function c33d_inject_threejs_assets()
     ?>
 
     <script type="importmap">
-                                    {
-                                        "imports": {
-                                            "three": "<?php echo esc_url(plugins_url('/assets/js/three.module.min.js', __FILE__)); ?>",
-                                            "three/addons/": "<?php echo esc_url(plugins_url('/assets/js/threeaddons/', __FILE__)); ?>"
-                                        }
-                                    }
-                                </script>
+                                                                                        {
+                                                                                            "imports": {
+                                                                                                "three": "<?php echo esc_url(plugins_url('/assets/js/three.module.min.js', __FILE__)); ?>",
+                                                                                                "three/addons/": "<?php echo esc_url(plugins_url('/assets/js/threeaddons/', __FILE__)); ?>"
+                                                                                            }
+                                                                                        }
+                                                                                    </script>
 
     <?php
 }
@@ -878,13 +880,13 @@ function c33d_editor_page($post)
     <!-- start HTMLs -->
     <div id="c33d-editor">
         <script type="importmap">
-                                            {
-                                                "imports": {
-                                                    "three": "<?php echo esc_url(plugins_url('/assets/js/three.module.min.js', __FILE__)); ?>",
-                                                    "three/addons/": "<?php echo esc_url(plugins_url('/assets//js/threeaddons/', __FILE__)); ?>"
-                                                }
-                                            }
-                                        </script>
+                                                                                                {
+                                                                                                    "imports": {
+                                                                                                        "three": "<?php echo esc_url(plugins_url('/assets/js/three.module.min.js', __FILE__)); ?>",
+                                                                                                        "three/addons/": "<?php echo esc_url(plugins_url('/assets//js/threeaddons/', __FILE__)); ?>"
+                                                                                                    }
+                                                                                                }
+                                                                                            </script>
 
 
         <input type="hidden" name="threejs_scene_config_json" id="threejs_scene_config_json" value="">
@@ -1391,6 +1393,93 @@ function c33d_editor_page($post)
                     <fieldset class="animation-settings">
                         <legend>Interactive Animation</legend>
 
+                        <label><input type="checkbox" id="arEnabled"> Enable Hand Tracking (AR)</label>
+
+                        <div class="transform-group">
+                            <label style="width:30%">Trigger Source</label>
+                            <select id="triggerSourceType">
+                                <option value="mouse">Mouse</option>
+                                <option value="hand">Hand Tracking</option>
+                            </select>
+                        </div>
+
+                        <!-- existing mouseX/mouseY select — shown only when triggerSourceType = mouse -->
+                        <div id="mouseTriggerInputs" class="transform-group">
+                            <label style="width:30%">Axis</label>
+                            <select id="animTriggerSource">
+                                <option value="mouseX">Mouse X</option>
+                                <option value="mouseY">Mouse Y</option>
+                            </select>
+                        </div>
+
+                        <div id="handTriggerInputs" style="display:none">
+
+                            <div class="transform-group">
+                                <label style="width:30%">Hand</label>
+                                <select id="handTriggerHand">
+                                    <option value="left">Left</option>
+                                    <option value="right">Right</option>
+                                </select>
+                            </div>
+
+                            <div class="transform-group">
+                                <label style="width:30%">Metric</label>
+                                <select id="handTriggerMetric">
+                                    <option value="landmark">Position (single landmark)</option>
+                                    <option value="pinchDistance">Pinch Distance (normalized)</option>
+                                    <option value="pinchDistancePx">Pinch Distance (raw pixels)</option>
+                                    <option value="rotation">Rotation</option>
+                                    <option value="rotationThumbIndex">Rotation (thumb–index)</option>
+                                    <option value="distance">Distance Between Landmarks (normalized)</option>
+                                    <option value="distancePx">Distance Between Landmarks (raw pixels)</option>
+                                </select>
+                            </div>
+
+                            <div id="handTriggerLandmarkSingle" class="db-row2" style="display:none">
+                                <div class="db-stack">
+                                    <label>Landmark</label>
+                                    <select id="handTriggerLandmarkA"></select>
+                                </div>
+                                <div id="handTriggerLandmarkAxis" class="db-stack">
+                                    <label>Axis</label>
+                                    <select id="handTriggerAxis">
+                                        <option value="nx">X</option>
+                                        <option value="ny">Y</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div id="handTriggerLandmarkPair" style="display:none">
+                                <div class="transform-group">
+                                    <label style="width:30%">Landmark A</label>
+                                    <select id="handTriggerLandmarkPairA"></select>
+                                </div>
+                                <div class="transform-group">
+                                    <label style="width:30%">Landmark B</label>
+                                    <select id="handTriggerLandmarkPairB"></select>
+                                </div>
+                            </div>
+
+                            <hr>
+
+                            <label for="animTriggerMin">Input Min</label>
+                            <div class="rangeWithValue">
+                                <input type="number" id="animTriggerMin" step="0.01" value="0" />
+                            </div>
+
+                            <label for="animTriggerMax">Input Max</label>
+                            <div class="rangeWithValue">
+                                <input type="number" id="animTriggerMax" step="0.01" value="1" />
+                            </div>
+
+                            <p id="handTriggerPixelNote" style="display:none; font-size:0.85em; opacity:0.75;">
+                                This metric is in screen pixels — the range depends on viewport size.
+                            </p>
+
+
+
+                        </div>
+
                         <!-- 1. Input Selection & Live Value -->
                         <div class="anim-input-group">
                             <label for="animTriggerSource">Link Animation To:</label>
@@ -1448,6 +1537,148 @@ function c33d_editor_page($post)
                             <p class="description">Activates the link between your input and the object to test the
                                 animation.</p>
                         </div>
+
+                        <hr>
+                        <h4>Direct Property Bindings</h4>
+                        <p style="font-size:0.85em; opacity:0.75;">
+                            Drive a property directly from an input value — independent of keyframe animation.
+                        </p>
+
+                        <div id="directBindingsList"></div>
+
+                        <button type="button" id="addDirectBindingBtn">+ Add Binding</button>
+
+                        <!-- Template for one binding row — cloned by JS, not shown directly -->
+                        <template id="directBindingRowTemplate">
+                            <div class="direct-binding-row" style="border-bottom:1px solid #white; margin-bottom:8px;">
+
+                                <div class="db-stack">
+                                    <label>Source</label>
+                                    <select class="db-sourceType">
+                                        <option value="mouse">Mouse</option>
+                                        <option value="hand">Hand</option>
+                                    </select>
+                                </div>
+
+                                <div class="db-mouseInputs db-stack">
+                                    <label>Axis</label>
+                                    <select class="db-mouseAxis">
+                                        <option value="mouseX">Mouse X</option>
+                                        <option value="mouseY">Mouse Y</option>
+                                    </select>
+                                </div>
+
+                                <div class="db-handInputs" style="display:none">
+                                    <div class="db-row2">
+                                        <div class="db-stack">
+                                            <label>Hand</label>
+                                            <select class="db-hand">
+                                                <option value="left">Left</option>
+                                                <option value="right">Right</option>
+                                            </select>
+                                        </div>
+                                        <div class="db-stack">
+                                            <label>Metric</label>
+                                            <select class="db-metric">
+                                                <option value="landmark">Position</option>
+                                                <option value="pinchDistance">Pinch (norm)</option>
+                                                <option value="pinchDistancePx">Pinch (raw)</option>
+                                                <option value="rotation">Rotation</option>
+                                                <option value="rotationThumbIndex">Rotation (thumb-idx)</option>
+                                                <option value="distance">Dist Between (norm)</option>
+                                                <option value="distancePx">Dist Between (raw)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="db-landmarkSingle db-row2" style="display:none">
+                                        <div class="db-stack">
+                                            <label>Landmark</label>
+                                            <select class="db-landmarkA"></select>
+                                        </div>
+                                        <div class="db-landmarkAxis db-stack">
+                                            <label>Axis</label>
+                                            <select class="db-axis">
+                                                <option value="nx">X</option>
+                                                <option value="ny">Y</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="db-landmarkPair" style="display:none">
+                                        <div class="db-row2">
+                                            <div class="db-stack">
+                                                <label>Landmark A</label>
+                                                <select class="db-landmarkPairA"></select>
+                                            </div>
+                                            <div class="db-stack">
+                                                <label>Landmark B</label>
+                                                <select class="db-landmarkPairB"></select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="db-stack">
+                                    <label>Target Property</label>
+                                    <select class="db-property">
+                                        <optgroup label="Position">
+                                            <option value="positionX">Position X</option>
+                                            <option value="positionY">Position Y</option>
+                                            <option value="positionZ">Position Z</option>
+                                        </optgroup>
+                                        <optgroup label="Scale">
+                                            <option value="scaleX">Scale X</option>
+                                            <option value="scaleY">Scale Y</option>
+                                            <option value="scaleZ">Scale Z</option>
+                                        </optgroup>
+                                        <optgroup label="Rotation">
+                                            <option value="rotationX">Rotation X</option>
+                                            <option value="rotationY">Rotation Y</option>
+                                            <option value="rotationZ">Rotation Z</option>
+                                        </optgroup>
+                                    </select>
+                                </div>
+
+                                <div class="db-row2">
+                                    <div class="db-stack">
+                                        <label>Input Min</label>
+                                        <input type="number" class="db-inputMin" step="0.01">
+                                    </div>
+                                    <div class="db-stack">
+                                        <label>Input Max</label>
+                                        <input type="number" class="db-inputMax" step="0.01">
+                                    </div>
+                                </div>
+                                <button type="button" class="db-calibrate"
+                                    style="width:100%; margin-bottom:4px;">Calibrate</button>
+                                <p class="db-calibrateStatus" style="display:none; font-size:0.75em; opacity:0.8;"></p>
+
+                                <div class="db-row2">
+                                    <div class="db-stack">
+                                        <label>Output Min</label>
+                                        <input type="number" class="db-outputMin" step="0.01">
+                                    </div>
+                                    <div class="db-stack">
+                                        <label>Output Max</label>
+                                        <input type="number" class="db-outputMax" step="0.01">
+                                    </div>
+                                </div>
+
+                                <div class="db-row2">
+                                    <div class="db-stack">
+                                        <label>Invert</label>
+                                        <input type="checkbox" class="db-invert">
+                                    </div>
+                                    <div class="db-stack">
+                                        <label>Damping</label>
+                                        <input type="range" class="db-damping" min="0.01" max="1" step="0.01">
+                                    </div>
+                                </div>
+
+                                <button type="button" class="db-remove" style="width:100%;">Remove</button>
+                            </div>
+                        </template>
 
                     </fieldset>
 

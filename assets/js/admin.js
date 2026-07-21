@@ -7,6 +7,8 @@ import { TransformControls } from 'three/addons/TransformControls.js';
 import { RGBELoader } from 'three/addons/RGBELoader.js';
 import { CSS3DRenderer, CSS3DObject } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/renderers/CSS3DRenderer.js';
 
+import { getMouseChannels, mergeChannels } from './input-providers.js';
+import { HandInputProvider, parseDistanceChannelKey, LANDMARK_NAMES } from './hand-input-provider.js';
 
 const localisedData = window.c33dadminlocaliseddata;
 let allSceneData = JSON.parse(localisedData.allSceneData);
@@ -17,7 +19,7 @@ const importedDemoAssets = JSON.parse(localisedData.importedDemoAssets);
 let downloadInProgress = false;
 const blendModeSelect = document.getElementById('blendMode');
 let orbitControls;
-
+const gestureEngineUrl = localisedData.gestureEngineUrl;
 
 
 
@@ -74,6 +76,7 @@ let currentEditTarget = 'base';
 let previewingAnimation = false;
 
 let allLightHelpers = [];
+let handInputProvider = null; // set externally once hand tracking starts; null = feature unused
 
 let mouseFollowObj = [];
 
@@ -86,6 +89,50 @@ let lastLightFollow = false;
 let isFullSceneInit = false;
 
 let defaultLightTimer;
+
+
+// --- new element refs, alongside animTriggerSource/animTriggerInvert/animTriggerDamping ---
+const triggerSourceType = document.getElementById('triggerSourceType');
+const mouseTriggerInputs = document.getElementById('mouseTriggerInputs');
+const handTriggerInputs = document.getElementById('handTriggerInputs');
+const handTriggerHand = document.getElementById('handTriggerHand');
+const handTriggerMetric = document.getElementById('handTriggerMetric');
+const handTriggerLandmarkSingle = document.getElementById('handTriggerLandmarkSingle');
+const handTriggerLandmarkAxis = document.getElementById('handTriggerLandmarkAxis');
+const handTriggerLandmarkA = document.getElementById('handTriggerLandmarkA');
+const handTriggerAxis = document.getElementById('handTriggerAxis');
+const handTriggerLandmarkPair = document.getElementById('handTriggerLandmarkPair');
+const handTriggerLandmarkPairA = document.getElementById('handTriggerLandmarkPairA');
+const handTriggerLandmarkPairB = document.getElementById('handTriggerLandmarkPairB');
+const handTriggerPixelNote = document.getElementById('handTriggerPixelNote');
+const animTriggerMinInput = document.getElementById('animTriggerMin');
+const animTriggerMaxInput = document.getElementById('animTriggerMax');
+
+const METRIC_DEFAULTS = {
+  landmark: { min: 0, max: 1, pixelSpace: false },
+  pinchDistance: { min: 0, max: 0.5, pixelSpace: false },
+  pinchDistancePx: { min: 0, max: window.innerWidth || 1920, pixelSpace: true },
+  rotation: { min: -90, max: 90, pixelSpace: false },
+  rotationThumbIndex: { min: -90, max: 90, pixelSpace: false },
+  distance: { min: 0, max: 1, pixelSpace: false },
+  distancePx: { min: 0, max: window.innerWidth || 1920, pixelSpace: true },
+};
+
+// Populate landmark dropdowns once, on load
+[handTriggerLandmarkA, handTriggerLandmarkPairA, handTriggerLandmarkPairB].forEach(select => {
+  LANDMARK_NAMES.forEach(name => {
+    const opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = name;
+    select.appendChild(opt);
+  });
+});
+
+
+const directBindingsList = document.getElementById('directBindingsList');
+const addDirectBindingBtn = document.getElementById('addDirectBindingBtn');
+const directBindingRowTemplate = document.getElementById('directBindingRowTemplate');
+
 
 
 // document.addEventListener('DOMContentLoaded', () => {
@@ -125,8 +172,13 @@ window.onload = () => {
       receiveShadow: false,
       animTriggerSource: 'mouseX',
       animTriggerInvert: false,
+      animTriggerSource: 'mouseX',
+      animTriggerInvert: false,
+      animTriggerMin: 0,
+      animTriggerMax: 1,
       animDamping: 1.0,
       keyframe1: null,
+      directBindings: () => [],
     };
 
     constructor(data = {}) {
@@ -161,7 +213,10 @@ window.onload = () => {
       if (data.keyframe1 && data.keyframe1.position && data.keyframe1.rotation) {
         this.keyframe1 = {
           position: new THREE.Vector3(data.keyframe1.position.x, data.keyframe1.position.y, data.keyframe1.position.z),
-          rotation: { x: data.keyframe1.rotation.x, y: data.keyframe1.rotation.y, z: data.keyframe1.rotation.z }
+          rotation: new THREE.Euler(data.keyframe1.rotation.x, data.keyframe1.rotation.y, data.keyframe1.rotation.z),
+          scale: data.keyframe1.scale
+            ? new THREE.Vector3(data.keyframe1.scale.x, data.keyframe1.scale.y, data.keyframe1.scale.z)
+            : new THREE.Vector3(this.scale.x, this.scale.y, this.scale.z), // fallback: old saves without scale keep current scale, no jump
         };
       } else {
         this.keyframe1 = null;
@@ -341,18 +396,20 @@ window.onload = () => {
           const axis = key.charAt(8).toLowerCase();
           obj[key] = THREE.MathUtils.radToDeg(this.rotation[axis]);
         } else if (key === 'keyframe1') {
-          // Serialize keyframe1 THREE objects to plain data
           if (this.keyframe1 && this.keyframe1.position && this.keyframe1.rotation) {
             obj[key] = {
               position: { x: this.keyframe1.position.x, y: this.keyframe1.position.y, z: this.keyframe1.position.z },
-              rotation: { x: this.keyframe1.rotation.x, y: this.keyframe1.rotation.y, z: this.keyframe1.rotation.z }
+              rotation: { x: this.keyframe1.rotation.x, y: this.keyframe1.rotation.y, z: this.keyframe1.rotation.z },
+              scale: this.keyframe1.scale
+                ? { x: this.keyframe1.scale.x, y: this.keyframe1.scale.y, z: this.keyframe1.scale.z }
+                : { x: this.scale.x, y: this.scale.y, z: this.scale.z },
             };
           } else {
             obj[key] = null;
           }
-        } else {
+        } else { //all others
           if (key !== 'shortcodeHtml') {
-            obj[key] = this[key];
+            obj[key] = (key === 'directBindings') ? JSON.parse(JSON.stringify(this[key])) : this[key];
           }
         }
       }
@@ -378,6 +435,21 @@ window.onload = () => {
         lightSettings: obj.lightSettings
       });
     }
+
+    addDirectBinding(binding) {
+      if (!Array.isArray(this.directBindings)) this.directBindings = [];
+      this.directBindings.push({ id: crypto.randomUUID(), invert: false, damping: 1.0, ...binding });
+    }
+
+    removeDirectBinding(id) {
+      this.directBindings = this.directBindings.filter(b => b.id !== id);
+    }
+
+    updateDirectBinding(id, changes) {
+      const binding = this.directBindings.find(b => b.id === id);
+      if (binding) Object.assign(binding, changes);
+    }
+
   }
 
 
@@ -472,6 +544,9 @@ window.onload = () => {
   const itemSpacingInput = document.getElementById('itemSpacing');
   const isOrthoCameraInput = document.getElementById('isOrthoCamera');
 
+  const arEnabledInput = document.getElementById('arEnabled');
+  let arEnabled = sceneData.arEnabled || false;
+
 
   // const showLightHelpers = document.getElementById('showLightHelpers');
 
@@ -561,6 +636,98 @@ window.onload = () => {
   });
 
 
+  function setAnimTriggerSourceValue(composedKey) {
+    // animTriggerSource is a <select>; ensure a matching option exists, then select it
+    let opt = Array.from(animTriggerSource.options).find(o => o.value === composedKey);
+    if (!opt) {
+      opt = document.createElement('option');
+      opt.value = composedKey;
+      opt.textContent = composedKey;
+      animTriggerSource.appendChild(opt);
+    }
+    animTriggerSource.value = composedKey;
+    animTriggerSource.dispatchEvent(new Event('change')); // reuses the single existing listener
+  }
+
+  function updateHandTriggerFieldVisibility() {
+    const metric = handTriggerMetric.value;
+    const isSingleLandmark = metric === 'landmark';
+    const isPair = metric === 'distance' || metric === 'distancePx';
+
+    handTriggerLandmarkSingle.style.display = isSingleLandmark ? 'flex' : 'none';
+    handTriggerLandmarkAxis.style.display = isSingleLandmark ? 'flex' : 'none';
+    handTriggerLandmarkPair.style.display = isPair ? 'block' : 'none';
+
+    const defaults = METRIC_DEFAULTS[metric];
+    handTriggerPixelNote.style.display = defaults?.pixelSpace ? 'block' : 'none';
+  }
+
+  function composeHandTriggerKey() {
+    const hand = handTriggerHand.value;
+    const metric = handTriggerMetric.value;
+
+    switch (metric) {
+      case 'landmark':
+        return `hand.${hand}.landmark.${handTriggerLandmarkA.value}.${handTriggerAxis.value}`;
+      case 'distance':
+        return `hand.${hand}.distance.${handTriggerLandmarkPairA.value}-${handTriggerLandmarkPairB.value}`;
+      case 'distancePx':
+        return `hand.${hand}.distancePx.${handTriggerLandmarkPairA.value}-${handTriggerLandmarkPairB.value}`;
+      default: // pinchDistance, pinchDistancePx, rotation, rotationThumbIndex
+        return `hand.${hand}.${metric}`;
+    }
+  }
+
+  function applyHandTriggerDefaults() {
+    const defaults = METRIC_DEFAULTS[handTriggerMetric.value];
+    if (!defaults) return;
+    animTriggerMinInput.value = defaults.min;
+    animTriggerMaxInput.value = defaults.max;
+  }
+
+  function commitHandTriggerSelection() {
+    applyHandTriggerDefaults();
+    setAnimTriggerSourceValue(composeHandTriggerKey());
+  }
+
+  [handTriggerHand, handTriggerMetric, handTriggerLandmarkA, handTriggerAxis,
+    handTriggerLandmarkPairA, handTriggerLandmarkPairB].forEach(el => {
+      el.addEventListener('change', () => {
+        updateHandTriggerFieldVisibility();
+        commitHandTriggerSelection();
+      });
+    });
+
+  // Min/Max are their own persisted fields, not part of animTriggerSource — separate listeners,
+  // same pattern as the existing animTriggerInvert/animTriggerDamping listeners
+  animTriggerMinInput.addEventListener('change', () => {
+    if (selectedObjData) {
+      selectedObjData.animTriggerMin = parseFloat(animTriggerMinInput.value);
+      updateModelData(selectedObjData);
+      updateSaveField();
+    }
+  });
+
+  animTriggerMaxInput.addEventListener('change', () => {
+    if (selectedObjData) {
+      selectedObjData.animTriggerMax = parseFloat(animTriggerMaxInput.value);
+      updateModelData(selectedObjData);
+      updateSaveField();
+    }
+  });
+
+  triggerSourceType.addEventListener('change', () => {
+    const isHand = triggerSourceType.value === 'hand';
+    mouseTriggerInputs.style.display = isHand ? 'none' : 'flex';
+    handTriggerInputs.style.display = isHand ? 'block' : 'none';
+
+    if (isHand) {
+      updateHandTriggerFieldVisibility();
+      commitHandTriggerSelection(); // writes an initial valid value immediately on switch
+    } else {
+      setAnimTriggerSourceValue(animTriggerSource.options[0]?.value ?? 'mouseX');
+    }
+  });
 
 
   function setLightIntensity(light, intensity) {
@@ -698,6 +865,8 @@ window.onload = () => {
 
     isOrthoCamera = sceneData.isOrthoCamera;
 
+    arEnabled = sceneData.arEnabled || false;
+
     if (sceneData.isOrthoCamera) {
       camera = orthoCamera;
     }
@@ -740,6 +909,7 @@ window.onload = () => {
     // useEnvLightInput.checked = useEnvLight;
     isOrthoCameraInput.checked = isOrthoCamera;
     breakPoint.value = sceneData.breakPoint;
+    arEnabledInput.checked = arEnabled;
   }
 
   function updateDataFromUi() {
@@ -1225,6 +1395,29 @@ window.onload = () => {
     toggleCamera();
   };
 
+  arEnabledInput.oninput = async () => {
+    arEnabled = arEnabledInput.checked;
+    sceneData.arEnabled = arEnabled; // persisted global setting, same shape as isOrthoCamera
+    updateSaveField();
+
+    if (arEnabled && !handInputProvider) {
+      handInputProvider = new HandInputProvider();
+      try {
+        await handInputProvider.start(gestureEngineUrl, { debug: false });
+        refreshActiveHandChannels(); // picks up any trigger sources already saved on objects
+      } catch (err) {
+        console.error('Failed to start hand tracking:', err);
+        arEnabled = false;
+        arEnabledInput.checked = false;
+        sceneData.arEnabled = false;
+        handInputProvider = null;
+      }
+    } else if (!arEnabled && handInputProvider) {
+      handInputProvider.dispose();
+      handInputProvider = null;
+    }
+  };
+
   function toggleCamera() {
     scene.remove(camera);
     if (sceneData.isOrthoCamera) {
@@ -1285,6 +1478,7 @@ window.onload = () => {
     //check if any models exist
     if (allModels.length != 0) {
       loadAllModels();
+      refreshActiveHandChannels();
       // loadModel(sceneData.allModels[0].modelUrl, sceneData.allModels[0], true);
       //loop all models and run loadModel
       // loadModel(sceneData.modelUrl, sceneData, true);
@@ -1385,6 +1579,7 @@ window.onload = () => {
     itemsLoaded = 0;
     loadAllModels();
     isFullSceneInit = false;
+    refreshActiveHandChannels();
   }
 
   function checkModelEmptyUrls(allModels) {
@@ -1808,19 +2003,10 @@ window.onload = () => {
       }
       // }
 
-      console.group(`📥 LOADING OBJECT: ${modelConfigInstance.modelName || modelConfigInstance.modelId || 'Unnamed Object'}`);
 
-      console.log("1. Base State (Degrees):", {
-        posX: modelConfigInstance.positionX,
-        rotX: modelConfigInstance.rotationX
-      });
 
       if (modelConfigInstance.keyframe1) {
-        console.log("2. Keyframe 1 FOUND (Degrees):", {
-          posX: modelConfigInstance.keyframe1.position?.x,
-          rotX: modelConfigInstance.keyframe1.rotation?.x,
-          animTrigger: modelConfigInstance.animTriggerSource
-        });
+
 
         // Quick sanity check: Are the rotation values massive? (Indicating radians saved as degrees)
         if (Math.abs(modelConfigInstance.keyframe1.rotation?.x) > 360) {
@@ -1949,7 +2135,9 @@ window.onload = () => {
     if (allModels.length == allThreeJsObj.length) {
       updateParentList();
       updateSaveField(); //more for new objects
+      refreshActiveHandChannels();
     }
+
     if (isInitialLoad) {
       //can add scene size via here, add whenever new model loaded
       itemsLoaded++;
@@ -2024,6 +2212,8 @@ window.onload = () => {
   //updates values of all inputs based on three object
   //aka updatetransforms
   function updateTransforms() {
+    if (previewingAnimation) return; // never persist transforms while preview animation is driving them
+
     let pos = selectedObj.position;
     let rot = selectedObj.rotation;
     let scale = selectedObj.scale;
@@ -2069,25 +2259,23 @@ window.onload = () => {
 
     // === KEY FIX: write to the correct target depending on edit mode ===
     if (currentEditTarget === 'keyframe1') {
-      // Don't touch the base position/rotation/scalars — only update keyframe1
-      if (!modelConfigInstance.keyframe1) {
-        modelConfigInstance.keyframe1 = { position: {}, rotation: {} };
-      }
+      if (!modelConfigInstance.keyframe1) modelConfigInstance.keyframe1 = {};
       modelConfigInstance.keyframe1.position = {
-        x: selectedObj.position.x,
-        y: selectedObj.position.y,
-        z: selectedObj.position.z
+        x: selectedObj.position.x, y: selectedObj.position.y, z: selectedObj.position.z
       };
       modelConfigInstance.keyframe1.rotation = {
         x: THREE.MathUtils.radToDeg(selectedObj.rotation.x),
         y: THREE.MathUtils.radToDeg(selectedObj.rotation.y),
         z: THREE.MathUtils.radToDeg(selectedObj.rotation.z)
       };
+      modelConfigInstance.keyframe1.scale = {
+        x: selectedObj.scale.x, y: selectedObj.scale.y, z: selectedObj.scale.z
+      };
     }
     else {
-      // Base state: keep Vector3/Euler AND the scalar fields in sync
       modelConfigInstance.position.copy(selectedObj.position);
       modelConfigInstance.rotation.copy(selectedObj.rotation);
+      modelConfigInstance.scale.copy(selectedObj.scale);
 
       modelConfigInstance.positionX = selectedObj.position.x;
       modelConfigInstance.positionY = selectedObj.position.y;
@@ -2099,7 +2287,7 @@ window.onload = () => {
     }
 
     // Scale isn't currently keyframed, so this stays unconditional
-    modelConfigInstance.scale.copy(selectedObj.scale);
+    // modelConfigInstance.scale.copy(selectedObj.scale);
 
     if (selectedObjData.link) linkInput.value = selectedObjData.link;
 
@@ -2915,14 +3103,17 @@ window.onload = () => {
     if (previewAnimationToggle && previewAnimationToggle.checked) {
       if (!(isTransforming || keyXRot || keyYRot || keyZRot || isDragging || keyZTrans)) {
 
-        // 1. Calculate base normalized inputs from the global 'mouse' object
-        // (This relies on mouse.x and mouse.y constantly being updated by onMouseMove)
-        const rawMouseXNorm = (mouse.x + 1) / 2;
-        const rawMouseYNorm = (mouse.y + 1) / 2;
+        // 1. Build one merged channel dict per frame: mouse channels + (if active) hand channels.
+        //    mergeChannels/getMouseChannels come from input-providers.js; hand channels come
+        //    from HandInputProvider.getChannels(), which is a no-op-safe {} when AR isn't active.
+        const inputChannels = mergeChannels(
+          getMouseChannels(mouse),
+          handInputProvider ? handInputProvider.getChannels() : {}
+        );
 
         // 2. Update the global UI Readout based on the dropdown
         if (animTriggerSource && currentInputValue) {
-          let uiTarget = animTriggerSource.value === 'mouseX' ? rawMouseXNorm : rawMouseYNorm;
+          let uiTarget = inputChannels[animTriggerSource.value] ?? 0;
           if (animTriggerInvert && animTriggerInvert.checked) uiTarget = 1 - uiTarget;
           currentInputValue.textContent = uiTarget.toFixed(2);
         }
@@ -2933,22 +3124,30 @@ window.onload = () => {
             const config = child.userData ? (isMobileView ? child.userData.modelConfigRefMob : child.userData.modelConfigRef) : null;
 
             if (config && config.keyframe1) {
-              // Determine Target Alpha (where the mouse actually is)
+              // Determine Target Alpha (where the input actually is)
               let targetAlpha = 0;
               const triggerSource = config.animTriggerSource || 'mouseX';
               const triggerInvert = config.animTriggerInvert || false;
               const damping = config.animDamping !== undefined ? config.animDamping : 1.0;
 
-              if (triggerSource === 'mouseX') targetAlpha = rawMouseXNorm;
-              if (triggerSource === 'mouseY') targetAlpha = rawMouseYNorm;
+              const rawValue = inputChannels[triggerSource];
+              if (rawValue !== undefined) {
+                const min = config.animTriggerMin !== undefined ? config.animTriggerMin : 0;
+                const max = config.animTriggerMax !== undefined ? config.animTriggerMax : 1;
+                // Remap raw channel value onto a 0-1 alpha. For mouse channels min/max stay
+                // 0/1 by default, so this is a no-op and preserves existing behavior exactly.
+                targetAlpha = THREE.MathUtils.clamp(
+                  THREE.MathUtils.inverseLerp(min, max, rawValue),
+                  0, 1
+                );
+              }
+
               if (triggerInvert) targetAlpha = 1 - targetAlpha;
 
-              // Initialize the CURRENT alpha state if it doesn't exist
               if (child.userData.currentAnimAlpha === undefined) {
                 child.userData.currentAnimAlpha = targetAlpha;
               }
 
-              // APPLY DAMPING: Smoothly transition currentAlpha toward targetAlpha
               child.userData.currentAnimAlpha = THREE.MathUtils.lerp(child.userData.currentAnimAlpha, targetAlpha, damping);
 
               const currentAlpha = child.userData.currentAnimAlpha;
@@ -2958,7 +3157,15 @@ window.onload = () => {
               child.position.y = THREE.MathUtils.lerp(config.positionY, config.keyframe1.position.y, currentAlpha);
               child.position.z = THREE.MathUtils.lerp(config.positionZ, config.keyframe1.position.z, currentAlpha);
 
-              // Interpolate Rotation
+
+              // Interpolate Scale (falls back to current scale if this object has no
+              // keyframe1.scale saved yet — old scenes keep constant scale as before)
+              if (config.keyframe1.scale) {
+                child.scale.x = THREE.MathUtils.lerp(config.scaleX, config.keyframe1.scale.x, currentAlpha);
+                child.scale.y = THREE.MathUtils.lerp(config.scaleY, config.keyframe1.scale.y, currentAlpha);
+                child.scale.z = THREE.MathUtils.lerp(config.scaleZ, config.keyframe1.scale.z, currentAlpha);
+              }
+
               const lerpedRotX = THREE.MathUtils.lerp(config.rotationX, config.keyframe1.rotation.x, currentAlpha);
               const lerpedRotY = THREE.MathUtils.lerp(config.rotationY, config.keyframe1.rotation.y, currentAlpha);
               const lerpedRotZ = THREE.MathUtils.lerp(config.rotationZ, config.keyframe1.rotation.z, currentAlpha);
@@ -2974,6 +3181,8 @@ window.onload = () => {
       }
     }
 
+    applyDirectBindings();
+
     rotateGroup.rotation.x = THREE.MathUtils.lerp(rotateGroup.rotation.x, targetRotation.x, easing);
     rotateGroup.rotation.y = THREE.MathUtils.lerp(rotateGroup.rotation.y, targetRotation.y, easing);
     rotateGroup.rotation.z = THREE.MathUtils.lerp(rotateGroup.rotation.z, targetRotation.z, easing);
@@ -2985,6 +3194,66 @@ window.onload = () => {
   }
   // updateLabel();//show initial values
 
+
+  function applyDirectBindings() {
+    if (typeof allThreeJsObj === 'undefined' || allThreeJsObj.length === 0) return;
+
+    // Build the merged channel dict once per frame — same as the keyframe block does,
+    // just computed here too since this runs independently of the preview toggle.
+    const inputChannels = mergeChannels(
+      getMouseChannels(mouse),
+      handInputProvider ? handInputProvider.getChannels() : {}
+    );
+
+    const writtenThisFrame = new Set(); // detects two bindings on the same object targeting the same property
+
+    allThreeJsObj.forEach((child) => {
+      const config = child.userData
+        ? (isMobileView ? child.userData.modelConfigRefMob : child.userData.modelConfigRef)
+        : null;
+      if (!config || !Array.isArray(config.directBindings) || config.directBindings.length === 0) return;
+
+      config.directBindings.forEach((binding) => {
+        const rawValue = inputChannels[binding.channel];
+        if (rawValue === undefined) return; // channel not currently available (e.g. hand out of frame) — hold last applied value, do nothing
+
+        const inputMin = binding.inputMin ?? 0;
+        const inputMax = binding.inputMax ?? 1;
+        const outputMin = binding.outputMin ?? 0;
+        const outputMax = binding.outputMax ?? 1;
+
+        let alpha = THREE.MathUtils.clamp(
+          THREE.MathUtils.inverseLerp(inputMin, inputMax, rawValue),
+          0, 1
+        );
+        if (binding.invert) alpha = 1 - alpha;
+
+        const targetValue = THREE.MathUtils.lerp(outputMin, outputMax, alpha);
+        const damping = binding.damping ?? 1.0;
+
+        const dedupeKey = `${config.modelId}:${binding.property}`;
+        if (writtenThisFrame.has(dedupeKey)) {
+          console.warn(`Multiple direct bindings target ${binding.property} on ${config.modelName} — last one wins.`);
+        }
+        writtenThisFrame.add(dedupeKey);
+
+        applyBoundProperty(child, binding.property, targetValue, damping);
+      });
+    });
+  }
+
+  function applyBoundProperty(object3d, property, targetValue, damping) {
+    const [group, axis] = [property.slice(0, -1), property.slice(-1).toLowerCase()];
+    // group: 'position' | 'scale' | 'rotation', axis: 'x' | 'y' | 'z'
+
+    if (group === 'position' || group === 'scale') {
+      object3d[group][axis] = THREE.MathUtils.lerp(object3d[group][axis], targetValue, damping);
+    } else if (group === 'rotation') {
+      // targetValue is expected in degrees for consistency with the rest of the schema (rotationX/Y/Z)
+      const targetRad = THREE.MathUtils.degToRad(targetValue);
+      object3d.rotation[axis] = THREE.MathUtils.lerp(object3d.rotation[axis], targetRad, damping);
+    }
+  }
 
 
   // Optional: Enable drag interaction with the transform controls
@@ -3671,6 +3940,18 @@ window.onload = () => {
         if (selectedObjData.animTriggerSource) animTriggerSource.value = selectedObjData.animTriggerSource;
         if (typeof animTriggerInvert !== 'undefined') animTriggerInvert.checked = !!selectedObjData.animTriggerInvert;
         if (typeof animTriggerDamping !== 'undefined') animTriggerDamping.value = selectedObjData.animDamping !== undefined ? selectedObjData.animDamping : 1.0;
+
+        animTriggerMinInput.value = selectedObjData.animTriggerMin ?? 0;
+        animTriggerMaxInput.value = selectedObjData.animTriggerMax ?? 1;
+
+        const isHandSource = selectedObjData.animTriggerSource?.startsWith('hand.');
+        if (isHandSource) reversePopulateHandTriggerFields(selectedObjData.animTriggerSource);
+        triggerSourceType.value = isHandSource ? 'hand' : 'mouse';
+        mouseTriggerInputs.style.display = isHandSource ? 'none' : 'flex';
+        handTriggerInputs.style.display = isHandSource ? 'block' : 'none';
+        // Note: this does NOT reverse-populate the hand/metric/landmark sub-dropdowns from the
+        // saved string — see caveat below.
+        renderDirectBindings();
       }
 
       // Ensure object visually snaps to the active mode (and initializes Keyframe 1 if you are in that mode but it's a new object)
@@ -3717,6 +3998,27 @@ window.onload = () => {
       highlightSelectedListItem(obj.uuid);
       updateParentList();
     }
+  }
+
+  function reversePopulateHandTriggerFields(source) {
+    if (!source?.startsWith('hand.')) return;
+    const parts = source.split('.');
+    const hand = parts[1];
+    handTriggerHand.value = hand;
+
+    const distMatch = parseDistanceChannelKey(source);
+    if (distMatch) {
+      handTriggerMetric.value = distMatch.pixels ? 'distancePx' : 'distance';
+      handTriggerLandmarkPairA.value = distMatch.landmarkA;
+      handTriggerLandmarkPairB.value = distMatch.landmarkB;
+    } else if (parts[2] === 'landmark') {
+      handTriggerMetric.value = 'landmark';
+      handTriggerLandmarkA.value = parts[3];
+      handTriggerAxis.value = parts[4];
+    } else {
+      handTriggerMetric.value = parts[2]; // pinchDistance, pinchDistancePx, rotation, rotationThumbIndex
+    }
+    updateHandTriggerFieldVisibility();
   }
 
   function updateLightUI(lightSelected) {
@@ -3849,7 +4151,6 @@ window.onload = () => {
           // Update parentUuid reference
           draggedObj.userData.modelConfigRef.parentUuid = targetObj.userData.modelConfigRef.modelId;
 
-          console.log(`Moved ${draggedObj.userData.modelConfigRef.modelName} → ${targetObj.userData.modelConfigRef.modelName}`);
         }
       });
     });
@@ -3880,6 +4181,18 @@ window.onload = () => {
     });
   }
 
+
+  function refreshActiveHandChannels() {
+    if (!handInputProvider) return;
+    const keys = allThreeJsObj.flatMap(obj => {
+      const config = isMobileView ? obj.userData.modelConfigRefMob : obj.userData.modelConfigRef;
+      if (!config) return [];
+      const triggerKeys = config.animTriggerSource ? [config.animTriggerSource] : [];
+      const bindingKeys = (config.directBindings ?? []).map(b => b.channel);
+      return [...triggerKeys, ...bindingKeys];
+    });
+    handInputProvider.setActiveDistanceChannels(keys);
+  }
 
   function updateParentList() {
     parentInput.innerHTML = '';
@@ -4156,7 +4469,7 @@ window.onload = () => {
     // TODO: if last object deleted, show first screen again
     if (allThreeJsObj.length == 0) {
       controls.attach(rotateGroup);
-
+      directBindingsList.innerHTML = '';
       showIntroPopup();
     }
     else {
@@ -4165,6 +4478,7 @@ window.onload = () => {
       updateObjectList();
       updateParentList();
     }
+    refreshActiveHandChannels();
   }
 
   function switchLightHelpers(on) {
@@ -4285,7 +4599,6 @@ window.onload = () => {
       // if (modelList.length > 0) {
       let downloadedModelResults;
       if (modelsToProcess.length > 0) {
-        // console.log('Models to download:', modelsToProcess);
         // if (buttonElement) buttonElement.textContent = `Downloading ${requiredModels.length} Models...`;
 
         //check if downloaded, if yes, return the downloaded model, if no, wait till downloaded then run init
@@ -4837,28 +5150,32 @@ window.onload = () => {
       selectedObjData.rotationY = THREE.MathUtils.radToDeg(selectedObj.rotation.y);
       selectedObjData.rotationZ = THREE.MathUtils.radToDeg(selectedObj.rotation.z);
 
-      console.log(selectedObjData.modelName + "2. Saved to Base (Converted to Degrees):", {
-        x: selectedObjData.rotationX,
-        y: selectedObjData.rotationY,
-        z: selectedObjData.rotationZ
-      });
+      selectedObjData.scaleX = selectedObj.scale.x;
+      selectedObjData.scaleY = selectedObj.scale.y;
+      selectedObjData.scaleZ = selectedObj.scale.z;
+
+      // console.log(selectedObjData.modelName + "2. Saved to Base (Converted to Degrees):", {
+      //   x: selectedObjData.rotationX,
+      //   y: selectedObjData.rotationY,
+      //   z: selectedObjData.rotationZ
+      // });
 
     } else if (currentEditTarget === 'keyframe1') {
-      // Save keyframe as a plain object using degrees for clean WP saving
       selectedObjData.keyframe1 = {
         position: { x: selectedObj.position.x, y: selectedObj.position.y, z: selectedObj.position.z },
         rotation: {
           x: THREE.MathUtils.radToDeg(selectedObj.rotation.x),
           y: THREE.MathUtils.radToDeg(selectedObj.rotation.y),
           z: THREE.MathUtils.radToDeg(selectedObj.rotation.z)
-        }
+        },
+        scale: { x: selectedObj.scale.x, y: selectedObj.scale.y, z: selectedObj.scale.z }
       };
 
-      console.log("2. Saved to Keyframe 1 (Converted to Degrees):", {
-        x: selectedObjData.keyframe1.rotation.x,
-        y: selectedObjData.keyframe1.rotation.y,
-        z: selectedObjData.keyframe1.rotation.z
-      });
+      // console.log("2. Saved to Keyframe 1 (Converted to Degrees):", {
+      //   x: selectedObjData.keyframe1.rotation.x,
+      //   y: selectedObjData.keyframe1.rotation.y,
+      //   z: selectedObjData.keyframe1.rotation.z
+      // });
     }
 
     updateModelData(selectedObjData);
@@ -4885,6 +5202,9 @@ window.onload = () => {
           THREE.MathUtils.degToRad(selectedObjData.keyframe1.rotation.y),
           THREE.MathUtils.degToRad(selectedObjData.keyframe1.rotation.z)
         );
+        if (selectedObjData.keyframe1.scale) {
+          selectedObj.scale.set(selectedObjData.keyframe1.scale.x, selectedObjData.keyframe1.scale.y, selectedObjData.keyframe1.scale.z);
+        }
       } else {
         saveCurrentState();
       }
@@ -4927,6 +5247,7 @@ window.onload = () => {
       selectedObjData.animTriggerSource = animTriggerSource.value;
       updateModelData(selectedObjData);
       updateSaveField();
+      refreshActiveHandChannels();
     }
   });
 
@@ -4945,48 +5266,39 @@ window.onload = () => {
   });
 
   function togglePreviewKeyframeAnim() {
-    console.log("🔄 Toggle Preview Clicked. Current Mode:", currentEditTarget);
-
-    // 1. IF TURNING ON: Save whatever we are editing BEFORE we flip any booleans
     if (!previewingAnimation) {
-      console.log("💾 Forcing save of current edits before animation starts...");
       saveCurrentState();
     }
 
-    // 2. Flip the states
     previewingAnimation = !previewingAnimation;
     previewAnimationToggle.checked = previewingAnimation;
 
-    // Toggle gizmo visibility
-    if (previewingAnimation && gizmoVisible) {
-      setGizmoVisible(false);
-      gizmoVisible = false;
-    }
-    else {
-      setGizmoVisible(true);
-      gizmoVisible = true;
-    }
-
-    // Disable/Enable the edit buttons
     editBaseState.disabled = previewingAnimation;
     editKeyframe1.disabled = previewingAnimation;
     if (typeof resetKeyframe1 !== 'undefined') resetKeyframe1.disabled = previewingAnimation;
 
-    if (!previewingAnimation) {
-      // --- PREVIEW OFF: Snap everything back to the CURRENT edit mode ---
-      console.log("🛑 Preview ending. Snapping objects back to:", currentEditTarget);
-
+    if (previewingAnimation) {
+      // Turning preview ON — safe to hide gizmo immediately, nothing to restore
+      if (gizmoVisible) {
+        setGizmoVisible(false);
+        gizmoVisible = false;
+      }
+    }
+    else {
+      // Turning preview OFF — restore saved state BEFORE the gizmo re-attaches,
+      // so updateTransforms() never fires against a mid-interpolation transform
       if (typeof snapAllObjectsToState === 'function') {
         snapAllObjectsToState(currentEditTarget);
       }
-
       loadSavedState(currentEditTarget);
-
       if (typeof allThreeJsObj !== 'undefined') {
         allThreeJsObj.forEach((child) => {
           if (child.userData) child.userData.currentAnimAlpha = undefined;
         });
       }
+
+      setGizmoVisible(true);
+      gizmoVisible = true;
     }
   }
 
@@ -5000,7 +5312,8 @@ window.onload = () => {
     // Overwrite keyframe1 with exact base state values (already in degrees)
     selectedObjData.keyframe1 = {
       position: { x: selectedObjData.positionX, y: selectedObjData.positionY, z: selectedObjData.positionZ },
-      rotation: { x: selectedObjData.rotationX, y: selectedObjData.rotationY, z: selectedObjData.rotationZ }
+      rotation: { x: selectedObjData.rotationX, y: selectedObjData.rotationY, z: selectedObjData.rotationZ },
+      scale: { x: selectedObjData.scaleX, y: selectedObjData.scaleY, z: selectedObjData.scaleZ }
     };
 
     updateModelData(selectedObjData);
@@ -5058,9 +5371,231 @@ window.onload = () => {
 
 
 
+  addDirectBindingBtn.addEventListener('click', () => {
+    if (!selectedObjData) return;
+    selectedObjData.addDirectBinding({
+      channel: 'mouseX',
+      property: 'positionX',
+      inputMin: 0, inputMax: 1,
+      outputMin: 0, outputMax: 1,
+    });
+    updateModelData(selectedObjData);
+    updateSaveField();
+    renderDirectBindings();
+  });
+
+  function renderDirectBindings() {
+    directBindingsList.innerHTML = '';
+    if (!selectedObjData || !Array.isArray(selectedObjData.directBindings)) return;
+
+    selectedObjData.directBindings.forEach((binding) => {
+      const row = directBindingRowTemplate.content.cloneNode(true);
+      const rowEl = row.querySelector('.direct-binding-row');
+      rowEl.dataset.bindingId = binding.id;
+
+      populateLandmarkSelects(rowEl); // fills db-landmarkA / db-landmarkPairA / db-landmarkPairB
+
+      // Parse the saved channel string back into UI state
+      applyChannelToRowUI(rowEl, binding.channel);
+
+      rowEl.querySelector('.db-property').value = binding.property;
+      rowEl.querySelector('.db-inputMin').value = binding.inputMin;
+      rowEl.querySelector('.db-inputMax').value = binding.inputMax;
+      rowEl.querySelector('.db-outputMin').value = binding.outputMin;
+      rowEl.querySelector('.db-outputMax').value = binding.outputMax;
+      rowEl.querySelector('.db-invert').checked = !!binding.invert;
+      rowEl.querySelector('.db-damping').value = binding.damping ?? 1.0;
+
+      wireRowEvents(rowEl, binding.id);
+      directBindingsList.appendChild(row);
+    });
+  }
+
+  function populateLandmarkSelects(rowEl) {
+    const selects = [
+      rowEl.querySelector('.db-landmarkA'),
+      rowEl.querySelector('.db-landmarkPairA'),
+      rowEl.querySelector('.db-landmarkPairB'),
+    ];
+    selects.forEach(select => {
+      LANDMARK_NAMES.forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        select.appendChild(opt);
+      });
+    });
+  }
+
+  function applyChannelToRowUI(rowEl, channel) {
+    const isHand = channel.startsWith('hand.');
+    rowEl.querySelector('.db-sourceType').value = isHand ? 'hand' : 'mouse';
+    rowEl.querySelector('.db-mouseInputs').style.display = isHand ? 'none' : 'flex';
+    rowEl.querySelector('.db-handInputs').style.display = isHand ? 'block' : 'none';
+
+    if (!isHand) {
+      rowEl.querySelector('.db-mouseAxis').value = channel; // 'mouseX' or 'mouseY'
+      return;
+    }
+
+    const parts = channel.split('.');
+    rowEl.querySelector('.db-hand').value = parts[1];
+
+    const distMatch = parseDistanceChannelKey(channel);
+    if (distMatch) {
+      rowEl.querySelector('.db-metric').value = distMatch.pixels ? 'distancePx' : 'distance';
+      rowEl.querySelector('.db-landmarkPairA').value = distMatch.landmarkA;
+      rowEl.querySelector('.db-landmarkPairB').value = distMatch.landmarkB;
+    } else if (parts[2] === 'landmark') {
+      rowEl.querySelector('.db-metric').value = 'landmark';
+      rowEl.querySelector('.db-landmarkA').value = parts[3];
+      rowEl.querySelector('.db-axis').value = parts[4];
+    } else {
+      rowEl.querySelector('.db-metric').value = parts[2];
+    }
+    updateRowFieldVisibility(rowEl);
+  }
+
+  function updateRowFieldVisibility(rowEl) {
+    const metric = rowEl.querySelector('.db-metric').value;
+    const isSingle = metric === 'landmark';
+    const isPair = metric === 'distance' || metric === 'distancePx';
+    rowEl.querySelector('.db-landmarkSingle').style.display = isSingle ? 'flex' : 'none';
+    rowEl.querySelector('.db-landmarkAxis').style.display = isSingle ? 'flex' : 'none';
+    rowEl.querySelector('.db-landmarkPair').style.display = isPair ? 'block' : 'none';
+  }
+
+  function composeChannelFromRow(rowEl) {
+    if (rowEl.querySelector('.db-sourceType').value === 'mouse') {
+      return rowEl.querySelector('.db-mouseAxis').value;
+    }
+    const hand = rowEl.querySelector('.db-hand').value;
+    const metric = rowEl.querySelector('.db-metric').value;
+    switch (metric) {
+      case 'landmark':
+        return `hand.${hand}.landmark.${rowEl.querySelector('.db-landmarkA').value}.${rowEl.querySelector('.db-axis').value}`;
+      case 'distance':
+        return `hand.${hand}.distance.${rowEl.querySelector('.db-landmarkPairA').value}-${rowEl.querySelector('.db-landmarkPairB').value}`;
+      case 'distancePx':
+        return `hand.${hand}.distancePx.${rowEl.querySelector('.db-landmarkPairA').value}-${rowEl.querySelector('.db-landmarkPairB').value}`;
+      default:
+        return `hand.${hand}.${metric}`;
+    }
+  }
+
+  function wireRowEvents(rowEl, bindingId) {
+    const commit = (changes) => {
+      if (!selectedObjData) return;
+      selectedObjData.updateDirectBinding(bindingId, changes);
+      updateModelData(selectedObjData);
+      updateSaveField();
+      // update this binding's active-channel registration for distance metrics
+      refreshActiveHandChannels();
+    };
+
+    rowEl.querySelector('.db-sourceType').addEventListener('change', (e) => {
+      const isHand = e.target.value === 'hand';
+      rowEl.querySelector('.db-mouseInputs').style.display = isHand ? 'flex' : 'none';
+      rowEl.querySelector('.db-handInputs').style.display = isHand ? 'block' : 'none';
+      if (isHand) updateRowFieldVisibility(rowEl);
+      commit({ channel: composeChannelFromRow(rowEl) });
+    });
+
+    ['.db-mouseAxis', '.db-hand', '.db-metric', '.db-landmarkA', '.db-axis', '.db-landmarkPairA', '.db-landmarkPairB']
+      .forEach(sel => {
+        rowEl.querySelector(sel).addEventListener('change', () => {
+          updateRowFieldVisibility(rowEl);
+          commit({ channel: composeChannelFromRow(rowEl) });
+        });
+      });
+
+    rowEl.querySelector('.db-property').addEventListener('change', (e) => commit({ property: e.target.value }));
+    rowEl.querySelector('.db-inputMin').addEventListener('change', (e) => commit({ inputMin: parseFloat(e.target.value) }));
+    rowEl.querySelector('.db-inputMax').addEventListener('change', (e) => commit({ inputMax: parseFloat(e.target.value) }));
+    rowEl.querySelector('.db-outputMin').addEventListener('change', (e) => commit({ outputMin: parseFloat(e.target.value) }));
+    rowEl.querySelector('.db-outputMax').addEventListener('change', (e) => commit({ outputMax: parseFloat(e.target.value) }));
+    rowEl.querySelector('.db-invert').addEventListener('change', (e) => commit({ invert: e.target.checked }));
+    rowEl.querySelector('.db-damping').addEventListener('input', (e) => commit({ damping: parseFloat(e.target.value) }));
+
+    rowEl.querySelector('.db-remove').addEventListener('click', () => {
+      selectedObjData.removeDirectBinding(bindingId);
+      updateModelData(selectedObjData);
+      updateSaveField();
+      refreshActiveHandChannels();
+      renderDirectBindings();
+    });
+
+    rowEl.querySelector('.db-calibrate').addEventListener('click', () => {
+      runCalibration(rowEl, bindingId);
+    });
+  }
+
+  function runCalibration(rowEl, bindingId) {
+    const channel = composeChannelFromRow(rowEl);
+    const statusEl = rowEl.querySelector('.db-calibrateStatus');
+    const calibrateBtn = rowEl.querySelector('.db-calibrate');
+
+    let observedMin = Infinity;
+    let observedMax = -Infinity;
+    const durationMs = 4000;
+    const startTime = performance.now();
+
+    calibrateBtn.disabled = true;
+    statusEl.style.display = 'block';
+    statusEl.textContent = 'Move through the full range now...';
+
+    const sampleInterval = setInterval(() => {
+      const channels = mergeChannels(
+        getMouseChannels(mouse),
+        handInputProvider ? handInputProvider.getChannels() : {}
+      );
+      const val = channels[channel];
+      if (val !== undefined) {
+        observedMin = Math.min(observedMin, val);
+        observedMax = Math.max(observedMax, val);
+        statusEl.textContent = `Sampling... current range: ${observedMin.toFixed(2)} to ${observedMax.toFixed(2)}`;
+      }
+
+      if (performance.now() - startTime >= durationMs) {
+        clearInterval(sampleInterval);
+        calibrateBtn.disabled = false;
+
+        if (observedMin === Infinity) {
+          statusEl.textContent = 'No data received — is the input active?';
+          return;
+        }
+
+        rowEl.querySelector('.db-inputMin').value = observedMin.toFixed(3);
+        rowEl.querySelector('.db-inputMax').value = observedMax.toFixed(3);
+        statusEl.textContent = `Done. Range set to ${observedMin.toFixed(2)} – ${observedMax.toFixed(2)}.`;
+
+        selectedObjData.updateDirectBinding(bindingId, { inputMin: observedMin, inputMax: observedMax });
+        updateModelData(selectedObjData);
+        updateSaveField();
+      }
+    }, 100);
+  }
+
+
+  window.c33dDebug = {
+    getHandChannels: () => handInputProvider?.getChannels() ?? null,
+    getActiveDistanceChannels: () => handInputProvider?.activeDistanceChannels ?? [],
+    getSelectedObjData: () => selectedObjData,
+    getAllModels: () => allModels,
+    testAddDirectBinding: (binding) => {
+      if (!selectedObjData) {
+        console.warn('No object selected');
+        return;
+      }
+      selectedObjData.addDirectBinding(binding);
+      updateModelData(selectedObjData);
+      updateSaveField();
+      console.log('Binding added:', selectedObjData.directBindings);
+    },
+  };
 } //end onload
 
-console.timeEnd('fullLoad');
+// console.timeEnd('fullLoad');
 
 
 
