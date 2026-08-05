@@ -1403,7 +1403,7 @@ window.onload = () => {
     if (arEnabled && !handInputProvider) {
       handInputProvider = new HandInputProvider();
       try {
-        await handInputProvider.start(gestureEngineUrl, { debug: false });
+        await handInputProvider.start(gestureEngineUrl, { debug: false, previewPosition: 'bottom-left' });
         refreshActiveHandChannels(); // picks up any trigger sources already saved on objects
       } catch (err) {
         console.error('Failed to start hand tracking:', err);
@@ -1580,6 +1580,7 @@ window.onload = () => {
     loadAllModels();
     isFullSceneInit = false;
     refreshActiveHandChannels();
+    renderDirectBindings();
   }
 
   function checkModelEmptyUrls(allModels) {
@@ -2146,6 +2147,7 @@ window.onload = () => {
         loadAllMobileData();
         moveAllObjectsToGroups();
         updateObjectList();
+        renderDirectBindings();
 
       }
     }
@@ -3243,13 +3245,17 @@ window.onload = () => {
   }
 
   function applyBoundProperty(object3d, property, targetValue, damping) {
+    if (property === 'scaleUniform') {
+      const newScale = THREE.MathUtils.lerp(object3d.scale.x, targetValue, damping);
+      object3d.scale.set(newScale, newScale, newScale);
+      return;
+    }
+
     const [group, axis] = [property.slice(0, -1), property.slice(-1).toLowerCase()];
-    // group: 'position' | 'scale' | 'rotation', axis: 'x' | 'y' | 'z'
 
     if (group === 'position' || group === 'scale') {
       object3d[group][axis] = THREE.MathUtils.lerp(object3d[group][axis], targetValue, damping);
     } else if (group === 'rotation') {
-      // targetValue is expected in degrees for consistency with the rest of the schema (rotationX/Y/Z)
       const targetRad = THREE.MathUtils.degToRad(targetValue);
       object3d.rotation[axis] = THREE.MathUtils.lerp(object3d.rotation[axis], targetRad, damping);
     }
@@ -5375,9 +5381,9 @@ window.onload = () => {
     if (!selectedObjData) return;
     selectedObjData.addDirectBinding({
       channel: 'mouseX',
-      property: 'positionX',
+      property: 'rotationY',
       inputMin: 0, inputMax: 1,
-      outputMin: 0, outputMax: 1,
+      outputMin: 0, outputMax: 360,
     });
     updateModelData(selectedObjData);
     updateSaveField();
@@ -5509,7 +5515,19 @@ window.onload = () => {
         });
       });
 
-    rowEl.querySelector('.db-property').addEventListener('change', (e) => commit({ property: e.target.value }));
+    rowEl.querySelector('.db-property').addEventListener('change', (e) => {
+      const property = e.target.value;
+      const changes = { property };
+
+      if (property.startsWith('rotation') || property === 'rotationUniform') {
+        changes.outputMin = 0;
+        changes.outputMax = 360;
+        rowEl.querySelector('.db-outputMin').value = 0;
+        rowEl.querySelector('.db-outputMax').value = 360;
+      }
+
+      commit(changes);
+    });
     rowEl.querySelector('.db-inputMin').addEventListener('change', (e) => commit({ inputMin: parseFloat(e.target.value) }));
     rowEl.querySelector('.db-inputMax').addEventListener('change', (e) => commit({ inputMax: parseFloat(e.target.value) }));
     rowEl.querySelector('.db-outputMin').addEventListener('change', (e) => commit({ outputMin: parseFloat(e.target.value) }));

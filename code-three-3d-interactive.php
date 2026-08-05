@@ -160,7 +160,7 @@ function c33d_frontend_enqueue_assets()
         array(
             'isAdmin' => 'true',
             'pluginUrl' => esc_url(plugins_url('', __FILE__)),
-            'gestureEngineUrl' => esc_url(plugins_url('assets/js/GestureEngine.js', __FILE__)),
+            'gestureEngineUrl' => esc_url(add_query_arg('ver', '1.0.1', plugins_url('assets/js/GestureEngine.js', __FILE__))),
         )
     );
 
@@ -368,13 +368,13 @@ function c33d_inject_threejs_assets()
     ?>
 
     <script type="importmap">
-                                                                                        {
-                                                                                            "imports": {
-                                                                                                "three": "<?php echo esc_url(plugins_url('/assets/js/three.module.min.js', __FILE__)); ?>",
-                                                                                                "three/addons/": "<?php echo esc_url(plugins_url('/assets/js/threeaddons/', __FILE__)); ?>"
-                                                                                            }
-                                                                                        }
-                                                                                    </script>
+                                                                                                                {
+                                                                                                                    "imports": {
+                                                                                                                        "three": "<?php echo esc_url(plugins_url('/assets/js/three.module.min.js', __FILE__)); ?>",
+                                                                                                                        "three/addons/": "<?php echo esc_url(plugins_url('/assets/js/threeaddons/', __FILE__)); ?>"
+                                                                                                                    }
+                                                                                                                }
+                                                                                                            </script>
 
     <?php
 }
@@ -880,13 +880,13 @@ function c33d_editor_page($post)
     <!-- start HTMLs -->
     <div id="c33d-editor">
         <script type="importmap">
-                                                                                                {
-                                                                                                    "imports": {
-                                                                                                        "three": "<?php echo esc_url(plugins_url('/assets/js/three.module.min.js', __FILE__)); ?>",
-                                                                                                        "three/addons/": "<?php echo esc_url(plugins_url('/assets//js/threeaddons/', __FILE__)); ?>"
-                                                                                                    }
-                                                                                                }
-                                                                                            </script>
+                                                                                                                        {
+                                                                                                                            "imports": {
+                                                                                                                                "three": "<?php echo esc_url(plugins_url('/assets/js/three.module.min.js', __FILE__)); ?>",
+                                                                                                                                "three/addons/": "<?php echo esc_url(plugins_url('/assets//js/threeaddons/', __FILE__)); ?>"
+                                                                                                                            }
+                                                                                                                        }
+                                                                                                                    </script>
 
 
         <input type="hidden" name="threejs_scene_config_json" id="threejs_scene_config_json" value="">
@@ -1429,6 +1429,7 @@ function c33d_editor_page($post)
                                     <option value="pinchDistance">Pinch Distance (normalized)</option>
                                     <option value="pinchDistancePx">Pinch Distance (raw pixels)</option>
                                     <option value="rotation">Rotation</option>
+                                    <option value="rotationSigned">Rotation (signed)</option>
                                     <option value="rotationThumbIndex">Rotation (thumb–index)</option>
                                     <option value="distance">Distance Between Landmarks (normalized)</option>
                                     <option value="distancePx">Distance Between Landmarks (raw pixels)</option>
@@ -1584,6 +1585,7 @@ function c33d_editor_page($post)
                                                 <option value="pinchDistance">Pinch (norm)</option>
                                                 <option value="pinchDistancePx">Pinch (raw)</option>
                                                 <option value="rotation">Rotation</option>
+                                                <option value="rotationSigned">Rotation (signed)</option>
                                                 <option value="rotationThumbIndex">Rotation (thumb-idx)</option>
                                                 <option value="distance">Dist Between (norm)</option>
                                                 <option value="distancePx">Dist Between (raw)</option>
@@ -1628,6 +1630,7 @@ function c33d_editor_page($post)
                                             <option value="positionZ">Position Z</option>
                                         </optgroup>
                                         <optgroup label="Scale">
+                                            <option value="scaleUniform">Scale (uniform)</option>
                                             <option value="scaleX">Scale X</option>
                                             <option value="scaleY">Scale Y</option>
                                             <option value="scaleZ">Scale Z</option>

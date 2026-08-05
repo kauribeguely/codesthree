@@ -81,6 +81,9 @@ export class HandInputProvider {
             metrics.push({ key: `hand.${hand}.rotationThumbIndex`, label: `${hand} hand — thumb/index rotation`, defaultMin: -90, defaultMax: 90 });
             metrics.push({ key: `hand.${hand}.distance.{A}-{B}`, label: `${hand} hand — distance between two landmarks (normalized)`, needsLandmarkPair: true, landmarkOptions: LANDMARK_NAMES, defaultMin: 0, defaultMax: 1 });
             metrics.push({ key: `hand.${hand}.distancePx.{A}-{B}`, label: `${hand} hand — distance between two landmarks (raw pixels)`, needsLandmarkPair: true, landmarkOptions: LANDMARK_NAMES, defaultMin: 0, defaultMax: window.innerWidth ?? 1920, pixelSpace: true });
+            metrics.push({ key: `hand.${hand}.rotation`, label: `${hand} hand — rotation`, defaultMin: -90, defaultMax: 90 });
+            metrics.push({ key: `hand.${hand}.rotationSigned`, label: `${hand} hand — rotation (signed, no wrap)`, defaultMin: -30, defaultMax: 30 }); // NEW
+            metrics.push({ key: `hand.${hand}.rotationThumbIndex`, label: `${hand} hand — thumb/index rotation`, defaultMin: -90, defaultMax: 90 });
         }
         metrics.push({ key: 'hand.bothIndexesTouching', label: 'Both hands — indexes touching (0/1)', defaultMin: 0, defaultMax: 1 });
         metrics.push({ key: 'hand.indexTouchDistance', label: 'Both hands — index touch distance', defaultMin: 0, defaultMax: 1 });
@@ -105,6 +108,9 @@ export class HandInputProvider {
             raw[`hand.${hand}.pinchDistance`] = h.pinchDistance;
             raw[`hand.${hand}.pinchDistancePx`] = h.pinchDistancePx;
             raw[`hand.${hand}.rotation`] = h.rotation;
+            raw[`hand.${hand}.rotationThumbIndex`] = h.rotationThumbIndex;
+            raw[`hand.${hand}.rotation`] = h.rotation;
+            raw[`hand.${hand}.rotationSigned`] = h.rotationSigned; // NEW
             raw[`hand.${hand}.rotationThumbIndex`] = h.rotationThumbIndex;
         }
 

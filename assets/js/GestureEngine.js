@@ -241,6 +241,7 @@ class GestureEngine {
                 // this.videoElement.style.zIndex = '1000';
                 // this.videoElement.style.border = `2px solid ${this.debugColors.cyan}`;
                 this.videoElement.style.display = 'none';
+                this.videoElement.style.zIndex = '2';
                 this.videoElement.style.transform = 'scale(-1, 1)';
                 this._applyPreviewPosition();
 
